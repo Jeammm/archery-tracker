@@ -12,7 +12,7 @@ def get_sessions(user_id):
         if user_id:
             query['user_id'] = ObjectId(user_id)
             
-        data = list(collection.find(query))
+        data = list(collection.find(query).sort('created_at', -1))
         
         for item in data:
             item['_id'] = str(item['_id'])

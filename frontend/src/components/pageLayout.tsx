@@ -11,27 +11,31 @@ export const PageLayout = (props: { children?: React.ReactElement }) => {
   return (
     <>
       <NavBar />
-      <div className="flex max-w-[1200px] mx-auto pt-10 gap-8 px-8">
-        <div className="flex flex-col gap-2 w-[240px]">
-          <Link to="/trainingSession">
-            <Button className="w-full">Start Training</Button>
-          </Link>
-          {sideBarMenus.map((menu) => {
-            const path = `/${menu.toLowerCase()}`;
-            return (
-              <Link to={path} key={menu}>
-                <Button
-                  variant="ghost"
-                  className="w-full"
-                  data-state={location.pathname === path ? "selected" : ""}
-                >
-                  <p className="text-start w-full">{menu}</p>
-                </Button>
-              </Link>
-            );
-          })}
+      <div className="flex flex-col h-screen items-center">
+        <div className="flex flex-1 overflow-hidden max-w-[1200px] w-full">
+          <aside className="w-60 flex-shrink-0 overflow-y-auto p-4 pt-24">
+            <Link to="/trainingSession">
+              <Button className="w-full mb-4">Start Training</Button>
+            </Link>
+            {sideBarMenus.map((menu) => {
+              const path = `/${menu.toLowerCase()}`;
+              return (
+                <Link to={path} key={menu}>
+                  <Button
+                    variant="ghost"
+                    className="w-full mb-2"
+                    data-state={location.pathname === path ? "selected" : ""}
+                  >
+                    <p className="text-start w-full">{menu}</p>
+                  </Button>
+                </Link>
+              );
+            })}
+          </aside>
+          <main className="overflow-y-auto p-4 pt-24 no-scrollbar flex-1">
+            {children}
+          </main>
         </div>
-        <div className="w-full min-h-[calc(100vh-130px)]">{children}</div>
       </div>
     </>
   );

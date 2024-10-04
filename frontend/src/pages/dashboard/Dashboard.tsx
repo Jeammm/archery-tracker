@@ -7,7 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { LineChartLabel } from "@/components/chart-line-label";
 import { useMemo } from "react";
-import { Monitor, MoveUpRight } from "lucide-react";
+import { ArrowRight, Monitor, MoveUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -125,13 +126,19 @@ export const Dashboard = () => {
           footer={undefined}
         />
       </div>
-      <div>
-        <div className="flex gap-4 overflow-x-auto py-3">
+      <div className="mt-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-bold">You Recent Training</h3>
+          <Link to="/sessions">
+            <ArrowRight />
+          </Link>
+        </div>
+        <div className="w-full flex gap-4 overflow-scroll py-3">
           {isLoading
             ? [1, 2, 3, 4].map((index) => {
                 return <Skeleton key={index} className="w-full h-full" />;
               })
-            : sessions?.map((session, index) => {
+            : sessions?.slice(0, 10).map((session, index) => {
                 return <SessionCard key={index} {...session} />;
               })}
         </div>

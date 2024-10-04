@@ -1,4 +1,23 @@
-export const SessionSummary = () => {
+import { Session } from "@/types/session";
+import { Loader } from "../ui/loader";
+
+interface SessionSummaryProps {
+  sessionData: Session;
+}
+
+export const SessionSummary = (props: SessionSummaryProps) => {
+  const { sessionData } = props;
+
+  const { target_status } = sessionData;
+
+  if (target_status !== "SUCCESS") {
+    return (
+      <div className="mt-4 border p-6">
+        <Loader>Processing...</Loader>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center">
       <h2>Summary</h2>

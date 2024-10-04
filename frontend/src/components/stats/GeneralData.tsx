@@ -8,8 +8,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Session } from "@/types/session";
+import { Loader } from "../ui/loader";
 
-export const GeneralData = () => {
+interface GeneralDataProps {
+  sessionData: Session;
+}
+
+export const GeneralData = (props: GeneralDataProps) => {
+  const { sessionData } = props;
+
+  const { target_status } = sessionData;
+
+  if (target_status !== "SUCCESS") {
+    return (
+      <div className="mt-4 border p-6">
+        <Loader>Processing...</Loader>
+      </div>
+    );
+  }
+
   return (
     <div className="m-8">
       <h2>ข้อมูลทั่วไป</h2>

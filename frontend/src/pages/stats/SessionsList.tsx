@@ -3,7 +3,9 @@ import { DataTable } from "@/components/dataTable/data-table";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { Session } from "@/types/session";
+import { formatDateTime } from "@/utils/dateTime";
 import { ColumnDef } from "@tanstack/react-table";
+import { Eye, Play } from "lucide-react";
 import { useMemo } from "react";
 import useFetch from "react-fetch-hook";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +38,32 @@ export const SessionsList = () => {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={"Date"} />
       ),
+      cell: ({ row }) => {
+        const created_at: string = row.getValue("created_at");
+        return formatDateTime(created_at);
+      },
+    },
+    {
+      accessorKey: "pose_status",
+      header: "Pose Status",
+    },
+    {
+      accessorKey: "target_status",
+      header: "Target Status",
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }) => {
+        const data = row.original;
+        const { pose_status, target_status } = data;
+
+        if (pose_status !== "LIVE" && target_status !== "LIVE") {
+          return <Eye />;
+        }
+
+        return <Play />;
+      },
     },
   ];
 

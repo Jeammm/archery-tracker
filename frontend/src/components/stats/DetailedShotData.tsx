@@ -1,5 +1,22 @@
+import { Session } from "@/types/session";
+import { Loader } from "../ui/loader";
 
-export const DetailedData = () => {
+interface DetailedShotDataProps {
+  sessionData: Session;
+}
+
+export const DetailedShotData = (props: DetailedShotDataProps) => {
+  const { sessionData } = props;
+
+  const { target_status } = sessionData;
+
+  if (target_status !== "SUCCESS") {
+    return (
+      <div className="mt-4 border p-6">
+        <Loader>Processing...</Loader>
+      </div>
+    );
+  }
   return (
     <div className="p-2">
       <div className="flex flex-col border rounded-lg m-3 p-2 md:flex-row justify-between">
