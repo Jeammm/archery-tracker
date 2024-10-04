@@ -1,0 +1,22 @@
+import { MediaVideo } from "./video";
+
+export interface Session {
+  created_at: string;
+  pose_status: string;
+  pose_task_id?: string;
+  pose_video?: MediaVideo[];
+  score?: Hit[];
+  target_status: string;
+  target_task_id?: string;
+  target_video?: MediaVideo[];
+  user_id: string;
+  _id: string;
+}
+
+export interface Hit {
+  frame: number;
+  hit_time: string;
+  id: string;
+  point: number[];
+  score: number;
+}

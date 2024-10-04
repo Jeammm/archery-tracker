@@ -1,0 +1,15 @@
+flask
+celery
+redis
+flask-sqlalchemy
+flask-wtf
+numpy
+pymongo
+python-dotenv
+certifi
+requests
+mediapipe
+opencv-python-headless==4.5.3.56
+flask_bcrypt
+PyJWT
+flask_cors

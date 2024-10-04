@@ -1,0 +1,62 @@
+services:
+  redis:
+    image: redis
+
+  web:
+    build:
+      context: ./backend
+    environment:
+      FLASK_APP: run
+      FLASK_DEBUG: 1
+    volumes:
+      - ./backend:/app
+      - ./backend/project/core/res:/app/project/core/res
+    command: flask run -h 0.0.0.0
+    ports:
+      - 8001:5000
+    env_file:
+      - .env.local
+    networks:
+      - app-network
+
+  celery:
+    build:
+        context: ./backend
+    environment:
+      FLASK_APP: run
+    volumes:
+      - ./backend:/app
+      - ./backend/project/core/res:/app/project/core/res
+    command: celery -A run.celery worker --loglevel=info
+    depends_on:
+      - redis
+    env_file:
+      - .env.local
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - 5173:5173
+    env_file:
+      - .env.local
+    networks:
+      - app-network
+  
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - web
+      - frontend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
