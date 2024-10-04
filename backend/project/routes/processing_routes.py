@@ -20,6 +20,7 @@ def process_target_route(user_id, id):
         "pose_task_id" : pose_task.id,
         "target_status": target_task.status,  # Initial status "PENDING"
         "pose_status": pose_task.status,  # Initial status "PENDING"
+        "start_process_at": datetime.utcnow(),
     }
     
     existing_task = collection.find_one({"_id": ObjectId(id), "user_id": ObjectId(user_id)})

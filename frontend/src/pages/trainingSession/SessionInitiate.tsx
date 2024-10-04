@@ -18,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Session } from "@/types/session";
 import { Loader } from "@/components/ui/loader";
 import axios from "axios";
+import { useTimeElapsed } from "@/hooks/useTimeElapsed";
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
@@ -36,6 +37,10 @@ export const SessionInitiate = () => {
   });
 
   const session = data as Session | undefined;
+
+  const { elapsedTime, timeReady } = useTimeElapsed({
+    startDatetime: session?.created_at,
+  });
 
   const onClickEndSession = async () => {
     try {
@@ -206,6 +211,14 @@ export const SessionInitiate = () => {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6">
+        {timeReady ? (
+          <p className="text-4xl font-bold">Elapsed Time : {elapsedTime}</p>
+        ) : (
+          <Loader containerClassName="w-fit">Loading...</Loader>
+        )}
       </div>
     </div>
   );

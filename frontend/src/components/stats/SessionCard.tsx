@@ -13,16 +13,28 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { useTimeElapsed } from "@/hooks/useTimeElapsed";
 
 interface SessionCardProps extends Session {}
 
 const CARD_SIZE = "w-[200px]";
 
 export const SessionCard = (props: SessionCardProps) => {
-  const { created_at, score, _id, target_status, pose_status } = props;
+  const {
+    created_at,
+    score,
+    _id,
+    target_status,
+    pose_status,
+    start_process_at,
+  } = props;
 
   const totalScore = score?.reduce((sum, obj) => sum + obj.score, 0) || 1;
   const maximumScore = (score?.length || 0) * 10;
+
+  const { elapsedTime, timeReady } = useTimeElapsed({
+    startDatetime: start_process_at,
+  });
 
   if (target_status === "LIVE" || pose_status === "LIVE") {
     return (
@@ -51,6 +63,9 @@ export const SessionCard = (props: SessionCardProps) => {
           <Loader containerClassName="h-fit">
             <p>Processing...</p>
           </Loader>
+          {timeReady && (
+            <p className="text-muted-foreground">Elapsed : {elapsedTime}</p>
+          )}
         </div>
       </Link>
     );

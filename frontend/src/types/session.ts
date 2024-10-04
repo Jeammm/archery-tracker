@@ -2,6 +2,7 @@ import { MediaVideo } from "./video";
 
 export interface Session {
   created_at: string;
+  start_process_at?: string;
   pose_status: string;
   pose_task_id?: string;
   pose_video?: MediaVideo[];
