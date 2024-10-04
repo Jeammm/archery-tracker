@@ -7,10 +7,10 @@ import OpenCV from "@/assets/opencv-logo.png";
 
 export const Home = () => {
   return (
-    <div className="w-screen h-screen bg-grid-pattern flex justify-center p-8 pt-20">
-      <div className="grid grid-cols-2 max-w-[1200px]">
+    <div className="w-screen h-screen bg-grid-pattern flex justify-center p-8 pt-36">
+      <div className="grid grid-cols-1 xl:grid-cols-2 max-w-[1200px]">
         <div className="flex flex-col">
-          <h1 className="text-5xl font-semibold mb-6">
+          <h1 className="text-7xl font-semibold mb-6">
             Precision Training <br />
             For Better <FlipWords words={["Accuracy", "Posture"]} />
           </h1>
@@ -20,13 +20,13 @@ export const Home = () => {
           </h2>
           <div className="flex gap-4 mb-6">
             <Link to="/trainingSession">
-              <Button className="text-xs rounded-2xl" size="lg">
+              <Button className="text-sm rounded-2xl h-14 w-52" size="lg">
                 Start Training
               </Button>
             </Link>
             <Link to="/dashboard">
               <Button
-                className="text-xs rounded-2xl"
+                className="text-sm rounded-2xl h-14 w-52"
                 size="lg"
                 variant="outline"
               >
@@ -34,7 +34,7 @@ export const Home = () => {
               </Button>
             </Link>
           </div>
-          <div className="flex gap-5">
+          <div className="flex gap-5 mb-8">
             <div className="flex gap-2 items-center">
               <img
                 src={Byteark}

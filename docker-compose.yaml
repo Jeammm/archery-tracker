@@ -1,6 +1,8 @@
 services:
   redis:
     image: redis
+    networks:
+      - app-network
 
   web:
     build:
@@ -32,6 +34,8 @@ services:
       - redis
     env_file:
       - .env.local
+    networks:
+    - app-network
 
   frontend:
     build:

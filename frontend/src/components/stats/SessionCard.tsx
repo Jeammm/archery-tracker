@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { CalendarIcon, TargetIcon, ZapIcon } from "lucide-react";
 import { Session } from "@/types/session";
 import { formatDateTime } from "@/utils/dateTime";
 import { Link } from "react-router-dom";
@@ -6,10 +6,17 @@ import { cn } from "@/lib/utils";
 import { Loader } from "../ui/loader";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 
 interface SessionCardProps extends Session {}
 
-const CARD_SIZE = "w-[212px] h-[156px]";
+const CARD_SIZE = "w-[200px]";
 
 export const SessionCard = (props: SessionCardProps) => {
   const { created_at, score, _id, target_status, pose_status } = props;
@@ -50,43 +57,40 @@ export const SessionCard = (props: SessionCardProps) => {
   }
 
   return (
-    <Link
-      to={`/sessions/${_id}`}
-      className={cn([
-        CARD_SIZE,
-        "group text-sm flex-shrink-0 relative bg-secondary overflow-hidden flex flex-col justify-between cursor-pointer rounded-sm",
-      ])}
-    >
-      <div className="flex justify-between p-3 relative">
-        <div className="flex flex-col gap-2">
-          <div className="p-2 bg-primary">
-            <p className="text-primary-foreground">
-              Total Score : <span className="text-green-500">{totalScore}</span>
-              /{maximumScore}
-            </p>
+    <Link to={`/sessions/${_id}`}>
+      <Card
+        className={cn([
+          CARD_SIZE,
+          "hover:scale-[1.02] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all",
+        ])}
+      >
+        <CardHeader className="space-y-0 pb-2">
+          <CardTitle className="font-bold text-2xl">COMPLETED</CardTitle>
+          <CardDescription className="text-sm font-medium">
+            Session Data
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">
+            {totalScore} / {maximumScore}
           </div>
-          <div className="p-2 bg-primary">
-            <p className="text-primary-foreground">
+          <p className="text-xs text-muted-foreground">Score</p>
+          <div className="mt-4 flex flex-col gap-4 text-sm">
+            <div className="flex items-center">
+              <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
               {formatDateTime(created_at)}
-            </p>
+            </div>
+            <div className="flex items-center">
+              <TargetIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+              {(10 * totalScore) / maximumScore}% Accuracy
+            </div>
+            <div className="flex items-center col-span-2">
+              <ZapIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+              {score?.length} Shots
+            </div>
           </div>
-        </div>
-        <ArrowRight className="group-hover:scale-110 mt-3" />
-      </div>
-      <div className="bg-primary grid grid-cols-3 text-primary-foreground relative gap-2 px-2 mt-3">
-        <div className="flex flex-col justify-center items-center">
-          <p>Accuracy</p>
-          <p>{(10 * totalScore) / maximumScore}%</p>
-        </div>
-        <div className="flex flex-col justify-center items-center border-x">
-          <p>Shots</p>
-          <p>{score?.length}</p>
-        </div>
-        {/* <div className="flex flex-col justify-center items-center">
-          <p>Time</p>
-          <p>{getTimeDeltaInMinutes(startDate, endDate)} Minutes</p>
-        </div> */}
-      </div>
+        </CardContent>
+      </Card>
     </Link>
   );
 };

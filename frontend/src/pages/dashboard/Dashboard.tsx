@@ -126,7 +126,7 @@ export const Dashboard = () => {
           footer={undefined}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-8">
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-bold">You Recent Training</h3>
           <Link to="/sessions">

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { db } from "@/services/fireStore";
 import {
   doc,
@@ -9,14 +9,51 @@ import {
   collection,
   addDoc,
 } from "firebase/firestore";
-import { BASE_FRONTEND_URL } from "@/services/baseUrl";
+import { BASE_BACKEND_URL, BASE_FRONTEND_URL } from "@/services/baseUrl";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import useFetch from "react-fetch-hook";
+import { useAuth } from "@/context/AuthContext";
+import { Session } from "@/types/session";
+import { Loader } from "@/components/ui/loader";
+import axios from "axios";
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
+  const [isCameraConnected, setIsCameraConnected] = useState<boolean>(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
+  const { data } = useFetch(`${BASE_BACKEND_URL}/sessions/${sessionId}`, {
+    headers: {
+      Authorization: `Bearer ${user?.token || ""}`,
+    },
+  });
+
+  const session = data as Session | undefined;
+
+  const onClickEndSession = async () => {
+    try {
+      await axios.post(
+        `${BASE_BACKEND_URL}/process-target/${sessionId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
+
+      navigate(`/sessions/${sessionId}`);
+    } catch (error) {
+      console.error("Error ending session:", error);
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -54,6 +91,7 @@ export const SessionInitiate = () => {
         if (!pc.currentRemoteDescription && data && data.answer) {
           const remoteDesc = new RTCSessionDescription(data.answer);
           await pc.setRemoteDescription(remoteDesc);
+          setIsCameraConnected(true);
         }
       });
 
@@ -103,16 +141,72 @@ export const SessionInitiate = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
+  if (!session) {
+    return <Loader />;
+  }
+
   return (
     <div>
-      <video ref={localVideoRef} autoPlay playsInline muted />
-      <video ref={remoteVideoRef} autoPlay playsInline />
-      {sessionId && (
-        <>
-          <QRCodeSVG value={`${BASE_FRONTEND_URL}/join?session=${sessionId}`} />
-        </>
-      )}
-      <Link to={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}>Join</Link>
+      <div className="flex justify-between">
+        <div>
+          <h1 className="text-4xl font-bold">Start Training!</h1>
+          <p className="mt-2 text-muted-foreground">
+            Start time:{" "}
+            {format(session.created_at, "hh:mm a 'at' do MMMM yyyy")}
+          </p>
+        </div>
+        <Button onClick={onClickEndSession}>End Session</Button>
+      </div>
+      <div className="flex gap-4 mt-6">
+        <div className="flex-1 border rounded-md overflow-hidden">
+          <h4 className="w-full text-center font-bold text-2xl tracking-widest">
+            Posture
+          </h4>
+          <div className="w-full aspect-[4/3]">
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+        <div className="flex-1 border rounded-md overflow-hidden">
+          <h4 className="w-full text-center font-bold text-2xl tracking-widest">
+            Target
+          </h4>
+          <div className="w-full aspect-[4/3] relative">
+            <video
+              ref={remoteVideoRef}
+              autoPlay
+              playsInline
+              className="w-full h-full"
+            />
+            {sessionId && !isCameraConnected && (
+              <>
+                <div className="absolute z-20 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
+                  <Skeleton className="absolute w-full h-full" />
+                </div>
+                <div className="absolute z-30 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
+                  <QRCodeSVG
+                    value={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}
+                  />
+                  <p className="text-lg mt-3">
+                    Scan with mobile phone to use as target camera
+                  </p>
+
+                  <Link to={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}>
+                    <Button variant="outline" className="mt-2">
+                      JOIN
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
