@@ -25,7 +25,7 @@ export const JoinSession = () => {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: { facingMode: "environment" },
         audio: false,
       });
 
