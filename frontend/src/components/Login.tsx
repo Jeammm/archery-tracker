@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Credentials } from "@/types/auth";
 import { Button } from "@/components/ui/button";
@@ -65,12 +65,12 @@ const Login = () => {
             />
           </div>
           <div className="mt-4 text-right">
-            <a
-              href="mailto:archery_tracker@dev.com"
+            <Link
+              to="/forgot-password"
               className="text-sm text-muted-foreground"
             >
               Forgot your password?
-            </a>
+            </Link>
           </div>
           <Button className="w-full mt-6" onClick={handleSubmit}>
             SIGN IN

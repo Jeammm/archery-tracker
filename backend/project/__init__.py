@@ -5,7 +5,7 @@ from .extensions import db
 from pymongo import MongoClient
 import certifi
 
-from .utils import make_celery
+from .celery_init import make_celery
 
 mongo_client = None
 db = None

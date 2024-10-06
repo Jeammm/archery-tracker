@@ -31,7 +31,7 @@ export const NavBar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <div className="rounded-full border bg-slate-700 aspect-square w-10 h-10 flex justify-center items-center">
-                    <p>{user?.username?.[0].toUpperCase() || "A"}</p>
+                    <p>{user?.name?.[0].toUpperCase() || "A"}</p>
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -39,7 +39,7 @@ export const NavBar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <p>{user.username || "A"}</p>
+              <p>{user.name || "A"}</p>
             </div>
           ) : (
             <Link to="/login">

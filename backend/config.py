@@ -9,5 +9,7 @@ class Config:
     CELERY_CONFIG = {"broker_url": "redis://redis", "result_backend": "redis://redis"}
     BYTEARK_TOKEN = os.getenv("BYTEARK_TOKEN")
     BYTEARK_PROJECT_KEY = os.getenv("BYTEARK_PROJECT_KEY")
-    # Add more configurations as needed
+    FRONTEND_BASE_URL = os.getenv("VITE_FRONTEND_URL")
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    EMAIL_SENDER = os.getenv("EMAIL_SENDER")
     

@@ -19,6 +19,9 @@ import { SessionsList } from "./pages/stats/SessionsList";
 import { TargetModelSelect } from "./pages/trainingSession/TargetModelSelect";
 import { SessionInitiate } from "./pages/trainingSession/SessionInitiate";
 import { JoinSession } from "./pages/trainingSession/JoinSession";
+import { Profile } from "./pages/profile/Profile";
+import { PasswordReset } from "./pages/profile/PasswordReset";
+import { PasswordForgot } from "./pages/profile/PasswordForgot";
 
 function RequireAuth() {
   return (
@@ -43,6 +46,11 @@ const router = createBrowserRouter(
           </>
         }
       />
+      <Route path="/forgot-password" element={<PasswordForgot />} />
+      <Route
+        path="/reset-forgot-password"
+        element={<PasswordReset isOldPasswordForgot />}
+      />
       <Route path="/join" element={<JoinSession />} />
       <Route
         element={<RequireAuth />}
@@ -61,9 +69,11 @@ const router = createBrowserRouter(
 
         <Route path="/trainingSession">
           <Route path="" element={<TargetModelSelect />} />
-          <Route path="target" element={<TargetModelSelect />} />
           <Route path="live/:sessionId" element={<SessionInitiate />} />
         </Route>
+
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/password-reset" element={<PasswordReset />} />
       </Route>
     </>
   )
