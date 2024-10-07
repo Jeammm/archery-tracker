@@ -58,6 +58,7 @@ export const TargetModelSelect = () => {
                 "flex border p-4 gap-4 rounded-lg cursor-pointer hover:bg-slate-900 relative",
               ])}
               onClick={() => onClickModel(model)}
+              key={model.model}
             >
               {isLoading && (
                 <div className="absolute w-full h-full left-0 top-0 bg-white/50">

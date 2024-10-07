@@ -160,7 +160,9 @@ export const SessionInitiate = () => {
             {format(session.created_at, "hh:mm a 'at' do MMMM yyyy")}
           </p>
         </div>
-        <Button onClick={onClickEndSession}>End Session</Button>
+        <Button onClick={onClickEndSession} variant="destructive">
+          End Session
+        </Button>
       </div>
       <div className="flex gap-4 mt-6">
         <div className="flex-1 border rounded-md overflow-hidden">

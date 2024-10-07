@@ -20,4 +20,8 @@ export interface Hit {
   id: string;
   point: number[];
   score: number;
+  target_image_url?: string;
+  target_clean_image_url?: string;
+  pose_image_url?: string;
+  pose_clean_image_url?: string;
 }

@@ -4,6 +4,7 @@ from flask_cors import CORS
 from .extensions import db
 from pymongo import MongoClient
 import certifi
+import cloudinary
 
 from .celery_init import make_celery
 
@@ -20,6 +21,13 @@ def create_app():
 
     mongo_client = MongoClient(app.config['MONGO_URI'], tlsCAFile=certifi.where())
     db = mongo_client.flask_database
+    
+    # Configure your Cloudinary credentials
+    cloudinary.config(
+        cloud_name=app.config['CLOUDINARY_CLOUD_NAME'],
+        api_key=app.config['CLOUDINARY_API_KEY'],
+        api_secret=app.config['CLOUDINARY_API_SECRET']
+    )
 
     celery = make_celery(app)
     celery.set_default()

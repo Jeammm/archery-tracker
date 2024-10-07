@@ -14,3 +14,4 @@ flask_bcrypt
 PyJWT
 flask_cors
 sendgrid
+cloudinary

@@ -1,5 +1,9 @@
 import { Session } from "@/types/session";
 import { Loader } from "../ui/loader";
+import { Clock, Target } from "lucide-react";
+import { format } from "date-fns";
+import { TargetImageWithModal } from "./TargetImageWithModal";
+import { PostureImageWithModal } from "./PostureImageWithModal";
 
 interface DetailedShotDataProps {
   sessionData: Session;
@@ -8,7 +12,7 @@ interface DetailedShotDataProps {
 export const DetailedShotData = (props: DetailedShotDataProps) => {
   const { sessionData } = props;
 
-  const { target_status } = sessionData;
+  const { target_status, score } = sessionData;
 
   if (target_status !== "SUCCESS") {
     return (
@@ -17,88 +21,69 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
       </div>
     );
   }
+
   return (
-    <div className="p-2">
-      <div className="flex flex-col border rounded-lg m-3 p-2 md:flex-row justify-between">
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between">
-            <h3>Shot : {1}</h3>
-            <div>
-              <p>Score {8}</p>
-              <p>TTS {2004} ms</p>
-              <p>Time {"16:31:56"}</p>
+    <div className="flex flex-col gap-4">
+      {score
+        ?.sort((a, b) => Number(a.id) - Number(b.id))
+        .map((hit, index) => {
+          return (
+            <div className="border rounded-lg m-3justify-between overflow-hidden">
+              <div className="flex bg-muted w-full justify-between px-3 py-1 text-muted-foreground">
+                <div className="flex gap-2 items-center">
+                  <Target size={18} />
+                  <p className="text-lg font-semibold">Shot No. {index + 1}</p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <Clock size={18} />
+                  <p>{format(hit.hit_time, "hh:mm:ss")}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 p-2">
+                <div className="flex justify-between">
+                  <div className="flex flex-col gap-2">
+                    <p>Head {90}°</p>
+                    <p>Hip {90}°</p>
+                    <div>
+                      <p>Shoulders</p>
+                      <div className="flex justify-between gap-4">
+                        <p>Left {91}°</p>
+                        <p>Right {91}°</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p>Elbows</p>
+                      <div className="flex justify-between gap-4">
+                        <p>Left {91}°</p>
+                        <p>Right {91}°</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p>Legs</p>
+                      <div className="flex justify-between gap-4">
+                        <p>Left {91}°</p>
+                        <p>Right {91}°</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <PostureImageWithModal hit={hit} />
+                </div>
+                <div className="flex justify-between">
+                  <TargetImageWithModal hit={hit} />
+                  <div className="flex justify-between">
+                    <div>
+                      <p>Score {hit.score}</p>
+                      <p>TTS {2004} ms</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <p>Head {90}°</p>
-              <p>Left shoulder {91}°</p>
-              <p>Left elbow {13}°</p>
-              <p>Left leg {78}°</p>
-            </div>
-            <div>
-              <p>Hip {90}°</p>
-              <p>Right shoulder {91}°</p>
-              <p>Right elbow {180}°</p>
-              <p>Right leg {70}°</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <div className="w-[200px] aspect-square border">
-            <img
-              src="https://www.shutterstock.com/image-illustration/3d-render-male-archer-pose-260nw-1121107496.jpg"
-              className="object-cover w-full h-full"
-            />
-          </div>
-          <div className="w-[200px] aspect-square border object-fill">
-            <img
-              src="https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-103196097/103196097.jpg"
-              className="object-cover w-full h-full"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col border rounded-lg m-3 p-2 md:flex-row justify-between">
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between">
-            <h3>Shot : {1}</h3>
-            <div>
-              <p>Score {8}</p>
-              <p>TTS {2004} ms</p>
-              <p>Time {"16:31:56"}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <p>Head {90}°</p>
-              <p>Left shoulder {91}°</p>
-              <p>Left elbow {13}°</p>
-              <p>Left leg {78}°</p>
-            </div>
-            <div>
-              <p>Hip {90}°</p>
-              <p>Right shoulder {91}°</p>
-              <p>Right elbow {180}°</p>
-              <p>Right leg {70}°</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <div className="w-[200px] aspect-square border">
-            <img
-              src="https://www.shutterstock.com/image-illustration/3d-render-male-archer-pose-260nw-1121107496.jpg"
-              className="object-cover w-full h-full"
-            />
-          </div>
-          <div className="w-[200px] aspect-square border object-fill">
-            <img
-              src="https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-103196097/103196097.jpg"
-              className="object-cover w-full h-full"
-            />
-          </div>
-        </div>
-      </div>
+          );
+        })}
     </div>
   );
 };
