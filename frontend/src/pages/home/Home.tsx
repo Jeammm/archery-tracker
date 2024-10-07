@@ -8,7 +8,7 @@ import OpenCV from "@/assets/opencv-logo.png";
 export const Home = () => {
   return (
     <div className="w-screen h-screen bg-grid-pattern flex justify-center p-8 pt-36">
-      <div className="grid grid-cols-1 xl:grid-cols-2 max-w-[1200px]">
+      <div className="grid grid-cols-1 xl:grid-cols-2 max-w-[1344px]">
         <div className="flex flex-col">
           <h1 className="text-7xl font-semibold mb-6">
             Precision Training <br />

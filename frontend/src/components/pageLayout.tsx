@@ -12,7 +12,7 @@ export const PageLayout = (props: { children?: React.ReactElement }) => {
     <>
       <NavBar />
       <div className="flex flex-col h-screen items-center">
-        <div className="flex flex-1 overflow-hidden max-w-[1200px] w-full">
+        <div className="flex flex-1 overflow-hidden max-w-[1344px] w-full">
           <aside className="w-60 flex-shrink-0 overflow-y-auto p-4 pt-24">
             <Link to="/trainingSession">
               <Button className="w-full mb-4">Start Training</Button>

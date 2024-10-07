@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const PasswordForgot = () => {
+  const { user } = useAuth();
   const [userEmail, setUserEmail] = useState<string>("");
 
   const onClickResetPassword = async () => {
@@ -18,19 +20,32 @@ export const PasswordForgot = () => {
     }
   };
 
-  return (
-    <div>
-      <h1 className="text-4xl font-bold">Forgot Password</h1>
-      <div className="mt-6 border rounded-lg p-8 flex flex-col gap-4">
-        <div>
-          <p className="font-semibold">Email</p>
-          <Input
-            value={userEmail}
-            onChange={(event) => setUserEmail(event.target.value)}
-          />
-        </div>
+  useEffect(() => {
+    setUserEmail(user?.email || "");
+  }, [user]);
 
-        <Button onClick={onClickResetPassword}>Reset Password</Button>
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-grid-pattern">
+      <div className="flex w-full max-w-lg overflow-hidden bg-background rounded-lg shadow-lg">
+        <div className="p-8 border rounded-lg">
+          <h2 className="mb-6 text-3xl font-bold text-center">
+            Reset your password
+          </h2>
+          <p className="text-center text-muted-foreground mb-6">
+            Enter your user account's verified email address and we will send
+            you a password reset link.
+          </p>
+          <div className="space-y-4">
+            <Input
+              placeholder="Email"
+              value={userEmail}
+              onChange={(event) => setUserEmail(event.target.value)}
+            />
+          </div>
+          <Button className="w-full mt-6" onClick={onClickResetPassword}>
+            Reset Password
+          </Button>
+        </div>
       </div>
     </div>
   );

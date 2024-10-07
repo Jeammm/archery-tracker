@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import axios from "axios";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface PasswordResetProps {
   isOldPasswordForgot?: boolean;
@@ -15,6 +16,7 @@ export const PasswordReset = (props: PasswordResetProps) => {
   const { user } = useAuth();
   const { isOldPasswordForgot } = props;
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [oldPassword, setOldPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -54,6 +56,7 @@ export const PasswordReset = (props: PasswordResetProps) => {
           }
         );
         alert("Reset Password Successfully!");
+        navigate("/login");
       } catch (error) {
         alert("Reset Password Failed!");
       } finally {
@@ -81,47 +84,66 @@ export const PasswordReset = (props: PasswordResetProps) => {
   };
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold">Reset Password</h1>
+    <div
+      className={cn([
+        "flex items-center justify-center",
+        isOldPasswordForgot && "min-h-screen bg-grid-pattern",
+      ])}
+    >
+      <div className="flex w-full max-w-xl overflow-hidden bg-background rounded-lg shadow-lg">
+        <div className="p-8 border rounded-lg w-full">
+          <h2 className="mb-6 text-3xl font-bold text-center">
+            Reset your password
+          </h2>
+          <p className="text-center text-muted-foreground mb-6">
+            Setup your new password
+          </p>
+          <div className="space-y-4">
+            {!isOldPasswordForgot && (
+              <div>
+                <p className="font-semibold">Old Password</p>
+                <Input
+                  value={oldPassword}
+                  onChange={(event) => setOldPassword(event.target.value)}
+                  type="password"
+                  placeholder="Old Password"
+                />
+              </div>
+            )}
 
-      <div className="mt-6 border rounded-lg p-8 flex flex-col gap-4">
-        {!isOldPasswordForgot && (
-          <div>
-            <p className="font-semibold">Old Password</p>
-            <Input
-              value={oldPassword}
-              onChange={(event) => setOldPassword(event.target.value)}
-            />
+            <div>
+              <p className="font-semibold">New Password</p>
+              <Input
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                type="password"
+                placeholder="New Password"
+              />
+            </div>
+            <div>
+              <p className="font-semibold">Confirm New Password</p>
+              <Input
+                value={confirmNewPassword}
+                onChange={(event) => setConfirmNewPassword(event.target.value)}
+                type="password"
+                placeholder="Confirm New Password"
+              />
+            </div>
           </div>
-        )}
-
-        <div>
-          <p className="font-semibold">New Password</p>
-          <Input
-            value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
-          />
+          <Button
+            onClick={onClickConfirm}
+            disabled={isPasswordNotMatch || isMissingData}
+            className="w-full mt-6"
+          >
+            {isLoading ? (
+              <Loader>
+                <></>
+              </Loader>
+            ) : (
+              "Reset Password"
+            )}
+          </Button>
         </div>
-        <div>
-          <p className="font-semibold">Confirm New Password</p>
-          <Input
-            value={confirmNewPassword}
-            onChange={(event) => setConfirmNewPassword(event.target.value)}
-          />
-        </div>
-
-        <Button
-          onClick={onClickConfirm}
-          disabled={isPasswordNotMatch || isMissingData}
-        >
-          {isLoading ? (
-            <Loader>
-              <></>
-            </Loader>
-          ) : (
-            "Confirm"
-          )}
-        </Button>
       </div>
     </div>
   );
