@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Credentials } from "@/types/auth";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Login = () => {
@@ -84,7 +84,12 @@ const Login = () => {
             <p className="mb-6 text-primary-foreground">
               Register your personal details and start journey with us
             </p>
-            <Button variant="secondary">SIGN UP</Button>
+            <Link
+              to="/register"
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              SIGN UP
+            </Link>
           </div>
         </div>
       </div>

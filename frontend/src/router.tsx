@@ -22,6 +22,8 @@ import { JoinSession } from "./pages/trainingSession/JoinSession";
 import { Profile } from "./pages/profile/Profile";
 import { PasswordReset } from "./pages/profile/PasswordReset";
 import { PasswordForgot } from "./pages/profile/PasswordForgot";
+import { SignUp } from "./components/SignUp";
+import { VerifyEmail } from "./components/VerifyEmail";
 
 function RequireAuth() {
   return (
@@ -51,6 +53,9 @@ const router = createBrowserRouter(
         path="/reset-forgot-password"
         element={<PasswordReset isOldPasswordForgot />}
       />
+      <Route path="/register" element={<SignUp />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+
       <Route path="/join" element={<JoinSession />} />
       <Route
         element={<RequireAuth />}

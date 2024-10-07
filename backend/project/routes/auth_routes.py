@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 
 from project.controllers.decorators import token_required
-from ..controllers.auth_controller import register, login, edit_profile, request_password_reset, reset_password, reset_password_with_old_password
+from ..controllers.auth_controller import register, login, edit_profile, request_password_reset, reset_password, reset_password_with_old_password, verify_email
 
 auth_bp = Blueprint('auth_bp', __name__)
 
@@ -32,3 +32,7 @@ def password_reset():
 @token_required
 def password_change(user_id):
     return reset_password_with_old_password(user_id)
+
+@auth_bp.route('/verify-email', methods=['GET'])
+def email_verify():
+    return verify_email()

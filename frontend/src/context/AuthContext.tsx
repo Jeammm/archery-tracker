@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { User, AuthContextType, Credentials } from "@/types/auth";
+import { User, AuthContextType, Credentials, RegisterData } from "@/types/auth";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -48,8 +48,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.removeItem("user");
   };
 
+  const signup = async (registerData: RegisterData): Promise<boolean> => {
+    try {
+      const response = await fetch(`${BASE_BACKEND_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(registerData),
+      });
+
+      if (response.ok) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Sign up error:", error);
+      return false;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, login, logout, setUser, signup }}>
       {children}
     </AuthContext.Provider>
   );

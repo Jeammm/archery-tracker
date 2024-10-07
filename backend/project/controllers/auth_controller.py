@@ -22,10 +22,58 @@ def register():
         # Hash the password
         hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         data['password'] = hashed_password
+        data['is_verified'] = False  # User needs to verify their email
+        del data['confirmPassword']
 
+        # Insert the user into the database
         result = collection.insert_one(data)
-        token = generate_token(result.inserted_id)
-        return jsonify({'id': str(result.inserted_id), 'name': data['name'], 'email': data['email'], 'token': token}), 201
+
+        # Generate a verification token
+        verification_token = generate_token(result.inserted_id)
+
+        # Send the verification email
+        send_verification_email(data['email'], verification_token)
+
+        return jsonify({
+            'message': 'User registered successfully. Please check your email to verify your account.'
+        }), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def send_verification_email(email, token):
+    try:
+        subject = 'Verify Your Email Address'
+        verify_url = f"{current_app.config.get('FRONTEND_BASE_URL')}/verify-email?token={token}"
+        body = f"<strong>Please verify your email by clicking the following link: {verify_url}</strong>"
+        sendEmail(email, subject, body)
+    except Exception as e:
+        return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
+    
+def verify_email():
+    try:
+        token = request.args.get('token')
+        
+        if not token:
+            return jsonify({'error': 'Verification token is required.'}), 400
+
+        # Decode the token to get the user_id
+        user_id = decode_token(f"Bearer {token}")
+
+        if isinstance(user_id, str) and 'Invalid' in user_id:
+            return jsonify({'error': 'Invalid or expired token.'}), 400
+
+        collection = db[ACCOUNT_COLLECTION]
+        user = collection.find_one({'_id': ObjectId(user_id)})
+
+        if not user:
+            return jsonify({'error': 'User not found.'}), 404
+
+        # Update the user's verification status
+        collection.update_one({'_id': ObjectId(user_id)}, {'$set': {'is_verified': True}})
+
+        return jsonify({'message': 'Email verified successfully. You can now log in.'}), 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -35,6 +83,10 @@ def login():
         collection = db[ACCOUNT_COLLECTION]
 
         user = collection.find_one({'email': data['email']})
+
+        if user and not user['is_verified']:
+            return jsonify({'error': 'Account not verified, Please check your email'}), 401
+        
         if user and bcrypt.check_password_hash(user['password'], data['password']):
             token = generate_token(user['_id'])
             return jsonify({'id': str(user['_id']), 'name': user['name'], 'email': user['email'], 'token': token}), 200
