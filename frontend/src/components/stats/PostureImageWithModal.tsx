@@ -15,7 +15,7 @@ interface PostureImageWithModalProps {
 }
 
 export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
-  const { className } = props;
+  const { className, hit } = props;
 
   const [isTargetImageModalOpen, setIsTargetImageModalOpen] =
     useState<boolean>(false);
@@ -24,15 +24,12 @@ export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
     <>
       <div
         className={cn([
-          "w-[200px] aspect-square border object-fill cursor-pointer",
+          "w-[200px] aspect-square border cursor-pointer",
           className,
         ])}
         onClick={() => setIsTargetImageModalOpen(true)}
       >
-        <img
-          src="https://www.shutterstock.com/image-illustration/3d-render-male-archer-pose-260nw-1121107496.jpg"
-          className="object-cover w-full h-full"
-        />
+        <img src={hit.pose_image_url} className="object-cover w-full h-full" />
       </div>
       <Dialog
         open={isTargetImageModalOpen}
@@ -51,7 +48,7 @@ export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
               ])}
             >
               <img
-                src="https://www.shutterstock.com/image-illustration/3d-render-male-archer-pose-260nw-1121107496.jpg"
+                src={hit.pose_image_url}
                 className="object-cover w-full h-full"
               />
             </div>

@@ -155,10 +155,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
     <div>
       <div className="flex gap-3">
         <div className="flex-1 h-auto aspect-video rounded-md overflow-hidden">
-          {target_status === "SUCCESS" ? (
+          {pose_status === "SUCCESS" ? (
             <ByteArkPlayerContainer
-              {...targetPlayerOptions}
-              onReady={onTargetVideoReady}
+              {...posePlayerOptions}
+              onReady={onPoseVideoReady}
             />
           ) : (
             <div className="relative w-full h-full">
@@ -170,10 +170,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
           )}
         </div>
         <div className="flex-1 h-auto aspect-video rounded-md overflow-hidden">
-          {pose_status === "SUCCESS" ? (
+          {target_status === "SUCCESS" ? (
             <ByteArkPlayerContainer
-              {...posePlayerOptions}
-              onReady={onPoseVideoReady}
+              {...targetPlayerOptions}
+              onReady={onTargetVideoReady}
             />
           ) : (
             <div className="relative w-full h-full">

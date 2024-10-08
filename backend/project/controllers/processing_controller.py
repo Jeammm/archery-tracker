@@ -7,6 +7,7 @@ import time
 import cv2
 import io
 import cloudinary.uploader
+from bson.objectid import ObjectId
 from .. import db
 
 collection = db[SESSION_COLLECTION]
@@ -22,12 +23,9 @@ def process_target(self):
     try:
         scoring_detail = process_target_video_data(output_filepath)
         
-        # Upload hit frames
-        scoring_detail_with_images = upload_frames(scoring_detail, output_filepath)
-        
         collection.update_one(
             {"target_task_id": task_id},
-            {"$set": {"target_status": "GETTING_TOKEN", "score": scoring_detail_with_images}}
+            {"$set": {"target_status": "GETTING_TOKEN", "score": scoring_detail}}
         )
         
         # request token for uploading to ByteArk
@@ -44,6 +42,8 @@ def process_target(self):
             {"target_task_id": task_id},
             {"$set": {"target_status": "SUCCESS"}}
         )
+        
+        return scoring_detail, output_filepath
         
     except Exception as e:
         collection.update_one(
@@ -83,6 +83,8 @@ def process_pose(self):
             {"$set": {"pose_status": "SUCCESS"}}
         )
         
+        return output_filepath
+        
     except Exception as e:
         collection.update_one(
             {"pose_task_id": task_id},
@@ -90,26 +92,48 @@ def process_pose(self):
         )
         raise e
 
+@shared_task
+def capture_pose_on_shot_detected(results, id):
+    
+    scoring_detail = results[0][0]
+    target_video_path = results[0][1]
+    pose_video_path = results[1]
+    
+    # Upload hit frames
+    scoring_detail_with_images = upload_frames(scoring_detail, target_video_path, pose_video_path)
+    
+    collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": {"score": scoring_detail_with_images}}
+        )
 
-def upload_frames(scoring_detail, output_filepath):
+def upload_frames(scoring_detail, target_video_path, pose_video_path):
     try:
         scoring_detail_with_images = []
-        cap = cv2.VideoCapture(output_filepath)
+        target_cap = cv2.VideoCapture(target_video_path)
+        pose_cap = cv2.VideoCapture(pose_video_path)
         
         for hit in scoring_detail:
             frame = hit['frame']
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
-            ret, frame = cap.read()
+            target_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+            target_ret, target_frame = target_cap.read()
             
-            if ret:
-                _, buffer = cv2.imencode('.jpg', frame)
-                image_stream = io.BytesIO(buffer)
+            pose_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+            pose_ret, pose_frame = pose_cap.read()
+            
+            if target_ret and pose_ret:
+                _, target_buffer = cv2.imencode('.jpg', target_frame)
+                target_image_stream = io.BytesIO(target_buffer)
+                
+                _, pose_buffer = cv2.imencode('.jpg', pose_frame)
+                pose_image_stream = io.BytesIO(pose_buffer)
         
                 # Upload the frame to Cloudinary
-                upload_result = cloudinary.uploader.upload(image_stream, resource_type='image')
+                target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
+                pose_upload_result = cloudinary.uploader.upload(pose_image_stream, resource_type='image')
                 
                 print("==========")
-                hit_with_image = {**hit, 'target_image_url': upload_result['url']}
+                hit_with_image = {**hit, 'target_image_url': target_upload_result['url'], 'pose_image_url': pose_upload_result['url']}
                 print(hit_with_image)
                 scoring_detail_with_images.append(hit_with_image)
                 print("==========")

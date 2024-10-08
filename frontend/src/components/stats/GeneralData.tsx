@@ -1,7 +1,6 @@
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -10,6 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Session } from "@/types/session";
 import { Loader } from "../ui/loader";
+import { calculateAccumulatedScore } from "@/utils/formatScore";
+import { format } from "date-fns";
 
 interface GeneralDataProps {
   sessionData: Session;
@@ -28,53 +29,70 @@ export const GeneralData = (props: GeneralDataProps) => {
     );
   }
 
+  const accumulatedScore = calculateAccumulatedScore(
+    sessionData.score?.map((score) => score.score) || []
+  );
+
+  const totalScore =
+    sessionData.score?.reduce((sum, obj) => sum + obj.score, 0) || 1;
+
   return (
-    <div className="m-8">
-      <h2>ข้อมูลทั่วไป</h2>
+    <div>
       <Table>
-        <TableCaption>General data</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Round</TableHead>
+            <TableHead>Shot No.</TableHead>
             <TableHead>Score</TableHead>
             <TableHead>TTS (ms)</TableHead>
             <TableHead>Posture Score</TableHead>
-            <TableHead>Total Score</TableHead>
+            <TableHead>Acc. Score</TableHead>
+            <TableHead>Total</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell rowSpan={4} className="text-center border-x">
-              1
-            </TableCell>
-            <TableCell>9</TableCell>
-            <TableCell>2004</TableCell>
-            <TableCell>90 %</TableCell>
-            <TableCell rowSpan={4} className="text-center border-x">
-              37 (x)
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>10</TableCell>
-            <TableCell>2004</TableCell>
-            <TableCell>90 %</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>9</TableCell>
-            <TableCell>2004</TableCell>
-            <TableCell>90 %</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>10 (x)</TableCell>
-            <TableCell>2004</TableCell>
-            <TableCell>90 %</TableCell>
-          </TableRow>
+          {sessionData.score
+            ?.sort((a, b) => Number(a.id) - Number(b.id))
+            .map((hit, index) => {
+              if (index === 0) {
+                return (
+                  <TableRow>
+                    <TableCell
+                      rowSpan={sessionData.score?.length}
+                      className="border-x text-center"
+                    >
+                      1
+                    </TableCell>
+                    <TableCell>{hit.id}</TableCell>
+                    <TableCell>{hit.score}</TableCell>
+                    <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
+                    <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
+                    <TableCell>{accumulatedScore[index]}</TableCell>
+                    <TableCell
+                      rowSpan={sessionData.score?.length}
+                      className="border-x text-center"
+                    >
+                      {totalScore}
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+              return (
+                <TableRow>
+                  <TableCell>{hit.id}</TableCell>
+                  <TableCell>{hit.score}</TableCell>
+                  <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
+                  <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
+                  <TableCell>{accumulatedScore[index]}</TableCell>
+                </TableRow>
+              );
+            })}
         </TableBody>
 
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={4}>Total Score</TableCell>
-            <TableCell className="text-center">37 (x)</TableCell>
+            <TableCell colSpan={6}>Total Score</TableCell>
+            <TableCell className="text-center">{totalScore}</TableCell>
           </TableRow>
         </TableFooter>
       </Table>

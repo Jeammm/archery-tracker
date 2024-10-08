@@ -24,7 +24,7 @@ export const TargetImageWithModal = (props: TargetImageWithModalProps) => {
     <>
       <div
         className={cn([
-          "w-[200px] aspect-square border object-fill cursor-pointer",
+          "w-[200px] aspect-square border cursor-pointer",
           className,
         ])}
         onClick={() => setIsTargetImageModalOpen(true)}

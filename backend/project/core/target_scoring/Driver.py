@@ -7,7 +7,7 @@ from datetime import datetime
 def process_target_video_data(output_filepath):
   # input
   model = cv2.imread('/app/project/core/res/input/target.jpg')
-  video_name = 'https://jeamujvtudx.stream-playlist.byteark.com/streams/UOAurenzTkiT/playlist.m3u8'
+  video_name = 'https://jeamujvtudx.stream-playlist.byteark.com/streams/UQaAjlcGNr87/playlist.m3u8'
   video_fps = 30
   bullseye_point = (325,309)
   inner_diameter_px = 50
