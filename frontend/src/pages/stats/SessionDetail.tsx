@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { Session } from "@/types/session";
+import axios from "axios";
 import { format } from "date-fns";
-import useFetch from "react-fetch-hook";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 export const SessionDetail = () => {
@@ -15,22 +16,50 @@ export const SessionDetail = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
 
-  const {
-    data,
-    // isLoading,
-    error,
-  } = useFetch(`${BASE_BACKEND_URL}/sessions/${sessionId}`, {
-    headers: {
-      Authorization: `Bearer ${user?.token || ""}`,
-    },
-  });
+  const [session, setSession] = useState<Session | null>(null);
+  const [conditionMet, setConditionMet] = useState<boolean>(false);
 
-  const session = data as Session | undefined;
+  const fetchSessionData = async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_BACKEND_URL}/sessions/${sessionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
+      setSession(response.data);
 
-  if (error || !session) {
+      // Check your condition here
+      const { target_status, pose_status } = response.data as Session;
+      if (pose_status === "SUCCESS" && target_status === "SUCCESS") {
+        setConditionMet(true);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSessionData();
+
+    const intervalId = setInterval(() => {
+      if (!conditionMet) {
+        fetchSessionData();
+      } else {
+        clearInterval(intervalId);
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conditionMet]);
+
+  if (!session) {
     return (
       <div>
-        <p>{JSON.stringify(error)}</p>
+        <p>404 NOT FOUND</p>
       </div>
     );
   }
