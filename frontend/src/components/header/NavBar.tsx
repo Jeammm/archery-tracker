@@ -12,7 +12,7 @@ export const NavBar = () => {
   const { user, logout } = useAuth();
 
   return (
-    <div className="w-screen bg-background/70 h-16 flex justify-center px-8 fixed backdrop-blur-md">
+    <div className="z-50 w-screen bg-background/70 h-16 flex justify-center px-8 fixed backdrop-blur-md">
       <div className="w-full max-w-[1344px] flex items-center">
         <Link to="/">
           <h3 className="font-bold text-xl">Archery Tracker</h3>

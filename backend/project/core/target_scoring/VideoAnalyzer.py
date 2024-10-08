@@ -210,7 +210,8 @@ class VideoAnalyzer:
                 "frame": hit.frame_count,
                 "hit_time": utils.calculate_time_from_video_frame(
                     start_time, hit.frame_count, video_fps
-                )
+                ),
+                "bullseye_relation": hit.bullseye_relation.tolist()
             }
             for hit in hitsMngr.verified_hits
         ]

@@ -122,7 +122,7 @@ export const Dashboard = () => {
           chartConfig={chartConfig}
           chartData={sessionsData}
           xAxisDataKey="date"
-          lineDataKey="score"
+          lineDataKey={["score"]}
           footer={undefined}
         />
       </div>

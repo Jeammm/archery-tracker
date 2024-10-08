@@ -67,6 +67,7 @@ export interface TargetModel {
   rings_amount: number;
   model: string;
   frame_size: [number, number, number];
+  model_size: [number, number];
 }
 
 export const modelChoices: TargetModel[] = [
@@ -77,5 +78,6 @@ export const modelChoices: TargetModel[] = [
     rings_amount: 6,
     model: "Olympic Standard Target",
     frame_size: [1080, 1920, 3],
+    model_size: [652, 613],
   },
 ];

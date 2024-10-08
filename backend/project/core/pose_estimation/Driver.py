@@ -3,7 +3,7 @@ from project.core.pose_estimation.Sketcher import Sketcher
 
 def process_pose_video_data(output_filepath):
   # input
-  video_name = 'https://jeamujvtudx.stream-playlist.byteark.com/streams/UQaAjmI18EIb/playlist.m3u8'
+  video_name = 'https://archery-helperuqcyvqe.stream-playlist.byteark.com/streams/UQczFYgTEpyd/playlist.m3u8'
   connections = [
     # Head connections
     (0, 1),  # Nose -> Left eye inner

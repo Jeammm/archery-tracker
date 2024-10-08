@@ -17,16 +17,17 @@ import {
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-interface LineChartLabelProps {
+export interface LineChartLabelProps {
   title: string;
   description: string;
   chartConfig: ChartConfig;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chartData: any[];
   xAxisDataKey: string;
-  lineDataKey: string;
+  lineDataKey: string[];
   footer: ReactNode;
   chartContainerClassName?: string;
+  stack?: boolean;
 }
 
 export function LineChartLabel(props: LineChartLabelProps) {
@@ -73,25 +74,29 @@ export function LineChartLabel(props: LineChartLabelProps) {
               cursor={false}
               content={<ChartTooltipContent indicator="line" />}
             />
-            <Line
-              dataKey={lineDataKey}
-              type="natural"
-              stroke={`var(--color-${lineDataKey})`}
-              strokeWidth={2}
-              dot={{
-                fill: `var(--color-${lineDataKey})`,
-              }}
-              activeDot={{
-                r: 6,
-              }}
-            >
-              <LabelList
-                position="top"
-                offset={12}
-                className="fill-foreground"
-                fontSize={12}
-              />
-            </Line>
+            {lineDataKey.map((dataKey) => {
+              return (
+                <Line
+                  dataKey={dataKey}
+                  type="natural"
+                  stroke={`var(--color-${dataKey})`}
+                  strokeWidth={2}
+                  dot={{
+                    fill: `var(--color-${dataKey})`,
+                  }}
+                  activeDot={{
+                    r: 6,
+                  }}
+                >
+                  <LabelList
+                    position="top"
+                    offset={12}
+                    className="fill-foreground"
+                    fontSize={12}
+                  />
+                </Line>
+              );
+            })}
           </LineChart>
         </ChartContainer>
       </CardContent>

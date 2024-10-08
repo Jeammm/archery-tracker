@@ -1,5 +1,8 @@
 import { Session } from "@/types/session";
 import { Loader } from "../ui/loader";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { MousePointer2, Move3d, Target } from "lucide-react";
 
 interface SessionSummaryProps {
   sessionData: Session;
@@ -8,7 +11,20 @@ interface SessionSummaryProps {
 export const SessionSummary = (props: SessionSummaryProps) => {
   const { sessionData } = props;
 
-  const { target_status } = sessionData;
+  const { target_status, score } = sessionData;
+
+  const [activeHitId, setActiveHitId] = useState<string | null>(null);
+
+  // const targetModel = modelChoices[0];
+
+  const getPositionInPercent = (point: number[]) => {
+    const x = (point[0] / 1920) * 100;
+    const y = (point[1] / 1080) * 100;
+
+    console.log(x, y);
+
+    return [x, y];
+  };
 
   if (target_status !== "SUCCESS") {
     return (
@@ -19,47 +35,102 @@ export const SessionSummary = (props: SessionSummaryProps) => {
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <h2>Summary</h2>
-      <div className="grid grid-cols-2 gap-4 p-8">
-        <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
-          <div className="m-8">
-            <img
-              src="https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-103196097/103196097.jpg"
-              alt=""
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-x-4">
-            <p>Head {90}°</p>
-            <p>Left shoulder {91}°</p>
-            <p>Left elbow {13}°</p>
-            <p>Left leg {78}°</p>
-
-            <p>Hip {90}°</p>
-            <p>Right shoulder {91}°</p>
-            <p>Right elbow {180}°</p>
-            <p>Right leg {70}°</p>
-          </div>
+    <div className="grid grid-cols-2 gap-4 mt-6">
+      <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
+        <div className="m-8">
+          <img
+            src="https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-103196097/103196097.jpg"
+            alt=""
+          />
         </div>
-        <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
-          <div className="m-8">
-            <img
-              src="https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-103196097/103196097.jpg"
-              alt=""
-            />
-          </div>
-          <div className="grid grid-cols-2 w-full text-center">
-            <p>Total Score </p>
-            <p>{112}</p>
-            <p>Average Score</p>
-            <p> {8.7}</p>
-            <p>Average TTS</p>
-            <p> {2012} ms</p>
-            <p>Accuracy </p>
-            <p>{93} %</p>
-            <p>Time </p>
-            <p>{35} min</p>
-          </div>
+        <div className="grid grid-cols-2 gap-x-4">
+          <p>Head {90}°</p>
+          <p>Left shoulder {91}°</p>
+          <p>Left elbow {13}°</p>
+          <p>Left leg {78}°</p>
+
+          <p>Hip {90}°</p>
+          <p>Right shoulder {91}°</p>
+          <p>Right elbow {180}°</p>
+          <p>Right leg {70}°</p>
+        </div>
+      </div>
+      <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
+        <div className="relative inline-block">
+          <img
+            src={score?.[0].target_image_url}
+            alt="target1"
+            className="w-full h-auto"
+          />
+          {score?.map((hit) => {
+            const [x, y] = getPositionInPercent(hit.point);
+            return (
+              <>
+                <div
+                  key={hit.id}
+                  style={{
+                    position: "absolute",
+                    left: `${x}%`,
+                    top: `${y}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  className={cn([
+                    "w-3 h-3 border-4 border-green-500 bg-transparent rounded-full cursor-pointer",
+                    "hover:border-red-500",
+                    activeHitId &&
+                      activeHitId !== hit.id &&
+                      "border-green-700/60",
+                  ])}
+                  onMouseEnter={() => setActiveHitId(hit.id)}
+                  onMouseLeave={() => setActiveHitId(null)}
+                ></div>
+                {activeHitId === hit.id && (
+                  <div
+                    className={cn([
+                      "absolute p-2 bg-muted rounded-md z-10 w-[220px]",
+                      "transition-all duration-200 ease-in-out",
+                    ])}
+                    style={{
+                      left: `${x}%`,
+                      top: `${y}%`,
+                      transform: "translate(-100%, 0)",
+                    }}
+                    onMouseEnter={() => setActiveHitId(hit.id)}
+                    onMouseLeave={() => setActiveHitId(null)}
+                  >
+                    <div className="flex gap-2 items-center">
+                      <Target size={16} strokeWidth={1} />
+                      <p className="text-md font-semibold">Shot No.{hit.id}</p>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <MousePointer2 size={16} strokeWidth={1} />
+                      <p className="text-md fron-semibold">
+                        Score: {hit.score}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <Move3d size={16} strokeWidth={1} />
+                      <p className="text-md fron-semibold break-keep">
+                        Position: [x:{hit.point[0]}, y:{hit.point[1]}]
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })}
+        </div>
+        <div className="grid grid-cols-2 w-full text-center">
+          <p>Total Score </p>
+          <p>{112}</p>
+          <p>Average Score</p>
+          <p> {8.7}</p>
+          <p>Average TTS</p>
+          <p> {2012} ms</p>
+          <p>Accuracy </p>
+          <p>{93} %</p>
+          <p>Time </p>
+          <p>{35} min</p>
         </div>
       </div>
     </div>
