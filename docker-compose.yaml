@@ -13,7 +13,7 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/project/core/res:/app/project/core/res
-    command: flask run -h 0.0.0.0
+    command: flask run -h 0.0.0.0 --with-threads
     ports:
       - 8001:5000
     env_file:

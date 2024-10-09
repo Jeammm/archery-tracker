@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-
-from .extensions import db
+from .routes.websocket import init_websocket
 from pymongo import MongoClient
 import certifi
 import cloudinary
@@ -10,7 +9,6 @@ from .celery_init import make_celery
 
 mongo_client = None
 db = None
-
 
 def create_app():
     global mongo_client, db
@@ -31,11 +29,10 @@ def create_app():
 
     celery = make_celery(app)
     celery.set_default()
-    
-    from .views import views
-    app.register_blueprint(views)
+
+    socketio = init_websocket(app)
     
     from .routes import register_blueprints
     register_blueprints(app)
 
-    return app, celery
+    return app, celery, socketio
