@@ -17,3 +17,8 @@ def handle_disconnect():
 def handle_message(data):
     print('Message received: ', data)
     socketio.send('Message received')
+    
+@socketio.on("video_frame_pose")
+def handle_video(image):
+    print(image)
+    print("=================== here =====================")

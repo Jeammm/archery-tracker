@@ -14,8 +14,6 @@ import { NavBar } from "./components/header/NavBar";
 import { SessionDetail } from "./pages/stats/SessionDetail";
 import { SessionsList } from "./pages/stats/SessionsList";
 
-// import { TrainingSession } from "./pages/trainingSession/TrainingSession";
-// import { TargetFeed } from "./pages/trainingSession/TargetFeed";
 import { TargetModelSelect } from "./pages/trainingSession/TargetModelSelect";
 import { SessionInitiate } from "./pages/trainingSession/SessionInitiate";
 import { JoinSession } from "./pages/trainingSession/JoinSession";
