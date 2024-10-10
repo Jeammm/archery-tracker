@@ -1,4 +1,5 @@
 from celery import shared_task
+from project import redis_client
 from project.constants.constants import SESSION_COLLECTION
 from project.controllers.video_uploader import get_upload_token, upload_video
 from project.core.pose_estimation.Driver import process_pose_video_data
@@ -13,15 +14,17 @@ from .. import db
 collection = db[SESSION_COLLECTION]
 
 @shared_task(bind=True)
-def process_target(self):
+def process_target(self, sessionId):
     task_id = self.request.id
     timestamp = int(time.time())
     
-    output_filename = f"target_video_{timestamp}"
+    input_filename = f"target_video_raw_{sessionId}"
+    input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
+    output_filename = f"target_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
     try:
-        scoring_detail = process_target_video_data(output_filepath)
+        scoring_detail = process_target_video_data(input_filepath, output_filepath)
         
         collection.update_one(
             {"target_task_id": task_id},
@@ -53,15 +56,17 @@ def process_target(self):
         raise e
 
 @shared_task(bind=True)
-def process_pose(self):
+def process_pose(self, sessionId):
     task_id = self.request.id
     timestamp = int(time.time())
     
-    output_filename = f"pose_video_{timestamp}"
+    input_filename = f"pose_video_raw_{sessionId}"
+    input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
+    output_filename = f"pose_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
     try:
-        process_pose_video_data(output_filepath)
+        process_pose_video_data(input_filepath, output_filepath)
         
         collection.update_one(
             {"pose_task_id": task_id},

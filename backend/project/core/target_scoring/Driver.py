@@ -1,13 +1,12 @@
 from project.core.target_scoring.VideoAnalyzer import VideoAnalyzer
 from project.core.target_scoring.Sketcher import Sketcher
-from project.core.target_scoring import utils
 import cv2
 from datetime import datetime
 
-def process_target_video_data(output_filepath):
+def process_target_video_data(input_filepath, output_filepath):
   # input
   model = cv2.imread('/app/project/core/res/input/target.jpg')
-  video_name = 'https://archery-helperuqcyvqe.stream-playlist.byteark.com/streams/UQczFZVwxzoG/playlist.m3u8'
+  video_name = input_filepath
   video_fps = 30
   bullseye_point = (325,309)
   inner_diameter_px = 50
@@ -20,6 +19,9 @@ def process_target_video_data(output_filepath):
   _, test_sample = cap.read()
 
   # calculate the sizes of the frame and the input
+  print("=======target=======")
+  print(input_filepath)
+  print("================")
   model_h, model_w, _ = model.shape
   frame_h, frame_w, _ = test_sample.shape
   pixel_to_inch = inner_diameter_inch / inner_diameter_px
@@ -32,5 +34,5 @@ def process_target_video_data(output_filepath):
   sketcher = Sketcher(measure_unit, measure_unit_name)
   video_analyzer = VideoAnalyzer(video_name, model, bullseye_point, rings_amount, inner_diameter_px)
   scoring_detail = video_analyzer.analyze(output_filepath, sketcher, start_time, video_fps)
-  print("========== Score Result Completed Processing===========")
+  print("========== Score Result Processing Completed ===========")
   return scoring_detail

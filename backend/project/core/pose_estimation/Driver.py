@@ -1,9 +1,13 @@
 from project.core.pose_estimation.VideoAnalyzer import VideoAnalyzer
 from project.core.pose_estimation.Sketcher import Sketcher
 
-def process_pose_video_data(output_filepath):
+def process_pose_video_data(input_filepath, output_filepath):
   # input
-  video_name = 'https://archery-helperuqcyvqe.stream-playlist.byteark.com/streams/UQczFYgTEpyd/playlist.m3u8'
+  video_name = input_filepath
+  
+  print("=======pose=========")
+  print(input_filepath)
+  print("================")
   connections = [
     # Head connections
     (0, 1),  # Nose -> Left eye inner
@@ -50,11 +54,8 @@ def process_pose_video_data(output_filepath):
   bone_color = (255, 0, 0)
   thickness = 2
 
-  print("here")
   # analyze
   sketcher = Sketcher(connections, joint_color, bone_color, thickness)
-  print("here1")
   video_analyzer = VideoAnalyzer(video_name)
-  print("here2")
   video_analyzer.analyze(output_filepath, sketcher)
   print("========== Pose Process Done ===========")

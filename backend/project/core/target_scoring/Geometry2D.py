@@ -54,8 +54,15 @@ def zero_pad_as(img, paddingShape):
 
     img_h, img_w, _ = img.shape
     p_h, p_w, _ = paddingShape
-    vertical = int((p_h - img_h) / 2)
-    horizontal = int((p_w - img_w) / 2)
+    
+    # if video stream is smaller
+    vertical = int((img_h - p_h) / 2)
+    horizontal = int((img_w - p_w) / 2)
+    
+    # if video stream is bigger
+    # vertical = int((p_h - img_h) / 2)
+    # horizontal = int((p_w - img_w) / 2)
+    
     a = (horizontal,vertical)
     b = (horizontal + img_w,vertical)
     c = (horizontal + img_w,vertical + img_h)

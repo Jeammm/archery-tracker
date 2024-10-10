@@ -1,4 +1,5 @@
 from flask_socketio import SocketIO
+from flask import request
 
 socketio = SocketIO()
 
@@ -7,18 +8,8 @@ def init_websocket(app):
 
 @socketio.on('connect')
 def handle_connect():
-    print('Client connected')
+    print(f'websocket ID: {request.sid} connected')
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print('Client disconnected')
-
-@socketio.on('message')
-def handle_message(data):
-    print('Message received: ', data)
-    socketio.send('Message received')
-    
-@socketio.on("video_frame_pose")
-def handle_video(image):
-    print(image)
-    print("=================== here =====================")
+     print(f'websocket ID: {request.sid} disconnected')

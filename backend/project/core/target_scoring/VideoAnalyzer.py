@@ -64,6 +64,10 @@ class VideoAnalyzer:
                     self.scale = geo2D.calc_model_scale(warped_edges, self.model.shape)
                     self.homography_setup_done = True
                     self.frame_life = 0
+        
+        # If homography setup failed
+        self.homography_setup_done = False
+        return False  # Indicating no match was found
 
     def _analyze_frame(self, frame):
         '''
@@ -98,8 +102,10 @@ class VideoAnalyzer:
         
         while not self.homography_setup_done or self.frame_life > HOMOGRAPHY_LIFE_SPAN:
         # if True:
-            self._setup_homography(frame)
+            success = self._setup_homography(frame)
             print("processing...")
+            if not success:
+                return None, []
         
         # process image
         sub_target = visuals.subtract_background(self.warped_img, frame)

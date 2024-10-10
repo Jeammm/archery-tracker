@@ -58,7 +58,7 @@ export const SessionSummary = (props: SessionSummaryProps) => {
       <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
         <div className="relative inline-block">
           <img
-            src={score?.[0].target_image_url}
+            src={score?.[0]?.target_image_url}
             alt="target1"
             className="w-full h-auto"
           />

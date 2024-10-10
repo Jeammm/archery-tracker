@@ -27,6 +27,11 @@ export const SessionInitiate = () => {
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const [isCameraConnected, setIsCameraConnected] = useState<boolean>(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [recording, setRecording] = useState<boolean>(false);
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -59,6 +64,69 @@ export const SessionInitiate = () => {
       console.error("Error ending session:", error);
     }
   };
+
+  const startRecording = () => {
+    if (localVideoRef.current) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      recorder.ondataavailable = (event) => {
+        chunks.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        const videoBlob = new Blob(chunks, { type: "video/webm" });
+        setVideoBlob(videoBlob);
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setRecording(true);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setRecording(false);
+    }
+  };
+
+  useEffect(() => {
+    const uploadVideoBlob = async () => {
+      // Upload video
+      if (videoBlob) {
+        const formData = new FormData();
+        formData.append("video", videoBlob, `session_${sessionId}.webm`);
+
+        await axios.post(
+          `${BASE_BACKEND_URL}/upload-target-video/${sessionId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${user?.token || ""}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        await axios.post(
+          `${BASE_BACKEND_URL}/upload-pose-video/${sessionId}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${user?.token || ""}`,
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      }
+    };
+    uploadVideoBlob();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoBlob]);
 
   useEffect(() => {
     const init = async () => {
@@ -221,6 +289,19 @@ export const SessionInitiate = () => {
         ) : (
           <Loader containerClassName="w-fit">Loading...</Loader>
         )}
+      </div>
+
+      <div className="mt-4">
+        <Button onClick={startRecording} disabled={recording}>
+          Start Recording
+        </Button>
+        <Button
+          onClick={stopRecording}
+          disabled={!recording}
+          variant="secondary"
+        >
+          Stop Recording
+        </Button>
       </div>
     </div>
   );
