@@ -12,8 +12,7 @@ processing_bp = Blueprint('processing_bp', __name__)
 collection = db[SESSION_COLLECTION]
 
 @processing_bp.route('/upload-target-video/<id>', methods=['POST'])
-@token_required
-def upload_target_video(user_id, id):    
+def upload_target_video(id):    
     if 'video' not in request.files:
         return {"error": "No video part"}, 400
     

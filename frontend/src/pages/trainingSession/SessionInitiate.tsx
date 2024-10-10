@@ -19,6 +19,7 @@ import { Session } from "@/types/session";
 import { Loader } from "@/components/ui/loader";
 import axios from "axios";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
+import { socket } from "@/services/socket";
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
@@ -83,6 +84,9 @@ export const SessionInitiate = () => {
       recorder.start();
       setMediaRecorder(recorder);
       setRecording(true);
+
+      // Emit start recording event
+      socket.emit("recordingStarted");
     }
   };
 
@@ -90,6 +94,9 @@ export const SessionInitiate = () => {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setRecording(false);
+
+      // Emit stop recording event
+      socket.emit("recordingStopped");
     }
   };
 
@@ -99,17 +106,6 @@ export const SessionInitiate = () => {
       if (videoBlob) {
         const formData = new FormData();
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
-
-        await axios.post(
-          `${BASE_BACKEND_URL}/upload-target-video/${sessionId}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${user?.token || ""}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
 
         await axios.post(
           `${BASE_BACKEND_URL}/upload-pose-video/${sessionId}`,

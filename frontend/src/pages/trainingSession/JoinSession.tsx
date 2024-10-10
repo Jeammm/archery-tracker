@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   addDoc,
@@ -9,16 +9,54 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "@/services/fireStore";
+import { socket } from "@/services/socket";
+import axios from "axios";
+import { BASE_BACKEND_URL } from "@/services/baseUrl";
 
 export const JoinSession = () => {
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const location = useLocation();
+  const sessionId = new URLSearchParams(location.search).get("session");
+
+  // Start recording the media stream
+  const startRecording = useCallback(() => {
+    if (localVideoRef.current && !isRecording) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      recorder.ondataavailable = (event) => {
+        chunks.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        const videoBlob = new Blob(chunks, { type: "video/webm" });
+        setVideoBlob(videoBlob);
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    }
+  }, [isRecording]);
+
+  // Stop recording and handle the video blob
+  const stopRecording = useCallback(() => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
+  }, [mediaRecorder]);
 
   useEffect(() => {
     const init = async () => {
-      const sessionId = new URLSearchParams(location.search).get("session");
       if (!sessionId) {
         console.error("No session ID provided");
         return;
@@ -86,13 +124,47 @@ export const JoinSession = () => {
 
     init();
 
+    // Listen for WebSocket events to start and stop recording
+    socket.on("recordingStarted", () => {
+      console.log("Recording started from laptop");
+      startRecording();
+    });
+
+    socket.on("recordingStopped", () => {
+      console.log("Recording stopped from laptop");
+      stopRecording();
+    });
+
     return () => {
       if (peerConnection) {
         peerConnection.close();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]);
+  }, [location, startRecording, stopRecording]);
+
+  useEffect(() => {
+    const uploadVideoBlob = async () => {
+      // Upload video
+      if (videoBlob) {
+        const formData = new FormData();
+        formData.append("video", videoBlob, `session_${sessionId}.webm`);
+
+        await axios.post(
+          `${BASE_BACKEND_URL}/upload-target-video/${sessionId}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+      }
+    };
+    uploadVideoBlob();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoBlob]);
 
   return (
     <div>
