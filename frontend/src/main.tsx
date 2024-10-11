@@ -8,9 +8,9 @@ import { AuthProvider } from "./context/AuthContext";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <Router />
-        </ThemeProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <Router />
+      </ThemeProvider>
     </AuthProvider>
   </React.StrictMode>
 );

@@ -77,6 +77,7 @@ export function LineChartLabel(props: LineChartLabelProps) {
             {lineDataKey.map((dataKey) => {
               return (
                 <Line
+                  key={dataKey}
                   dataKey={dataKey}
                   type="natural"
                   stroke={`var(--color-${dataKey})`}

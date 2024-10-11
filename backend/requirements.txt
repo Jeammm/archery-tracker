@@ -1,8 +1,6 @@
 flask
 celery
 redis
-flask-sqlalchemy
-flask-wtf
 numpy
 pymongo
 python-dotenv

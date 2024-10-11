@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Input } from "./ui/input";
-import { Button, buttonVariants } from "./ui/button";
+import { Input } from "../../components/ui/input";
+import { Button, buttonVariants } from "../../components/ui/button";
 import { RegisterData } from "@/types/auth";
 import { useAuth } from "@/context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";

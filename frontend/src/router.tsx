@@ -8,7 +8,7 @@ import {
 import { Home } from "./pages/home/Home";
 import { PageLayout } from "./components/pageLayout";
 import { Dashboard } from "./pages/dashboard/Dashboard";
-import Login from "./components/Login";
+import Login from "./pages/auth/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { NavBar } from "./components/header/NavBar";
 import { SessionDetail } from "./pages/stats/SessionDetail";
@@ -18,10 +18,10 @@ import { TargetModelSelect } from "./pages/trainingSession/TargetModelSelect";
 import { SessionInitiate } from "./pages/trainingSession/SessionInitiate";
 import { JoinSession } from "./pages/trainingSession/JoinSession";
 import { Profile } from "./pages/profile/Profile";
-import { PasswordReset } from "./pages/profile/PasswordReset";
-import { PasswordForgot } from "./pages/profile/PasswordForgot";
-import { SignUp } from "./components/SignUp";
-import { VerifyEmail } from "./components/VerifyEmail";
+import { PasswordReset } from "./pages/auth/PasswordReset";
+import { PasswordForgot } from "./pages/auth/PasswordForgot";
+import { SignUp } from "./pages/auth/SignUp";
+import { VerifyEmail } from "./pages/auth/VerifyEmail";
 
 function RequireAuth() {
   return (

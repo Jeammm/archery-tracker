@@ -68,6 +68,7 @@ export function ChartBar(props: LineChartLabelProps) {
             {lineDataKey.map((dataKey, index) => {
               return (
                 <Bar
+                  key={dataKey}
                   dataKey={dataKey}
                   fill={`var(--color-${dataKey})`}
                   radius={

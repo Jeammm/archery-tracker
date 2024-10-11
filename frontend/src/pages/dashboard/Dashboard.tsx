@@ -171,12 +171,12 @@ export const Dashboard = () => {
             ? [1, 2, 3, 4].map((index) => {
                 return <Skeleton key={index} className="w-full h-full" />;
               })
-            : sessions?.slice(0, 10).map((session, index) => {
+            : sessions?.slice(0, 10).map((session) => {
                 return (
                   <SessionCard
-                    key={index}
                     sessionData={session}
                     fetchSessionsData={fetchSessionsData}
+                    key={session._id}
                   />
                 );
               })}

@@ -1,8 +1,8 @@
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "./ui/button";
-import { Loader } from "./ui/loader";
+import { Button } from "../../components/ui/button";
+import { Loader } from "../../components/ui/loader";
 
 export const VerifyEmail = () => {
   const navigate = useNavigate();
