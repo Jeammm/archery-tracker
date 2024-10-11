@@ -12,6 +12,9 @@ from .. import db
 
 collection = db[SESSION_COLLECTION]
 
+class MissingTargetModelError(Exception):
+    pass
+
 @shared_task(bind=True)
 def process_target(self, sessionId):
     task_id = self.request.id
@@ -28,7 +31,14 @@ def process_target(self, sessionId):
         )
     
     try:
-        scoring_detail = process_target_video_data(input_filepath, output_filepath)
+        existing_session = collection.find_one({"_id": ObjectId(sessionId)})
+        
+        if 'model' not in existing_session:
+            raise MissingTargetModelError('Model is required in the request body')
+        
+        model = existing_session['model']
+        
+        scoring_detail = process_target_video_data(input_filepath, output_filepath, model)
         
         collection.update_one(
             {"target_task_id": task_id},

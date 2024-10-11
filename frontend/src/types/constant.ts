@@ -66,8 +66,10 @@ export interface TargetModel {
   inner_diameter_px: number;
   rings_amount: number;
   model: string;
+  model_name: string;
   frame_size: [number, number, number];
   model_size: [number, number];
+  model_path: string;
 }
 
 export const modelChoices: TargetModel[] = [
@@ -76,8 +78,10 @@ export const modelChoices: TargetModel[] = [
     bullseye_point: [325, 309],
     inner_diameter_px: 50,
     rings_amount: 6,
-    model: "Olympic Standard Target",
+    model: "olympic_standard_target",
+    model_name: "Olympic Standard Target",
     frame_size: [1080, 1920, 3],
     model_size: [652, 613],
+    model_path: "/olympic_standard_target.jpg"
   },
 ];

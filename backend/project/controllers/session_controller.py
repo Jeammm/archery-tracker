@@ -36,12 +36,19 @@ def get_session_by_id(user_id, session_id):
 
 def create_session(user_id):
     try:
+        data = request.json
+        # Check if 'model' is present in the request body
+        if 'model' not in data:
+            return jsonify({'error': 'Model is required in the request body'}), 400
+        
+        model = data['model']
         created_date = datetime.utcnow()
         task_data = {
             "user_id": ObjectId(user_id),
             "created_at": created_date,
             "target_status": "LIVE",
             "pose_status": "LIVE", 
+            "model": model,
         }
         result = collection.insert_one(task_data)
         
@@ -49,8 +56,9 @@ def create_session(user_id):
                 "_id": str(result.inserted_id),
                 "user_id": user_id,
                 "created_at": created_date,
-                 "target_status": "LIVE",
+                "target_status": "LIVE",
                 "pose_status": "LIVE",
+                "model": model,
             }), 202
         
     except Exception as e:

@@ -1,18 +1,22 @@
+from project.core.target_scoring.TargetModel import get_target_model_path
 from project.core.target_scoring.VideoAnalyzer import VideoAnalyzer
 from project.core.target_scoring.Sketcher import Sketcher
 import cv2
 from datetime import datetime
 
-def process_target_video_data(input_filepath, output_filepath):
-  # input
-  model = cv2.imread('/app/project/core/res/input/target.jpg')
+def process_target_video_data(input_filepath, output_filepath, target_model):
+  # video input
   video_name = input_filepath
   video_fps = 30
-  bullseye_point = (325,309)
-  inner_diameter_px = 50
-  inner_diameter_inch = 1.5
-  rings_amount = 6
   display_in_cm = True
+  
+  # model input
+  model_data = get_target_model_path(target_model)
+  model = cv2.imread(model_data['model_path'])
+  bullseye_point = model_data['bullseye_point']
+  inner_diameter_px = model_data['inner_diameter_px']
+  inner_diameter_inch = model_data['inner_diameter_inch']
+  rings_amount = model_data['rings_amount']
 
   # calculate the sizes of the frame and the input
   pixel_to_inch = inner_diameter_inch / inner_diameter_px

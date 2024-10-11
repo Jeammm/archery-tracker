@@ -16,6 +16,7 @@ export interface Session {
   _id: string;
   target_error_message?: string;
   pose_error_message?: string;
+  model: string;
 }
 
 export interface Hit {

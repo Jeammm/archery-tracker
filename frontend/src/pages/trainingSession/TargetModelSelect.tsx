@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import target1 from "/target.jpg";
 
 import { modelChoices, TargetModel } from "@/types/constant";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +67,7 @@ export const TargetModelSelect = () => {
                 </div>
               )}
               <img
-                src={target1}
+                src={model.model_path}
                 alt={model.model}
                 className="object-cover h-[120px] aspect-square rounded-md"
               />
@@ -77,7 +76,7 @@ export const TargetModelSelect = () => {
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                   <p className="ml-2.5">Olympic Standard</p>
                 </Badge>
-                <p className="text-lg font-semibold mt-2">{model.model}</p>
+                <p className="text-lg font-semibold mt-2">{model.model_name}</p>
                 <p className="text-muted-foreground text-sm">
                   Rings: {model.rings_amount}
                 </p>
