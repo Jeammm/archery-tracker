@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   addDoc,
   collection,
@@ -12,8 +12,12 @@ import { db } from "@/services/fireStore";
 import { socket } from "@/services/socket";
 import axios from "axios";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
+import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
+import { Button } from "@/components/ui/button";
 
 export const JoinSession = () => {
+  const navigate = useNavigate();
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -21,12 +25,17 @@ export const JoinSession = () => {
   );
   const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [isSessionEnded, setIsSessionEnded] = useState<boolean>(false);
+  const [participantDevices, setParticipantDevices] = useState<{
+    users: Record<string, string>;
+  }>({ users: {} });
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const location = useLocation();
   const sessionId = new URLSearchParams(location.search).get("session");
 
   // Start recording the media stream
-  const startRecording = useCallback(() => {
+  const startRecording = () => {
     if (localVideoRef.current && !isRecording) {
       const stream = localVideoRef.current.srcObject as MediaStream;
       const recorder = new MediaRecorder(stream);
@@ -45,15 +54,15 @@ export const JoinSession = () => {
       setMediaRecorder(recorder);
       setIsRecording(true);
     }
-  }, [isRecording]);
+  };
 
   // Stop recording and handle the video blob
-  const stopRecording = useCallback(() => {
+  const stopRecording = () => {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setIsRecording(false);
     }
-  }, [mediaRecorder]);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -69,6 +78,7 @@ export const JoinSession = () => {
 
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
+        setVideoStream(stream);
       }
 
       const pc = new RTCPeerConnection({
@@ -122,26 +132,34 @@ export const JoinSession = () => {
       });
     };
 
-    init();
-
     // Listen for WebSocket events to start and stop recording
     socket.on("recordingStarted", () => {
-      console.log("Recording started from laptop");
       startRecording();
     });
 
     socket.on("recordingStopped", () => {
-      console.log("Recording stopped from laptop");
       stopRecording();
     });
+    socket.on("session_ended", () => {
+      setIsSessionEnded(true);
+    });
+    socket.on("participant_join", (data: { users: Record<string, string> }) => {
+      setParticipantDevices(data);
+    });
+
+    socket.emit("joinSession", { sessionId });
+
+    init();
 
     return () => {
       if (peerConnection) {
         peerConnection.close();
+        socket.emit("leaveSession", { sessionId });
       }
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location, startRecording, stopRecording]);
+  }, [location]);
 
   useEffect(() => {
     const uploadVideoBlob = async () => {
@@ -166,9 +184,91 @@ export const JoinSession = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoBlob]);
 
+  useEffect(() => {
+    if (isSessionEnded && videoStream) {
+      videoStream.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+  }, [isSessionEnded, videoStream]);
+
+  if (isSessionEnded) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
+        <div className="fixed top-0 border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
+          <Link to="/">
+            <h3 className="font-bold text-xl">Archery Tracker</h3>
+          </Link>
+          <QuestionMarkCircledIcon />
+        </div>
+
+        <p className="text-4xl font-bold">Training Session Ended</p>
+        <p className="mt-5">
+          You can see your training performance after the video processing
+          completed
+        </p>
+        <div className="flex gap-1 items-center">
+          <p className="text-muted-foreground text-xm">
+            If you think the session is not ended yet and this is a mistake, you
+            can
+          </p>
+          <Button
+            variant="link"
+            onClick={() => {
+              navigate(0);
+            }}
+            className="px-0 text-muted-foreground"
+          >
+            try reconnecting.
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <video ref={localVideoRef} autoPlay playsInline muted />
+    <div className="flex justify-center items-center md:flex-row flex-col h-[100svh] gap-2 bg-grid-pattern">
+      <div className="md:hidden border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
+        <h3 className="font-bold text-xl">Archery Tracker</h3>
+        <QuestionMarkCircledIcon />
+      </div>
+      <div className="md:hidden flex gap-2 items-center bg-secondary text-secondary-foreground py-2 rounded-md w-full justify-center">
+        <div className="w-2 h-2 rounded-full bg-green-500" />
+        <h2 className="text-center font-bold">Target Camera : Online</h2>
+      </div>
+      <div className="border mx-4 rounded-xl flex-1 overflow-hidden object-fill">
+        <video
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div>
+        <div className="hidden md:flex w-full p-2 justify-between  items-center backdrop-blur-sm">
+          <h3 className="font-bold text-xl">Archery Tracker</h3>
+          <QuestionMarkCircledIcon />
+        </div>
+        <div className="hidden md:flex gap-2 items-center bg-secondary text-secondary-foreground py-2 rounded-md w-full justify-center">
+          <div className="w-2 h-2 rounded-full bg-green-500" />
+          <h2 className="text-center font-bold">Target Camera : Online</h2>
+        </div>
+        <div className="flex flex-col gap-1 mb-2 md:mt-4">
+          {Object.entries(participantDevices.users)
+            .filter(([key]) => key !== "is_recording")
+            .map(([key, value]) => (
+              <div className="flex text-sm text-muted-foreground items-center gap-1">
+                <p key={key}>{value}:</p>
+                <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
+                  <div className="w-1 h-1 rounded-full bg-green-500" />
+                  <p className="text-secondary-foreground text-xs">online</p>
+                </div>
+                <p>({key})</p>
+              </div>
+            ))}
+        </div>
+      </div>
     </div>
   );
 };

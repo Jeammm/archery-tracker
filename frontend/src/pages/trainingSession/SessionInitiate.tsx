@@ -33,6 +33,10 @@ export const SessionInitiate = () => {
   );
   const [recording, setRecording] = useState<boolean>(false);
   const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+  const [participantDevices, setParticipantDevices] = useState<{
+    users: Record<string, string>;
+  }>({ users: {} });
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -59,7 +63,7 @@ export const SessionInitiate = () => {
           },
         }
       );
-
+      socket.emit("sessionEnd", { sessionId });
       navigate(`/sessions/${sessionId}`);
     } catch (error) {
       console.error("Error ending session:", error);
@@ -86,7 +90,7 @@ export const SessionInitiate = () => {
       setRecording(true);
 
       // Emit start recording event
-      socket.emit("recordingStarted");
+      socket.emit("recordingStarted", { sessionId });
     }
   };
 
@@ -96,7 +100,7 @@ export const SessionInitiate = () => {
       setRecording(false);
 
       // Emit stop recording event
-      socket.emit("recordingStopped");
+      socket.emit("recordingStopped", { sessionId });
     }
   };
 
@@ -199,12 +203,23 @@ export const SessionInitiate = () => {
       );
     };
 
+    socket.emit("startSession", { sessionId });
+    socket.on("participant_join", (data: { users: Record<string, string> }) => {
+      setParticipantDevices(data);
+    });
+    socket.on(
+      "participant_leave",
+      (data: { users: Record<string, string> }) => {
+        setParticipantDevices(data);
+      }
+    );
     init();
 
     // Cleanup function
     return () => {
       if (peerConnection) {
         peerConnection.close();
+        socket.emit("sessionEnd", { sessionId });
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -298,6 +313,14 @@ export const SessionInitiate = () => {
         >
           Stop Recording
         </Button>
+      </div>
+
+      <div>
+        {Object.entries(participantDevices.users).map(([key, value]) => (
+          <p key={key}>
+            {key}: {value} online
+          </p>
+        ))}
       </div>
     </div>
   );
