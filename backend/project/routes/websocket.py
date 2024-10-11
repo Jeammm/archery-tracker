@@ -1,4 +1,4 @@
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 from flask import request
 
 socketio = SocketIO()
@@ -53,9 +53,11 @@ def on_join_session(data):
 
     if session_id in active_sessions:
         active_sessions[session_id][user_id] = "target_camera"
+        join_room(session_id)
+        emit('participant_join', {'users': active_sessions[session_id]}, to=session_id)
+    else:
+        emit('session_not_found', to=user_id)
 
-    join_room(session_id)
-    emit('participant_join', {'users': active_sessions[session_id]}, to=session_id)
 
 @socketio.on('leaveSession')
 def on_leave_session(data):

@@ -219,8 +219,8 @@ export const SessionInitiate = () => {
     return () => {
       if (peerConnection) {
         peerConnection.close();
-        socket.emit("sessionEnd", { sessionId });
       }
+      socket.emit("sessionEnd", { sessionId });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);

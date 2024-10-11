@@ -14,6 +14,7 @@ import axios from "axios";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const JoinSession = () => {
   const navigate = useNavigate();
@@ -29,6 +30,8 @@ export const JoinSession = () => {
   const [participantDevices, setParticipantDevices] = useState<{
     users: Record<string, string>;
   }>({ users: {} });
+  const [sessionReady, setSessionReady] = useState<boolean>(false);
+  const [isSessionNotFound, setIsSessionNotFound] = useState<boolean>(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const location = useLocation();
@@ -140,16 +143,22 @@ export const JoinSession = () => {
     socket.on("recordingStopped", () => {
       stopRecording();
     });
+
     socket.on("session_ended", () => {
       setIsSessionEnded(true);
     });
+
     socket.on("participant_join", (data: { users: Record<string, string> }) => {
       setParticipantDevices(data);
+      setSessionReady(true);
+      init();
+    });
+    socket.on("session_not_found", () => {
+      setSessionReady(true);
+      setIsSessionNotFound(true);
     });
 
     socket.emit("joinSession", { sessionId });
-
-    init();
 
     return () => {
       if (peerConnection) {
@@ -192,6 +201,72 @@ export const JoinSession = () => {
     }
   }, [isSessionEnded, videoStream]);
 
+  if (!sessionReady) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
+        <div className="border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
+          <h3 className="font-bold text-xl">Archery Tracker</h3>
+          <QuestionMarkCircledIcon />
+        </div>
+
+        <div className="flex gap-2 mt-2 flex-col h-full w-full p-4">
+          <Skeleton className="w-full h-[40px]" />
+
+          <Skeleton className="border rounded-xl flex-1  w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionReady && isSessionNotFound) {
+    return (
+      <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
+        <div className="fixed top-0 border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
+          <Link to="/">
+            <h3 className="font-bold text-xl">Archery Tracker</h3>
+          </Link>
+          <QuestionMarkCircledIcon />
+        </div>
+
+        <p className="text-4xl font-bold">Session Not Available</p>
+        <p className="mt-5 px-3 text-center md:text-start">
+          Either the session has ended or the session is not started yet.
+        </p>
+
+        <div className="hidden md:flex gap-1 items-center">
+          <p className="text-muted-foreground text-xm">
+            You can try starting session on pose camera and
+          </p>
+          <Button
+            variant="link"
+            onClick={() => {
+              navigate(0);
+            }}
+            className="px-0 text-muted-foreground"
+          >
+            try reconnecting.
+          </Button>
+        </div>
+
+        <div className="block md:hidden text-muted-foreground text-xm text-center mt-5">
+          <p>You can try starting session on pose camera </p>
+          <div className="flex gap-1 items-center justify-center">
+            <p>and</p>
+            <Button
+              variant="link"
+              onClick={() => {
+                navigate(0);
+              }}
+              className="p-0 text-muted-foreground"
+            >
+              try reconnecting.
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isSessionEnded) {
     return (
       <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
@@ -203,11 +278,12 @@ export const JoinSession = () => {
         </div>
 
         <p className="text-4xl font-bold">Training Session Ended</p>
-        <p className="mt-5">
+        <p className="mt-5 px-3 text-center md:text-start">
           You can see your training performance after the video processing
-          completed
+          completed.
         </p>
-        <div className="flex gap-1 items-center">
+
+        <div className="hidden md:flex gap-1 items-center">
           <p className="text-muted-foreground text-xm">
             If you think the session is not ended yet and this is a mistake, you
             can
@@ -221,6 +297,22 @@ export const JoinSession = () => {
           >
             try reconnecting.
           </Button>
+        </div>
+
+        <div className="block md:hidden text-muted-foreground text-xm text-center mt-5">
+          <p>If you think the session is not ended yet</p>
+          <div className="flex gap-1 items-center justify-center">
+            <p>and this is a mistake, you can</p>
+            <Button
+              variant="link"
+              onClick={() => {
+                navigate(0);
+              }}
+              className="p-0 text-muted-foreground"
+            >
+              try reconnecting.
+            </Button>
+          </div>
         </div>
       </div>
     );
