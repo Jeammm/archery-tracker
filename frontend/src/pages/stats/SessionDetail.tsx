@@ -2,6 +2,7 @@ import { DetailedShotData } from "@/components/stats/DetailedShotData";
 import { GeneralData } from "@/components/stats/GeneralData";
 import { SessionSummary } from "@/components/stats/SessionSummary";
 import { SessionVideo } from "@/components/stats/SessionVideo";
+import { Loader } from "@/components/ui/loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
@@ -18,6 +19,7 @@ export const SessionDetail = () => {
 
   const [session, setSession] = useState<Session | null>(null);
   const [conditionMet, setConditionMet] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchSessionData = async () => {
     try {
@@ -39,6 +41,7 @@ export const SessionDetail = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -57,6 +60,9 @@ export const SessionDetail = () => {
   }, [conditionMet]);
 
   if (!session) {
+    if (isLoading) {
+      return <Loader />;
+    }
     return (
       <div>
         <p>404 NOT FOUND</p>
@@ -74,6 +80,7 @@ export const SessionDetail = () => {
       <p className="mt-2 text-muted-foreground">
         {format(new Date(session.created_at), "hh:mm a 'at' do MMMM yyyy")}
       </p>
+
       <Tabs defaultValue="general" className="mt-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>

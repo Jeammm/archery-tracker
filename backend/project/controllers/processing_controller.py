@@ -1,7 +1,6 @@
 from celery import shared_task
-from project import redis_client
 from project.constants.constants import SESSION_COLLECTION
-from project.controllers.video_uploader import get_upload_token, upload_video
+from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
 import time
@@ -23,6 +22,11 @@ def process_target(self, sessionId):
     output_filename = f"target_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
+    collection.update_one(
+            {"target_task_id": task_id},
+            {"$set": {"target_status": "PROCESSING"}}
+        )
+    
     try:
         scoring_detail = process_target_video_data(input_filepath, output_filepath)
         
@@ -32,28 +36,34 @@ def process_target(self, sessionId):
         )
         
         # request token for uploading to ByteArk
-        tokens = get_upload_token(output_filename)
+        tokens_for_raw_video = get_upload_token(input_filename)
+        tokens_for_processed_video = get_upload_token(output_filename)
 
         collection.update_one(
             {"target_task_id": task_id},
-            {"$set": {"target_status": "UPLOADING", "target_video": tokens}}
+            {"$set": {
+                "target_status": "UPLOADING",
+                "target_video": tokens_for_processed_video,
+                "target_video_raw": tokens_for_raw_video
+                }}
         )
         
-        upload_video(output_filepath, tokens[0])
+        upload_video(input_filepath, tokens_for_raw_video[0])
+        upload_video(output_filepath, tokens_for_processed_video[0])
+        
         
         collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "UPLOADED"}}
         )
         
-        return scoring_detail, output_filepath
+        return scoring_detail, input_filepath, output_filepath
         
     except Exception as e:
         collection.update_one(
-            {"task_id": task_id},
+            {"target_task_id": task_id},
             {"$set": {"target_status": "FAILURE", "target_error_message": str(e)}}
         )
-        raise e
 
 @shared_task(bind=True)
 def process_pose(self, sessionId):
@@ -65,6 +75,11 @@ def process_pose(self, sessionId):
     output_filename = f"pose_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
+    collection.update_one(
+            {"pose_task_id": task_id},
+            {"$set": {"pose_status": "PROCESSING"}}
+        )
+    
     try:
         process_pose_video_data(input_filepath, output_filepath)
         
@@ -74,37 +89,44 @@ def process_pose(self, sessionId):
         )
         
         # request token for uploading to ByteArk
-        tokens = get_upload_token(output_filename)
+        tokens_for_raw_video = get_upload_token(input_filename)
+        tokens_for_processed_video = get_upload_token(output_filename)
 
         collection.update_one(
             {"pose_task_id": task_id},
-            {"$set": {"pose_status": "UPLOADING", "pose_video": tokens}}
+            {"$set": {
+                "pose_status": "UPLOADING",
+                "pose_video": tokens_for_processed_video,
+                "pose_video_raw": tokens_for_raw_video,
+                }}
         )
         
-        upload_video(output_filepath, tokens[0])
+        upload_video(input_filepath, tokens_for_raw_video[0])
+        upload_video(output_filepath, tokens_for_processed_video[0])
         
         collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "UPLOADED"}}
         )
         
-        return output_filepath
+        return input_filepath, output_filepath
         
     except Exception as e:
         collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "FAILURE", "pose_error_message": str(e)}}
         )
-        raise e
 
 @shared_task
 def capture_pose_on_shot_detected(results, id):
     scoring_detail = results[0][0]
-    target_video_path = results[0][1]
-    pose_video_path = results[1]
+    raw_target_video_path = results[0][1]
+    target_video_path = results[0][2]
+    
+    raw_pose_video_path = results[1][0]
+    pose_video_path = results[1][1]
     
     try:
-        
         # Upload hit frames
         scoring_detail_with_images = upload_frames(scoring_detail, target_video_path, pose_video_path)
         
@@ -116,6 +138,11 @@ def capture_pose_on_shot_detected(results, id):
                     "target_status": "SUCCESS",
                     }}
             )
+        
+        delete_video(target_video_path)
+        delete_video(pose_video_path)
+        delete_video(raw_pose_video_path)
+        delete_video(raw_target_video_path)
         
     except Exception as e:
         collection.update_one(

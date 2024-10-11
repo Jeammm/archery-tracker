@@ -1,4 +1,3 @@
-import useFetch from "react-fetch-hook";
 import { SessionCard } from "@/components/stats/SessionCard";
 import { Session } from "@/types/session";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
@@ -6,20 +5,51 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { LineChartLabel } from "@/components/chart-line-label";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowRight, Monitor, MoveUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+
+const chartConfig = {
+  score: {
+    label: "Score",
+    color: "hsl(var(--chart-1))",
+  },
+};
 
 export const Dashboard = () => {
   const { user } = useAuth();
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const { data, isLoading, error } = useFetch(`${BASE_BACKEND_URL}/sessions`, {
-    headers: {
-      Authorization: `Bearer ${user?.token || ""}`,
-    },
-  });
+  const fetchSessionsData = useCallback(async () => {
+    try {
+      const response = await axios.get<Session[]>(
+        `${BASE_BACKEND_URL}/sessions`,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
+      setSessions(response.data);
+      setError(null); // Clear any previous errors
+    } catch (err) {
+      console.error("Error fetching sessions:", err);
 
-  const sessions = data as Session[] | undefined;
+      // Type guard for AxiosError
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message || err.message || "An error occurred"
+        );
+      } else {
+        // Handle non-Axios errors (unexpected errors)
+        setError("An unexpected error occurred");
+      }
+    }
+    setIsLoading(false);
+  }, [user?.token]);
 
   const sessionsData = useMemo(() => {
     return sessions
@@ -32,17 +62,20 @@ export const Dashboard = () => {
       });
   }, [sessions]);
 
-  const chartConfig = {
-    score: {
-      label: "Score",
-      color: "hsl(var(--chart-1))",
-    },
-  };
+  useEffect(() => {
+    fetchSessionsData();
+
+    const intervalId = setInterval(() => {
+      fetchSessionsData();
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchSessionsData]);
 
   if (error || !sessionsData) {
     return (
       <div>
-        <p>{JSON.stringify(error)}</p>
+        <p>{error}</p>
       </div>
     );
   }
@@ -139,7 +172,13 @@ export const Dashboard = () => {
                 return <Skeleton key={index} className="w-full h-full" />;
               })
             : sessions?.slice(0, 10).map((session, index) => {
-                return <SessionCard key={index} {...session} />;
+                return (
+                  <SessionCard
+                    key={index}
+                    sessionData={session}
+                    fetchSessionsData={fetchSessionsData}
+                  />
+                );
               })}
         </div>
       </div>

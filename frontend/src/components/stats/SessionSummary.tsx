@@ -3,6 +3,7 @@ import { Loader } from "../ui/loader";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { MousePointer2, Move3d, Target } from "lucide-react";
+import { ProcessingFailed } from "./RetryButton";
 
 interface SessionSummaryProps {
   sessionData: Session;
@@ -25,6 +26,10 @@ export const SessionSummary = (props: SessionSummaryProps) => {
 
     return [x, y];
   };
+
+  if (target_status === "FAILURE") {
+    return <ProcessingFailed sessionData={sessionData} />;
+  }
 
   if (target_status !== "SUCCESS") {
     return (

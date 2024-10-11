@@ -14,16 +14,7 @@ def process_target_video_data(input_filepath, output_filepath):
   rings_amount = 6
   display_in_cm = True
 
-  # get a sample frame from the video
-  cap = cv2.VideoCapture(video_name)
-  _, test_sample = cap.read()
-
   # calculate the sizes of the frame and the input
-  print("=======target=======")
-  print(input_filepath)
-  print("================")
-  model_h, model_w, _ = model.shape
-  frame_h, frame_w, _ = test_sample.shape
   pixel_to_inch = inner_diameter_inch / inner_diameter_px
   pixel_to_cm = pixel_to_inch * 2.54
   measure_unit = pixel_to_cm if display_in_cm else pixel_to_inch

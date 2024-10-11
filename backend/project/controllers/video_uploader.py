@@ -1,5 +1,6 @@
 import requests
 from celery import current_app
+import os
 
 def get_upload_token(video_name):
     response = requests.post(
@@ -37,4 +38,7 @@ def upload_video(file_path, token):
         )
         
     return response.json()
-  
+
+def delete_video(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)

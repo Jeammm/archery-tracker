@@ -6,12 +6,16 @@ export interface Session {
   pose_status: string;
   pose_task_id?: string;
   pose_video?: MediaVideo[];
+  pose_video_raw?: MediaVideo[];
   score?: Hit[];
   target_status: string;
   target_task_id?: string;
   target_video?: MediaVideo[];
+  target_video_raw?: MediaVideo[];
   user_id: string;
   _id: string;
+  target_error_message?: string;
+  pose_error_message?: string;
 }
 
 export interface Hit {

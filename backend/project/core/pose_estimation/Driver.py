@@ -5,9 +5,6 @@ def process_pose_video_data(input_filepath, output_filepath):
   # input
   video_name = input_filepath
   
-  print("=======pose=========")
-  print(input_filepath)
-  print("================")
   connections = [
     # Head connections
     (0, 1),  # Nose -> Left eye inner

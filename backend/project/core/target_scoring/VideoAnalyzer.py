@@ -188,18 +188,10 @@ class VideoAnalyzer:
                                    diam=5, withOutline=True, withScore=True)
                 sketcher.shot_label_table(frame, verified_hits)
                 
-                # display
-                # frame_resized = cv2.resize(frame, (1153, 648))
-                
-                # cv2.imshow('Analysis', frame_resized)
-                
                 # write frame to output file
                 out.write(frame)
-                
-                # if cv2.waitKey(1) & 0xff == 27:
-                #     break
+
             else:
-                print('Video stream is over.')
                 break
                 
         # close window properly

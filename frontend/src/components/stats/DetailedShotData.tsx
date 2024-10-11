@@ -4,6 +4,7 @@ import { Clock, Target } from "lucide-react";
 import { format } from "date-fns";
 import { TargetImageWithModal } from "./TargetImageWithModal";
 import { PostureImageWithModal } from "./PostureImageWithModal";
+import { ProcessingFailed } from "./RetryButton";
 
 interface DetailedShotDataProps {
   sessionData: Session;
@@ -13,6 +14,10 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
   const { sessionData } = props;
 
   const { target_status, score } = sessionData;
+
+  if (target_status === "FAILURE") {
+    return <ProcessingFailed sessionData={sessionData}/>;
+  }
 
   if (target_status !== "SUCCESS") {
     return (

@@ -33,7 +33,6 @@ class VideoAnalyzer:
                 out.write(frame)
                 
             else:
-                print('Video stream is over.')
                 break
                 
         self.cap.release()

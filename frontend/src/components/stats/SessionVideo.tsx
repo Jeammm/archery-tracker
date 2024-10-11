@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
 import { Loader } from "../ui/loader";
+import { ProcessingFailed } from "./RetryButton";
 
 interface SessionVideoProps {
   sessionData: Session;
@@ -150,6 +151,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
     });
     setCurrentShot(currentShot ? Number(currentShot.id) : 0);
   };
+
+  if (target_status === "FAILURE" || pose_status === "FAILURE") {
+    return <ProcessingFailed sessionData={sessionData}/>;
+  }
 
   return (
     <div>

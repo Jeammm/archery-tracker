@@ -13,6 +13,7 @@ import { calculateAccumulatedScore } from "@/utils/formatScore";
 import { format } from "date-fns";
 import { ChartBar } from "../chart-bar";
 import { useMemo } from "react";
+import { ProcessingFailed } from "./RetryButton";
 
 interface GeneralDataProps {
   sessionData: Session;
@@ -52,6 +53,10 @@ export const GeneralData = (props: GeneralDataProps) => {
       }) || []
     );
   }, [accumulatedScore, sessionData.score]);
+
+  if (target_status === "FAILURE") {
+    return <ProcessingFailed sessionData={sessionData}/>;
+  }
 
   if (target_status !== "SUCCESS") {
     return (
