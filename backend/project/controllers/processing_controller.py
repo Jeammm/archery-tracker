@@ -1,5 +1,5 @@
 from celery import shared_task
-from project.constants.constants import SESSION_COLLECTION
+from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION
 from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
@@ -8,30 +8,32 @@ import cv2
 import io
 import cloudinary.uploader
 from bson.objectid import ObjectId
-from .. import db
+from ..db import db
 
-collection = db[SESSION_COLLECTION]
+round_collection = db[ROUND_COLLECTION]
+session_collection = db[SESSION_COLLECTION]
 
 class MissingTargetModelError(Exception):
     pass
 
 @shared_task(bind=True)
-def process_target(self, sessionId):
+def process_target(self, round_id):
     task_id = self.request.id
     timestamp = int(time.time())
     
-    input_filename = f"target_video_raw_{sessionId}"
+    input_filename = f"target_video_raw_{round_id}"
     input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"target_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
-    collection.update_one(
+    round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "PROCESSING"}}
         )
     
     try:
-        existing_session = collection.find_one({"_id": ObjectId(sessionId)})
+        existing_round = round_collection.find_one({"_id": ObjectId(round_id)})
+        existing_session = session_collection.find_one({"_id": ObjectId(existing_round['session_id'])})
         
         if 'model' not in existing_session:
             raise MissingTargetModelError('Model is required in the request body')
@@ -40,7 +42,7 @@ def process_target(self, sessionId):
         
         scoring_detail = process_target_video_data(input_filepath, output_filepath, model)
         
-        collection.update_one(
+        round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "GETTING_TOKEN", "score": scoring_detail}}
         )
@@ -49,7 +51,7 @@ def process_target(self, sessionId):
         tokens_for_raw_video = get_upload_token(input_filename)
         tokens_for_processed_video = get_upload_token(output_filename)
 
-        collection.update_one(
+        round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {
                 "target_status": "UPLOADING",
@@ -62,7 +64,7 @@ def process_target(self, sessionId):
         upload_video(output_filepath, tokens_for_processed_video[0])
         
         
-        collection.update_one(
+        round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "UPLOADED"}}
         )
@@ -70,22 +72,22 @@ def process_target(self, sessionId):
         return scoring_detail, input_filepath, output_filepath
         
     except Exception as e:
-        collection.update_one(
+        round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "FAILURE", "target_error_message": str(e)}}
         )
 
 @shared_task(bind=True)
-def process_pose(self, sessionId):
+def process_pose(self, round_id):
     task_id = self.request.id
     timestamp = int(time.time())
     
-    input_filename = f"pose_video_raw_{sessionId}"
+    input_filename = f"pose_video_raw_{round_id}"
     input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"pose_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
-    collection.update_one(
+    round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "PROCESSING"}}
         )
@@ -93,7 +95,7 @@ def process_pose(self, sessionId):
     try:
         process_pose_video_data(input_filepath, output_filepath)
         
-        collection.update_one(
+        round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "GETTING_TOKEN"}}
         )
@@ -102,7 +104,7 @@ def process_pose(self, sessionId):
         tokens_for_raw_video = get_upload_token(input_filename)
         tokens_for_processed_video = get_upload_token(output_filename)
 
-        collection.update_one(
+        round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {
                 "pose_status": "UPLOADING",
@@ -114,7 +116,7 @@ def process_pose(self, sessionId):
         upload_video(input_filepath, tokens_for_raw_video[0])
         upload_video(output_filepath, tokens_for_processed_video[0])
         
-        collection.update_one(
+        round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "UPLOADED"}}
         )
@@ -122,13 +124,13 @@ def process_pose(self, sessionId):
         return input_filepath, output_filepath
         
     except Exception as e:
-        collection.update_one(
+        round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "FAILURE", "pose_error_message": str(e)}}
         )
 
 @shared_task
-def capture_pose_on_shot_detected(results, id):
+def capture_pose_on_shot_detected(results, round_id):
     scoring_detail = results[0][0]
     raw_target_video_path = results[0][1]
     target_video_path = results[0][2]
@@ -140,8 +142,8 @@ def capture_pose_on_shot_detected(results, id):
         # Upload hit frames
         scoring_detail_with_images = upload_frames(scoring_detail, target_video_path, pose_video_path)
         
-        collection.update_one(
-                {"_id": ObjectId(id)},
+        round_collection.update_one(
+                {"_id": ObjectId(round_id)},
                 {"$set": {
                     "score": scoring_detail_with_images,
                     "pose_status": "SUCCESS",
@@ -155,8 +157,8 @@ def capture_pose_on_shot_detected(results, id):
         delete_video(raw_target_video_path)
         
     except Exception as e:
-        collection.update_one(
-            {"_id": ObjectId(id)},
+        round_collection.update_one(
+            {"_id": ObjectId(round_id)},
             {"$set": {
                 "pose_status": "FAILURE",
                 "pose_error_message": str(e),

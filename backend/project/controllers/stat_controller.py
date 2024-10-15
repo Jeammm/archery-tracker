@@ -1,7 +1,7 @@
 from bson.objectid import ObjectId
 from flask import jsonify
 from project.constants.constants import SESSION_COLLECTION
-from .. import db
+from ..db import db
       
 def get_stat(user_id):
     try:

@@ -1,24 +1,19 @@
 from flask import Flask
 from flask_cors import CORS
 from .routes.websocket import init_websocket
-from pymongo import MongoClient
-import certifi
 import cloudinary
 
 from .celery_init import make_celery
-
-mongo_client = None
-db = None
+from .db import init_db  # Import the new db module
 
 def create_app():
-    global mongo_client, db
     app = Flask(__name__)
     CORS(app)
 
     app.config.from_object('config.Config')
 
-    mongo_client = MongoClient(app.config['MONGO_URI'], tlsCAFile=certifi.where())
-    db = mongo_client.flask_database
+    db_instance = init_db(app.config['MONGO_URI'])
+    app.config['db'] = db_instance
     
     # Configure your Cloudinary credentials
     cloudinary.config(

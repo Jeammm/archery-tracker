@@ -2,7 +2,7 @@ from flask import jsonify, request, current_app
 from project.utils.token import decode_token, generate_token
 from project.utils.mailer import sendEmail
 from project.constants.constants import ACCOUNT_COLLECTION
-from .. import db
+from ..db import db
 from flask_bcrypt import Bcrypt
 from bson.objectid import ObjectId
 

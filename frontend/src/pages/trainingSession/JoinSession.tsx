@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   addDoc,
@@ -15,6 +15,8 @@ import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { QuestionMarkCircledIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Round } from "@/types/session";
+import { cn } from "@/lib/utils";
 
 export const JoinSession = () => {
   const navigate = useNavigate();
@@ -32,13 +34,17 @@ export const JoinSession = () => {
   }>({ users: {} });
   const [sessionReady, setSessionReady] = useState<boolean>(false);
   const [isSessionNotFound, setIsSessionNotFound] = useState<boolean>(false);
+  const [roundId, setRoundId] = useState<string | null>(null);
+  const [uploadingStatus, setUploadingStatus] = useState<
+    Record<string, number>
+  >({});
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const location = useLocation();
   const sessionId = new URLSearchParams(location.search).get("session");
 
   // Start recording the media stream
-  const startRecording = () => {
+  const startRecording = useCallback(() => {
     if (localVideoRef.current && !isRecording) {
       const stream = localVideoRef.current.srcObject as MediaStream;
       const recorder = new MediaRecorder(stream);
@@ -57,15 +63,15 @@ export const JoinSession = () => {
       setMediaRecorder(recorder);
       setIsRecording(true);
     }
-  };
+  }, [isRecording]);
 
   // Stop recording and handle the video blob
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setIsRecording(false);
     }
-  };
+  }, [mediaRecorder]);
 
   useEffect(() => {
     const init = async () => {
@@ -135,15 +141,6 @@ export const JoinSession = () => {
       });
     };
 
-    // Listen for WebSocket events to start and stop recording
-    socket.on("recordingStarted", () => {
-      startRecording();
-    });
-
-    socket.on("recordingStopped", () => {
-      stopRecording();
-    });
-
     socket.on("session_ended", () => {
       setIsSessionEnded(true);
     });
@@ -171,9 +168,20 @@ export const JoinSession = () => {
   }, [location]);
 
   useEffect(() => {
+    socket.on("recordingStarted", (data: { round_data: Round }) => {
+      startRecording();
+      setRoundId(data.round_data._id);
+    });
+
+    socket.on("recordingStopped", () => {
+      stopRecording();
+    });
+  }, [startRecording, stopRecording]);
+
+  useEffect(() => {
     const uploadVideoBlob = async () => {
       // Upload video
-      if (videoBlob) {
+      if (videoBlob && roundId) {
         const formData = new FormData();
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
 
@@ -184,8 +192,29 @@ export const JoinSession = () => {
             headers: {
               "Content-Type": "multipart/form-data",
             },
+            onUploadProgress: (progressEvent) => {
+              const totalLength = progressEvent.total;
+              if (totalLength) {
+                const progress = Math.round(
+                  (progressEvent.loaded * 100) / totalLength
+                );
+                setUploadingStatus((prev) => ({
+                  ...prev,
+                  [roundId]: progress,
+                }));
+                socket.emit("targetVideoUploadProgress", {
+                  sessionId,
+                  uploadingStatus: { [roundId]: progress },
+                });
+              }
+            },
           }
         );
+
+        socket.emit("targetVideoUploadProgress", {
+          sessionId,
+          uploadingStatus: { [roundId]: 100 },
+        });
       }
     };
     uploadVideoBlob();
@@ -324,9 +353,19 @@ export const JoinSession = () => {
         <h3 className="font-bold text-xl">Archery Tracker</h3>
         <QuestionMarkCircledIcon />
       </div>
+
+      <div>{JSON.stringify(uploadingStatus)}</div>
+
       <div className="md:hidden flex gap-2 items-center bg-secondary text-secondary-foreground py-2 rounded-md w-full justify-center">
-        <div className="w-2 h-2 rounded-full bg-green-500" />
-        <h2 className="text-center font-bold">Target Camera : Online</h2>
+        <div
+          className={cn([
+            "w-2 h-2 rounded-full",
+            isRecording ? "bg-green-500" : "bg-amber-600",
+          ])}
+        />
+        <h2 className="text-center font-bold">
+          Target Camera : {isRecording ? "Recording" : "Online"}
+        </h2>
       </div>
       <div className="border mx-4 rounded-xl flex-1 overflow-hidden object-fill">
         <video
@@ -343,10 +382,18 @@ export const JoinSession = () => {
           <QuestionMarkCircledIcon />
         </div>
         <div className="hidden md:flex gap-2 items-center bg-secondary text-secondary-foreground py-2 rounded-md w-full justify-center">
-          <div className="w-2 h-2 rounded-full bg-green-500" />
-          <h2 className="text-center font-bold">Target Camera : Online</h2>
+          <div
+            className={cn([
+              "w-2 h-2 rounded-full",
+              isRecording ? "bg-green-500" : "bg-amber-600",
+            ])}
+          />
+          <h2 className="text-center font-bold">
+            Target Camera : {isRecording ? "Recording" : "Online"}
+          </h2>
         </div>
         <div className="flex flex-col gap-1 mb-2 md:mt-4">
+          <p>Round: {roundId}</p>
           {Object.entries(participantDevices.users)
             .filter(([key]) => key !== "is_recording")
             .map(([key, value]) => (

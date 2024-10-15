@@ -2,14 +2,13 @@ from bson import ObjectId
 from celery import chord
 from flask import Blueprint, jsonify, request
 from datetime import datetime
-from project.constants.constants import SESSION_COLLECTION
+from project.constants.constants import ROUND_COLLECTION
 from project.controllers.decorators import token_required
 from ..controllers.processing_controller import capture_pose_on_shot_detected, process_pose, process_target
-from .. import db
+from ..db import db
 import os
 
 processing_bp = Blueprint('processing_bp', __name__)
-collection = db[SESSION_COLLECTION]
 
 @processing_bp.route('/upload-target-video/<id>', methods=['POST'])
 def upload_target_video(id):    
@@ -44,13 +43,14 @@ def upload_pose_video(user_id, id):
 
     return {"message": "Pose Video uploaded successfully"}, 200
 
-@processing_bp.route('/process-target/<id>', methods=['POST'])
+@processing_bp.route('/process-target/<round_id>', methods=['POST'])
 @token_required
-def process_target_route(user_id, id):    
+def process_target_route(user_id, round_id):    
+    collection = db[ROUND_COLLECTION]
     
     chord_tasks = chord(
-        [process_target.s(id), process_pose.s(id)]
-    )(capture_pose_on_shot_detected.s(id))
+        [process_target.s(round_id), process_pose.s(round_id)]
+    )(capture_pose_on_shot_detected.s(round_id))
     
     task_data = {
         "target_task_id": chord_tasks.parent[0].id,
@@ -60,12 +60,12 @@ def process_target_route(user_id, id):
         "start_process_at": datetime.utcnow(),
     }
     
-    existing_task = collection.find_one({"_id": ObjectId(id), "user_id": ObjectId(user_id)})
+    existing_task = collection.find_one({"_id": ObjectId(round_id)})
 
     if existing_task:
         # Update the existing task
         result = collection.update_one(
-            {"_id": ObjectId(id), "user_id": ObjectId(user_id)},
+            {"_id": ObjectId(round_id)},
             {"$set": task_data}
         )
         if result.modified_count == 0:
@@ -74,14 +74,13 @@ def process_target_route(user_id, id):
         return jsonify({"error": "Session not found"}), 500
 
     # Fetch the updated or inserted task
-    updated_task = collection.find_one({"_id": ObjectId(id)})
+    updated_task = collection.find_one({"_id": ObjectId(round_id)})
     
     if not updated_task:
         return jsonify({"error": "Failed to retrieve the task after update"}), 500
     
     return jsonify({
-        "_id": id,
-        "user_id": user_id,
+        "_id": round_id,
         "target_task_id": chord_tasks.parent[0].id,
         "pose_task_id": chord_tasks.parent[1].id,
         "target_status": chord_tasks.parent[0].status,

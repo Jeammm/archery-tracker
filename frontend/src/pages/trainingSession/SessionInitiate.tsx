@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import useFetch from "react-fetch-hook";
 import { useAuth } from "@/context/AuthContext";
-import { Session } from "@/types/session";
+import { Round, Session } from "@/types/session";
 import { Loader } from "@/components/ui/loader";
 import axios from "axios";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
@@ -36,6 +36,10 @@ export const SessionInitiate = () => {
   const [participantDevices, setParticipantDevices] = useState<{
     users: Record<string, string>;
   }>({ users: {} });
+  const [roundId, setRoundId] = useState<string | null>(null);
+  const [targetVideoUploadingStatus, setTargetVideoUploadingStatus] = useState<
+    Record<string, string>
+  >({});
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -201,9 +205,14 @@ export const SessionInitiate = () => {
           });
         }
       );
+
+      ///////
     };
 
     socket.emit("startSession", { sessionId });
+    socket.on("recordingStarted", (data: { round_data: Round }) => {
+      setRoundId(data.round_data._id);
+    });
     socket.on("participant_join", (data: { users: Record<string, string> }) => {
       setParticipantDevices(data);
     });
@@ -211,6 +220,12 @@ export const SessionInitiate = () => {
       "participant_leave",
       (data: { users: Record<string, string> }) => {
         setParticipantDevices(data);
+      }
+    );
+    socket.on(
+      "targetVideoUploadProgress",
+      (data: { uploading_status: Record<string, string> }) => {
+        setTargetVideoUploadingStatus(data.uploading_status);
       }
     );
     init();
@@ -314,6 +329,10 @@ export const SessionInitiate = () => {
           Stop Recording
         </Button>
       </div>
+
+      <div>round_id: {roundId}</div>
+
+      <div>target upload: {JSON.stringify(targetVideoUploadingStatus)}</div>
 
       <div>
         {Object.entries(participantDevices.users).map(([key, value]) => (

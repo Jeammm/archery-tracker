@@ -1,8 +1,11 @@
+from datetime import datetime
 from flask_socketio import SocketIO, emit, join_room, leave_room, send
-from flask import request
+from bson.objectid import ObjectId
+from flask import jsonify, request, current_app
+from project.constants.constants import ROUND_COLLECTION
+from ..db import db
 
 socketio = SocketIO()
-
 active_sessions = {}
 
 def find_user_in_sessions(user_id):
@@ -39,9 +42,10 @@ def handle_disconnect():
 def on_join_session(data):    
     session_id = data['sessionId']
     user_id = request.sid
-
-    active_sessions[session_id] = {"is_recording": False}
-    active_sessions[session_id][user_id] = "pose_camera"
+    
+    if session_id not in active_sessions:
+        active_sessions[session_id] = {"is_recording": False}
+        active_sessions[session_id][user_id] = "pose_camera"
 
     join_room(session_id)
     emit('participant_join', {'users': active_sessions[session_id]}, to=session_id)
@@ -82,17 +86,40 @@ def on_session_end(data):
      
 @socketio.on('recordingStarted')
 def start_recording(data):
+    db = current_app.config['db']
+    collection = db[ROUND_COLLECTION]
     session_id = data['sessionId']
     is_recording = False
-    
+
     if session_id in active_sessions:
         is_recording = active_sessions[session_id]['is_recording']
     else:
         active_sessions[session_id]['is_recording'] = False
-    
+
     if not is_recording:
         active_sessions[session_id]['is_recording'] = True
-        emit('recordingStarted', {'message': 'Recording started!'}, to=session_id)
+
+        created_date = datetime.utcnow()
+
+        round_data = {
+            "session_id": ObjectId(session_id),
+            "created_at": created_date,
+            "target_status": "LIVE",
+            "pose_status": "LIVE",
+        }
+        result = collection.insert_one(round_data)
+
+        # Prepare the data as a dictionary for emitting
+        response_data = {
+            "_id": str(result.inserted_id),
+            "session_id": session_id,
+            "created_at": str(created_date),
+            "target_status": "LIVE",
+            "pose_status": "LIVE",
+        }
+
+        # Emit the dictionary directly, without wrapping it in a response
+        emit('recordingStarted', {'round_data': response_data}, to=session_id)
     else:
         emit('recordingStarted', {'message': 'Already recording!'}, to=session_id)
 
@@ -108,6 +135,50 @@ def stop_recording(data):
     
     if not is_recording:
         active_sessions[session_id]['is_recording'] = False
-        emit('recordingStarted', {'message': 'Recording started!'}, to=session_id)
+        emit('recordingStopped', {'message': 'Recording stoped!'}, to=session_id)
     else:
-        emit('recordingStarted', {'message': 'Already recording!'}, to=session_id)
+        emit('recordingStopped', {'message': 'Recording already stoped!'}, to=session_id)
+        
+@socketio.on("targetVideoUploadProgress")
+def target_video_upload_complete(data):
+    session_id = data["sessionId"]
+    uploading_status = data["uploadingStatus"]
+    
+    print(data)
+    
+    emit('targetVideoUploadProgress', {"uploading_status": uploading_status}, to=session_id)
+
+# WebRTC connecting stuff
+@socketio.on('offer')
+def handle_offer(data):
+    session_id = data['sessionId']
+    offer = data['offer']
+    user_id = request.sid
+
+    if session_id in active_sessions:
+        emit('offer', {'offer': offer, 'userId': user_id}, to=session_id)
+    else:
+        emit('session_not_found', to=user_id)
+
+@socketio.on('answer')
+def handle_answer(data):
+    session_id = data['sessionId']
+    answer = data['answer']
+    user_id = request.sid
+
+    if session_id in active_sessions:
+        emit('answer', {'answer': answer, 'userId': user_id}, to=session_id)
+    else:
+        emit('session_not_found', to=user_id)
+
+@socketio.on('iceCandidate')
+def handle_ice_candidate(data):
+    session_id = data['sessionId']
+    candidate = data['candidate']
+    user_id = request.sid
+
+    if session_id not in active_sessions:
+        active_sessions[session_id] = {"is_recording": False}
+        active_sessions[session_id][user_id] = "pose_camera"
+
+    emit('iceCandidate', {'candidate': candidate, 'userId': user_id, "session_id": session_id}, to=session_id)
