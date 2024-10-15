@@ -23,6 +23,7 @@ const loaderVariants = cva("flex items-center gap-3", {
         "fixed left-0 top-0 h-screen w-screen justify-center backdrop-blur-md",
     },
     spinnerSize: {
+      xs: "h-[12px] w-[12px]",
       sm: "h-[24px] w-[24px]",
       md: "h-[100px] w-[100px]",
       lg: "h-[200px] w-[200px]",
@@ -37,7 +38,8 @@ const loaderVariants = cva("flex items-center gap-3", {
 const spinnerVariants = cva("", {
   variants: {
     spinnerSize: {
-      sm: "h-[40px] w-[40px]",
+      xs: "h-[12px] w-[12px]",
+      sm: "h-[24px] w-[24px]",
       md: "h-[100px] w-[100px]",
       lg: "h-[200px] w-[200px]",
     },

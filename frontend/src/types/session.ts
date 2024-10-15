@@ -6,7 +6,8 @@ export interface Session {
   user_id: string;
   _id: string;
   model: string;
-  rounds: Round[]
+  round_result: Round[];
+  session_status: string;
 }
 
 export interface Hit {
@@ -23,8 +24,9 @@ export interface Hit {
 }
 
 export interface Round {
-  _id: string,
-  session_id: string,
+  _id: string;
+  created_at: string;
+  session_id: string;
   pose_status: string;
   pose_task_id?: string;
   pose_video?: MediaVideo[];

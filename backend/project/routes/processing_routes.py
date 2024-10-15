@@ -10,8 +10,8 @@ import os
 
 processing_bp = Blueprint('processing_bp', __name__)
 
-@processing_bp.route('/upload-target-video/<id>', methods=['POST'])
-def upload_target_video(id):    
+@processing_bp.route('/upload-target-video/<round_id>', methods=['POST'])
+def upload_target_video(round_id):    
     if 'video' not in request.files:
         return {"error": "No video part"}, 400
     
@@ -21,14 +21,14 @@ def upload_target_video(id):
         return {"error": "No selected file"}, 400
     
     # Save the video file
-    file_path = os.path.join('/app/project/core/res/output', f'target_video_raw_{id}.webm')
+    file_path = os.path.join('/app/project/core/res/output', f'target_video_raw_{round_id}.webm')
     file.save(file_path)
 
     return {"message": "Target Video uploaded successfully"}, 200
 
-@processing_bp.route('/upload-pose-video/<id>', methods=['POST'])
+@processing_bp.route('/upload-pose-video/<round_id>', methods=['POST'])
 @token_required
-def upload_pose_video(user_id, id):    
+def upload_pose_video(user_id, round_id):    
     if 'video' not in request.files:
         return {"error": "No video part"}, 400
     
@@ -38,7 +38,7 @@ def upload_pose_video(user_id, id):
         return {"error": "No selected file"}, 400
     
     # Save the video file
-    file_path = os.path.join('/app/project/core/res/output', f'pose_video_raw_{id}.webm')
+    file_path = os.path.join('/app/project/core/res/output', f'pose_video_raw_{round_id}.webm')
     file.save(file_path)
 
     return {"message": "Pose Video uploaded successfully"}, 200

@@ -1,6 +1,6 @@
 from flask import Blueprint
 from project.controllers.decorators import token_required
-from ..controllers.session_controller import get_sessions, get_session_by_id, create_session
+from ..controllers.session_controller import get_sessions, get_session_by_id, create_session, end_session_by_id
 
 session_bp = Blueprint('session_bp', __name__)
 
@@ -18,3 +18,8 @@ def session_create_route(user_id):
 @token_required
 def session_detail_route(user_id, id):
     return get_session_by_id(user_id, id)
+
+@session_bp.route('/end-sessions/<id>', methods=['POST'])
+@token_required
+def session_end_route(user_id, id):
+    return end_session_by_id(user_id, id)

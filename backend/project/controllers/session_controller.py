@@ -66,6 +66,7 @@ def create_session(user_id):
             "user_id": ObjectId(user_id),
             "created_at": created_date,
             "model": model,
+            "session_status": "STARTED"
         }
         result = collection.insert_one(task_data)
         
@@ -74,7 +75,24 @@ def create_session(user_id):
                 "user_id": user_id,
                 "created_at": created_date,
                 "model": model,
+                "session_status": "STARTED"
             }), 202
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+def end_session_by_id(user_id, session_id):
+    try:
+        session = collection.find_one({'_id': ObjectId(session_id), 'user_id': ObjectId(user_id)})
+        if session:
+            collection.update_one(
+                {"_id": session_id},
+                {"$set": {"session_status": "ENDED"}}
+            )
+            session = convert_object_ids([session])[0]
+            session = add_rounds_to_sessions([session])[0]
+            return jsonify(session)
+        else:
+            return jsonify({'error': 'Session not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -186,7 +186,7 @@ export const JoinSession = () => {
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
 
         await axios.post(
-          `${BASE_BACKEND_URL}/upload-target-video/${sessionId}`,
+          `${BASE_BACKEND_URL}/upload-target-video/${roundId}`,
           formData,
           {
             headers: {

@@ -53,11 +53,11 @@ export const Dashboard = () => {
 
   const sessionsData = useMemo(() => {
     return sessions
-      ?.filter((session) => session.target_status === "SUCCESS")
+      ?.filter((session) => session.session_status === "ENDED")
       .map((session) => {
         return {
           date: session.created_at,
-          score: session.score?.reduce((sum, obj) => sum + obj.score, 0),
+          score: 10, // need to be fixed
         };
       });
   }, [sessions]);

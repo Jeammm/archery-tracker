@@ -1,9 +1,8 @@
 from datetime import datetime
-from flask_socketio import SocketIO, emit, join_room, leave_room, send
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from bson.objectid import ObjectId
 from flask import jsonify, request, current_app
 from project.constants.constants import ROUND_COLLECTION
-from ..db import db
 
 socketio = SocketIO()
 active_sessions = {}
@@ -147,38 +146,3 @@ def target_video_upload_complete(data):
     print(data)
     
     emit('targetVideoUploadProgress', {"uploading_status": uploading_status}, to=session_id)
-
-# WebRTC connecting stuff
-@socketio.on('offer')
-def handle_offer(data):
-    session_id = data['sessionId']
-    offer = data['offer']
-    user_id = request.sid
-
-    if session_id in active_sessions:
-        emit('offer', {'offer': offer, 'userId': user_id}, to=session_id)
-    else:
-        emit('session_not_found', to=user_id)
-
-@socketio.on('answer')
-def handle_answer(data):
-    session_id = data['sessionId']
-    answer = data['answer']
-    user_id = request.sid
-
-    if session_id in active_sessions:
-        emit('answer', {'answer': answer, 'userId': user_id}, to=session_id)
-    else:
-        emit('session_not_found', to=user_id)
-
-@socketio.on('iceCandidate')
-def handle_ice_candidate(data):
-    session_id = data['sessionId']
-    candidate = data['candidate']
-    user_id = request.sid
-
-    if session_id not in active_sessions:
-        active_sessions[session_id] = {"is_recording": False}
-        active_sessions[session_id][user_id] = "pose_camera"
-
-    emit('iceCandidate', {'candidate': candidate, 'userId': user_id, "session_id": session_id}, to=session_id)

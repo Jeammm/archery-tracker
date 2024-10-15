@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { db } from "@/services/fireStore";
@@ -13,18 +13,20 @@ import { BASE_BACKEND_URL, BASE_FRONTEND_URL } from "@/services/baseUrl";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import useFetch from "react-fetch-hook";
 import { useAuth } from "@/context/AuthContext";
 import { Round, Session } from "@/types/session";
 import { Loader } from "@/components/ui/loader";
 import axios from "axios";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
 import { socket } from "@/services/socket";
+import { cn } from "@/lib/utils";
+import { Plus } from "lucide-react";
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [session, setSession] = useState<Session | null>(null);
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const [isCameraConnected, setIsCameraConnected] = useState<boolean>(false);
@@ -36,30 +38,39 @@ export const SessionInitiate = () => {
   const [participantDevices, setParticipantDevices] = useState<{
     users: Record<string, string>;
   }>({ users: {} });
-  const [roundId, setRoundId] = useState<string | null>(null);
+  const [roundData, setRoundData] = useState<Round | null>(null);
   const [targetVideoUploadingStatus, setTargetVideoUploadingStatus] = useState<
-    Record<string, string>
+    Record<string, number>
   >({});
+  const [uploadedRoundVideo, setUploadedRoundVideo] = useState<string[]>([]);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  const { data } = useFetch(`${BASE_BACKEND_URL}/sessions/${sessionId}`, {
-    headers: {
-      Authorization: `Bearer ${user?.token || ""}`,
-    },
-  });
-
-  const session = data as Session | undefined;
-
   const { elapsedTime, timeReady } = useTimeElapsed({
-    startDatetime: session?.created_at,
+    startDatetime: roundData?.created_at,
   });
+
+  const fetchSessionData = useCallback(async () => {
+    if (!sessionId || !user?.token) {
+      return;
+    }
+    const response = await axios.get(
+      `${BASE_BACKEND_URL}/sessions/${sessionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${user?.token || ""}`,
+        },
+      }
+    );
+
+    setSession(response.data);
+  }, [sessionId, user?.token]);
 
   const onClickEndSession = async () => {
     try {
       await axios.post(
-        `${BASE_BACKEND_URL}/process-target/${sessionId}`,
+        `${BASE_BACKEND_URL}/end-sessions/${sessionId}`,
         {},
         {
           headers: {
@@ -71,6 +82,22 @@ export const SessionInitiate = () => {
       navigate(`/sessions/${sessionId}`);
     } catch (error) {
       console.error("Error ending session:", error);
+    }
+  };
+
+  const sendVideoProcessRequest = async (roundId: string) => {
+    try {
+      await axios.post(
+        `${BASE_BACKEND_URL}/process-target/${roundId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error processing videos:", error);
     }
   };
 
@@ -109,6 +136,10 @@ export const SessionInitiate = () => {
   };
 
   useEffect(() => {
+    fetchSessionData();
+  }, [fetchSessionData]);
+
+  useEffect(() => {
     const uploadVideoBlob = async () => {
       // Upload video
       if (videoBlob) {
@@ -116,7 +147,7 @@ export const SessionInitiate = () => {
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
 
         await axios.post(
-          `${BASE_BACKEND_URL}/upload-pose-video/${sessionId}`,
+          `${BASE_BACKEND_URL}/upload-pose-video/${roundData?._id}`,
           formData,
           {
             headers: {
@@ -211,7 +242,7 @@ export const SessionInitiate = () => {
 
     socket.emit("startSession", { sessionId });
     socket.on("recordingStarted", (data: { round_data: Round }) => {
-      setRoundId(data.round_data._id);
+      setRoundData(data.round_data);
     });
     socket.on("participant_join", (data: { users: Record<string, string> }) => {
       setParticipantDevices(data);
@@ -224,7 +255,7 @@ export const SessionInitiate = () => {
     );
     socket.on(
       "targetVideoUploadProgress",
-      (data: { uploading_status: Record<string, string> }) => {
+      (data: { uploading_status: Record<string, number> }) => {
         setTargetVideoUploadingStatus(data.uploading_status);
       }
     );
@@ -240,9 +271,127 @@ export const SessionInitiate = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
+  useEffect(() => {
+    Object.keys(targetVideoUploadingStatus).map(async (roundId) => {
+      if (
+        !uploadedRoundVideo.includes(roundId) &&
+        targetVideoUploadingStatus[roundId] === 100
+      ) {
+        console.log("hrere");
+        setUploadedRoundVideo((prev) => [...prev, roundId]);
+        await sendVideoProcessRequest(roundId);
+        await fetchSessionData();
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetVideoUploadingStatus, uploadedRoundVideo]);
+
   if (!session) {
     return <Loader />;
   }
+
+  const RoundDetails = ({ className }: { className?: string }) => {
+    return (
+      <div className={cn(["border rounded-md flex flex-col", className])}>
+        <div className="border-b p-2">
+          <h3 className="font-bold">Rounds Detail</h3>
+        </div>
+
+        <div className="p-2 flex flex-col gap-2">
+          {!recording && isCameraConnected && (
+            <Button
+              onClick={startRecording}
+              disabled={recording}
+              className="bg-green-200 hover:bg-green-100 flex gap-2 w-full h-14"
+            >
+              <Plus
+                strokeWidth={3}
+                className="text-inherit rounded-full p-2"
+                size={32}
+              />
+              <p>Start New Round</p>
+            </Button>
+          )}
+
+          {recording && isCameraConnected && (
+            <Button
+              onClick={stopRecording}
+              disabled={!recording}
+              variant="secondary"
+              className="bg-red-500 text-white hover:bg-red-400 h-14"
+            >
+              <div>
+                <div>
+                  {timeReady ? (
+                    <p>Elapsed Time : {elapsedTime}</p>
+                  ) : (
+                    <Loader containerClassName="w-fit">Loading...</Loader>
+                  )}
+                </div>
+                <p className="font-bold">End This Round</p>
+              </div>
+            </Button>
+          )}
+
+          {Object.keys(targetVideoUploadingStatus)
+            .filter((round) => !uploadedRoundVideo.includes(round))
+            .map((_, index) => {
+              return (
+                <div className="bg-slate-900 rounded-md p-2 border">
+                  <p className="font-extrabold">
+                    Round : {session.round_result.length + index + 1}
+                  </p>
+                  <div className="flex gap-1.5 items-center">
+                    <p>Poseture Video : </p>
+                    <Loader containerClassName="w-fit" spinnerSize="sm">
+                      <p className="text-muted-foreground">Uploading...</p>
+                    </Loader>
+                  </div>
+                  <div className="flex gap-1.5 items-center">
+                    <p>Target Video : </p>
+                    <Loader containerClassName="w-fit" spinnerSize="sm">
+                      <p className="text-muted-foreground">Uploading...</p>
+                    </Loader>
+                  </div>
+                </div>
+              );
+            })
+            .reverse()}
+          <div className="flex flex-col gap-2">
+            {session.round_result
+              .map((round, index) => {
+                return (
+                  <div className="bg-slate-900 rounded-md p-2 border">
+                    <p className="font-extrabold">Round : {index + 1}</p>
+                    <div className="flex gap-1.5 items-center">
+                      <p>Poseture Video : </p>
+                      {round.pose_status !== "SUCCESS" ? (
+                        <Loader containerClassName="w-fit" spinnerSize="sm">
+                          <p className="text-muted-foreground">Processing...</p>
+                        </Loader>
+                      ) : (
+                        <p className="text-muted-foreground">Success</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 items-center">
+                      <p>Target Video : </p>
+                      {round.target_status !== "SUCCESS" ? (
+                        <Loader containerClassName="w-fit" spinnerSize="sm">
+                          <p className="text-muted-foreground">Processing...</p>
+                        </Loader>
+                      ) : (
+                        <p className="text-muted-foreground">Success</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+              .reverse()}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -258,9 +407,26 @@ export const SessionInitiate = () => {
           End Session
         </Button>
       </div>
-      <div className="flex gap-4 mt-6">
-        <div className="flex-1 border rounded-md overflow-hidden">
-          <h4 className="w-full text-center font-bold text-2xl tracking-widest">
+
+      <div
+        className={cn(["flex gap-4 mt-6", isCameraConnected ? "relative" : ""])}
+      >
+        {isCameraConnected && <RoundDetails className="w-[300px]" />}
+        <div
+          className={cn([
+            "border rounded-md overflow-hidden",
+            isCameraConnected
+              ? "absolute bottom-3 right-3 z-10 w-36 bg-black group/posture-feed"
+              : "flex-1",
+          ])}
+        >
+          <h4
+            className={cn([
+              isCameraConnected
+                ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all"
+                : "w-full text-center font-bold text-2xl tracking-widest",
+            ])}
+          >
             Posture
           </h4>
           <div className="w-full aspect-[4/3]">
@@ -310,37 +476,22 @@ export const SessionInitiate = () => {
       </div>
 
       <div className="mt-6">
-        {timeReady ? (
-          <p className="text-4xl font-bold">Elapsed Time : {elapsedTime}</p>
-        ) : (
-          <Loader containerClassName="w-fit">Loading...</Loader>
-        )}
+        <div>
+          {Object.entries(participantDevices.users)
+            .filter(([key]) => key !== "is_recording")
+            .map(([key, value]) => (
+              <div className="flex text-sm text-muted-foreground items-center gap-1">
+                <p key={key}>{value}:</p>
+                <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
+                  <div className="w-1 h-1 rounded-full bg-green-500" />
+                  <p className="text-secondary-foreground text-xs">online</p>
+                </div>
+                <p>({key})</p>
+              </div>
+            ))}
+        </div>
       </div>
-
-      <div className="mt-4">
-        <Button onClick={startRecording} disabled={recording}>
-          Start Recording
-        </Button>
-        <Button
-          onClick={stopRecording}
-          disabled={!recording}
-          variant="secondary"
-        >
-          Stop Recording
-        </Button>
-      </div>
-
-      <div>round_id: {roundId}</div>
-
-      <div>target upload: {JSON.stringify(targetVideoUploadingStatus)}</div>
-
-      <div>
-        {Object.entries(participantDevices.users).map(([key, value]) => (
-          <p key={key}>
-            {key}: {value} online
-          </p>
-        ))}
-      </div>
+      <div className="mt-6">{!isCameraConnected && <RoundDetails />}</div>
     </div>
   );
 };
