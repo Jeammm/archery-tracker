@@ -42,4 +42,7 @@ export interface Round {
   target_video_raw?: MediaVideo[];
   target_error_message?: string;
   pose_error_message?: string;
+  total_score?: number;
+  maximum_score?: number;
+  accuracy?: number;
 }

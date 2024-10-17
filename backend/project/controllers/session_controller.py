@@ -21,9 +21,18 @@ def add_rounds_to_sessions(sessions):
             round_item['_id'] = str(round_item['_id'])
             round_item['session_id'] = str(round_item['session_id'])
             
+            
             scores = [hit['score'] for hit in round_item.get('score', []) if 'score' in hit]
-            total_score += sum(scores)
-            maximum_score += len(scores) * 10
+            round_total_score = sum(scores)
+            round_maximum_score = len(scores) * 10
+            round_accuracy = round_total_score / round_maximum_score if round_maximum_score > 0 else 0  
+            
+            round_item['total_score'] = round_total_score
+            round_item['maximum_score'] = round_maximum_score
+            round_item['accuracy'] = round_accuracy  
+            
+            total_score += round_total_score
+            maximum_score += round_maximum_score
             
         session['total_score'] = total_score
         session['maximum_score'] = maximum_score

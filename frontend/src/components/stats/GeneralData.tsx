@@ -7,12 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Session } from "@/types/session";
+import { Round, Session } from "@/types/session";
 import { Loader } from "../ui/loader";
 import { calculateAccumulatedScore } from "@/utils/formatScore";
 import { format } from "date-fns";
 import { ChartBar } from "../chart-bar";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { ProcessingFailed } from "./RetryButton";
 
 interface GeneralDataProps {
@@ -22,14 +22,15 @@ interface GeneralDataProps {
 export const GeneralData = (props: GeneralDataProps) => {
   const { sessionData } = props;
 
-  const { target_status } = sessionData;
+  const { round_result } = sessionData;
 
-  const accumulatedScore = calculateAccumulatedScore(
-    sessionData.score?.map((score) => score.score) || []
-  );
+  // const accumulatedScore = calculateAccumulatedScore(
+  //   sessionData.score?.map((score) => score.score) || []
+  // );
 
-  const totalScore =
-    sessionData.score?.reduce((sum, obj) => sum + obj.score, 0) || 1;
+  const getTotalScore = (round: Round) => {
+    return round.score?.reduce((sum, obj) => sum + obj.score, 0) || 1;
+  };
 
   const chartConfig = {
     score: {
@@ -42,29 +43,31 @@ export const GeneralData = (props: GeneralDataProps) => {
     },
   };
 
-  const shotData = useMemo(() => {
+  const getRoundData = (rounds: Round[]) => {
+    const roundsData = [];
     return (
-      sessionData.score?.map((hit, index) => {
-        return {
-          shotNo: hit.id,
-          score: hit.score,
-          accScore: accumulatedScore[index],
-        };
+      rounds.map((round) => {
+        round.score?.map((hit) => {
+          roundsData.push({
+            shotNo: hit.id,
+            score: hit.score,
+          });
+        });
       }) || []
     );
-  }, [accumulatedScore, sessionData.score]);
+  };
 
-  if (target_status === "FAILURE") {
-    return <ProcessingFailed sessionData={sessionData}/>;
-  }
+  // if (target_status === "FAILURE") {
+  //   return <ProcessingFailed sessionData={sessionData} />;
+  // }
 
-  if (target_status !== "SUCCESS") {
-    return (
-      <div className="mt-4 border p-6">
-        <Loader>Processing...</Loader>
-      </div>
-    );
-  }
+  // if (target_status !== "SUCCESS") {
+  //   return (
+  //     <div className="mt-4 border p-6">
+  //       <Loader>Processing...</Loader>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div>
@@ -81,14 +84,13 @@ export const GeneralData = (props: GeneralDataProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sessionData.score
-            ?.sort((a, b) => Number(a.id) - Number(b.id))
-            .map((hit, index) => {
+          {round_result.map((round, index) => {
+            return round.score?.map((hit) => {
               if (index === 0) {
                 return (
                   <TableRow>
                     <TableCell
-                      rowSpan={sessionData.score?.length}
+                      rowSpan={round.score?.length}
                       className="border-x text-center"
                     >
                       1
@@ -97,12 +99,12 @@ export const GeneralData = (props: GeneralDataProps) => {
                     <TableCell>{hit.score}</TableCell>
                     <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
                     <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
-                    <TableCell>{accumulatedScore[index]}</TableCell>
+                    {/* <TableCell>{accumulatedScore[index]}</TableCell> */}
                     <TableCell
-                      rowSpan={sessionData.score?.length}
+                      rowSpan={round.score?.length}
                       className="border-x text-center"
                     >
-                      {totalScore}
+                      {getTotalScore(round)}
                     </TableCell>
                   </TableRow>
                 );
@@ -113,18 +115,12 @@ export const GeneralData = (props: GeneralDataProps) => {
                   <TableCell>{hit.score}</TableCell>
                   <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
                   <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
-                  <TableCell>{accumulatedScore[index]}</TableCell>
+                  {/* <TableCell>{accumulatedScore[index]}</TableCell> */}
                 </TableRow>
               );
-            })}
+            });
+          })}
         </TableBody>
-
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={6}>Total Score</TableCell>
-            <TableCell className="text-center">{totalScore}</TableCell>
-          </TableRow>
-        </TableFooter>
       </Table>
 
       <div className="mt-4 grid grid-cols-2">
@@ -132,13 +128,12 @@ export const GeneralData = (props: GeneralDataProps) => {
           title="Shot Statistic"
           description="Your Shot Statistic"
           chartConfig={chartConfig}
-          chartData={shotData}
+          chartData={getRoundData(round_result)}
           xAxisDataKey="shotNo"
           lineDataKey={["score", "accScore"]}
           footer={undefined}
           stack
         />
-        <div></div>
       </div>
     </div>
   );

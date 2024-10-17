@@ -64,6 +64,7 @@ class VideoAnalyzer:
                     self.scale = geo2D.calc_model_scale(warped_edges, self.model.shape)
                     self.homography_setup_done = True
                     self.frame_life = 0
+                    return True
         
         # If homography setup failed
         self.homography_setup_done = False
@@ -105,6 +106,7 @@ class VideoAnalyzer:
             success = self._setup_homography(frame)
             print("processing...")
             if not success:
+                print("homo failed")
                 return None, []
         
         # process image

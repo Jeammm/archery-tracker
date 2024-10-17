@@ -47,6 +47,8 @@ export const SessionInitiate = () => {
   >({});
   const [uploadedRoundVideo, setUploadedRoundVideo] = useState<string[]>([]);
 
+  const [isTestMode, setIsTestMode] = useState<boolean>(true);
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -87,7 +89,9 @@ export const SessionInitiate = () => {
   const sendVideoProcessRequest = async (roundId: string) => {
     try {
       await axios.post(
-        `${BASE_BACKEND_URL}/process-target/${roundId}`,
+        `${BASE_BACKEND_URL}/${
+          isTestMode ? "process-target-test" : "process-target"
+        }/${roundId}`,
         {},
         {
           headers: {
@@ -378,6 +382,15 @@ export const SessionInitiate = () => {
                 <Square fill="white" color="white" size={18} />
                 <p className="font-bold text-white">End</p>
               </Button>
+
+              <div className="flex gap-1 border p-1 rounded-md">
+                <input
+                  type="checkbox"
+                  defaultChecked={isTestMode}
+                  onChange={() => setIsTestMode(isTestMode)}
+                />
+                <p>Test Mode</p>
+              </div>
             </div>
 
             <RoundDetailsTable

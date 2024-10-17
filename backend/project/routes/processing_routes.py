@@ -5,6 +5,7 @@ from datetime import datetime
 from project.constants.constants import ROUND_COLLECTION
 from project.controllers.decorators import token_required
 from ..controllers.processing_controller import capture_pose_on_shot_detected, process_pose, process_target
+from ..controllers.processing_controller_dev import capture_pose_on_shot_detected_test, process_pose_test, process_target_test
 from ..db import db
 import os
 
@@ -51,6 +52,50 @@ def process_target_route(user_id, round_id):
     chord_tasks = chord(
         [process_target.s(round_id), process_pose.s(round_id)]
     )(capture_pose_on_shot_detected.s(round_id))
+    
+    task_data = {
+        "target_task_id": chord_tasks.parent[0].id,
+        "pose_task_id": chord_tasks.parent[1].id,
+        "target_status": chord_tasks.parent[0].status,  # Initial status "PENDING"
+        "pose_status": chord_tasks.parent[1].status,  # Initial status "PENDING"
+        "start_process_at": datetime.utcnow(),
+    }
+    
+    existing_task = collection.find_one({"_id": ObjectId(round_id)})
+
+    if existing_task:
+        # Update the existing task
+        result = collection.update_one(
+            {"_id": ObjectId(round_id)},
+            {"$set": task_data}
+        )
+        if result.modified_count == 0:
+            return jsonify({"error": "Failed to update the task"}), 500
+    else:
+        return jsonify({"error": "Session not found"}), 500
+
+    # Fetch the updated or inserted task
+    updated_task = collection.find_one({"_id": ObjectId(round_id)})
+    
+    if not updated_task:
+        return jsonify({"error": "Failed to retrieve the task after update"}), 500
+    
+    return jsonify({
+        "_id": round_id,
+        "target_task_id": chord_tasks.parent[0].id,
+        "pose_task_id": chord_tasks.parent[1].id,
+        "target_status": chord_tasks.parent[0].status,
+        "pose_status": chord_tasks.parent[1].status,
+    }), 202
+    
+@processing_bp.route('/process-target-test/<round_id>', methods=['POST'])
+@token_required
+def process_target_route_test(user_id, round_id):    
+    collection = db[ROUND_COLLECTION]
+    
+    chord_tasks = chord(
+        [process_target_test.s(round_id), process_pose_test.s(round_id)]
+    )(capture_pose_on_shot_detected_test.s(round_id))
     
     task_data = {
         "target_task_id": chord_tasks.parent[0].id,
