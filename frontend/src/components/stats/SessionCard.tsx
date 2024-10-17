@@ -18,7 +18,7 @@ import { RetryButton } from "./RetryButton";
 
 interface SessionCardProps {
   sessionData: Session;
-  fetchSessionsData: () => Promise<void>
+  fetchSessionsData: () => Promise<void>;
 }
 
 const CARD_SIZE = "w-[200px]";
@@ -29,41 +29,20 @@ export const SessionCard = (props: SessionCardProps) => {
 
   const {
     created_at,
-    score,
     _id,
-    target_status,
-    pose_status,
+    processing_status,
+    session_status,
     start_process_at,
+    total_score,
+    maximum_score,
+    accuracy,
   } = sessionData;
-
-  const totalScore = score?.reduce((sum, obj) => sum + obj.score, 0) || 0;
-  const maximumScore = (score?.length || 0) * 10;
 
   const { elapsedTime, timeReady } = useTimeElapsed({
     startDatetime: start_process_at,
   });
 
-  if (target_status === "FAILURE" || pose_status === "FAILURE") {
-    return (
-      <div
-        onClick={() => {
-          navigate(`/sessions/${_id}`);
-        }}
-        className={cn([CARD_SIZE, "shrink-0"])}
-      >
-        <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
-          <h3 className="font-bold text-2xl text-red-500">SESSION ERROR</h3>
-          <p className="text-red-600">{formatDateTime(created_at)}</p>
-          <Badge variant="outline">
-            <div className="w-1 h-1 rounded-full bg-red-500 mr-2" /> ERROR
-          </Badge>
-          <RetryButton sessionData={sessionData} className="mt-2" fetchSessionsData={fetchSessionsData} />
-        </div>
-      </div>
-    );
-  }
-
-  if (target_status === "LIVE" || pose_status === "LIVE") {
+  if (session_status === "STARTED") {
     return (
       <Link
         to={`/trainingSession/live/${_id}`}
@@ -81,12 +60,31 @@ export const SessionCard = (props: SessionCardProps) => {
     );
   }
 
-  if (
-    target_status === "PENDING" ||
-    pose_status === "PENDING" ||
-    target_status === "PROCESSING" ||
-    pose_status === "PROCESSING"
-  ) {
+  if (processing_status === "FAILURE" && session_status === "ENDED") {
+    return (
+      <div
+        onClick={() => {
+          navigate(`/sessions/${_id}`);
+        }}
+        className={cn([CARD_SIZE, "shrink-0"])}
+      >
+        <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
+          <h3 className="font-bold text-2xl text-red-500">SESSION ERROR</h3>
+          <p className="text-red-600">{formatDateTime(created_at)}</p>
+          <Badge variant="outline">
+            <div className="w-1 h-1 rounded-full bg-red-500 mr-2" /> ERROR
+          </Badge>
+          <RetryButton
+            sessionData={sessionData}
+            className="mt-2"
+            fetchSessionsData={fetchSessionsData}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (session_status === "ENDED" && processing_status === "PROCESSING") {
     return (
       <Link to={`/sessions/${_id}`} className={cn([CARD_SIZE, "shrink-0"])}>
         <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
@@ -119,7 +117,7 @@ export const SessionCard = (props: SessionCardProps) => {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {totalScore} / {maximumScore}
+            {total_score} / {maximum_score}
           </div>
           <p className="text-xs text-muted-foreground">Score</p>
           <div className="mt-4 flex flex-col gap-4 text-sm">
@@ -129,13 +127,11 @@ export const SessionCard = (props: SessionCardProps) => {
             </div>
             <div className="flex items-center">
               <TargetIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-              {maximumScore > 0
-                ? `${(10 * totalScore) / maximumScore}% Accuracy`
-                : `0% Accuracy`}
+              {`${accuracy}% Accuracy`}
             </div>
             <div className="flex items-center col-span-2">
               <ZapIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-              {score?.length} Shots
+              {(maximum_score || 0) / 10} Shots
             </div>
           </div>
         </CardContent>

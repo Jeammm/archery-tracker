@@ -7,16 +7,38 @@ from ..db import db
 collection = db[SESSION_COLLECTION]
 
 def add_rounds_to_sessions(sessions):
-    """Helper function to add round results to each session."""
+    """Helper function to add round results to each session and determine processing status."""
     for session in sessions:
         session_id = session['_id']
         # Fetch rounds for this session
         rounds = list(db[ROUND_COLLECTION].find({"session_id": ObjectId(session_id)}))
         # Convert ObjectIds to strings for each round item
+
+        total_score = 0
+        maximum_score = 0
+        
         for round_item in rounds:
             round_item['_id'] = str(round_item['_id'])
             round_item['session_id'] = str(round_item['session_id'])
+            
+            scores = [hit['score'] for hit in round_item.get('score', []) if 'score' in hit]
+            total_score += sum(scores)
+            maximum_score += len(scores) * 10
+            
+        session['total_score'] = total_score
+        session['maximum_score'] = maximum_score
+        session['accuracy'] = total_score / maximum_score if maximum_score > 0 else 0  
         session['round_result'] = rounds
+        
+        
+        # Determine processing status based on pose_status and target_status
+        processing_status = "SUCCESS"
+        for round_item in rounds:
+            if round_item.get('pose_status') != "SUCCESS" or round_item.get('target_status') != "SUCCESS":
+                processing_status = "PROCESSING"
+                break
+        
+        session['processing_status'] = processing_status
     return sessions
 
 def convert_object_ids(data):
@@ -86,7 +108,7 @@ def end_session_by_id(user_id, session_id):
         session = collection.find_one({'_id': ObjectId(session_id), 'user_id': ObjectId(user_id)})
         if session:
             collection.update_one(
-                {"_id": session_id},
+                {"_id": ObjectId(session_id)},
                 {"$set": {"session_status": "ENDED"}}
             )
             session = convert_object_ids([session])[0]

@@ -8,6 +8,10 @@ export interface Session {
   model: string;
   round_result: Round[];
   session_status: string;
+  processing_status?: string;
+  total_score?: number;
+  maximum_score?: number;
+  accuracy?: number;
 }
 
 export interface Hit {

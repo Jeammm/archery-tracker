@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { db } from "@/services/fireStore";
 import {
   doc,
@@ -13,7 +13,7 @@ import {
   Firestore,
 } from "firebase/firestore";
 import { BASE_BACKEND_URL, BASE_FRONTEND_URL } from "@/services/baseUrl";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
@@ -339,9 +339,19 @@ export const SessionInitiate = () => {
             {format(session.created_at, "hh:mm a 'at' do MMMM yyyy")}
           </p>
         </div>
-        <Button onClick={onClickEndSession} variant="destructive">
-          End Session
-        </Button>
+        <div className="flex gap-2">
+          <Link
+            to={`/sessions/${sessionId}`}
+            className={buttonVariants({
+              variant: "default",
+            })}
+          >
+            Session Details
+          </Link>
+          <Button onClick={onClickEndSession} variant="destructive">
+            End Session
+          </Button>
+        </div>
       </div>
 
       <div

@@ -2,6 +2,7 @@ import { DetailedShotData } from "@/components/stats/DetailedShotData";
 import { GeneralData } from "@/components/stats/GeneralData";
 import { SessionSummary } from "@/components/stats/SessionSummary";
 import { SessionVideo } from "@/components/stats/SessionVideo";
+import { buttonVariants } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
@@ -10,12 +11,11 @@ import { Session } from "@/types/session";
 import axios from "axios";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 export const SessionDetail = () => {
   const { user } = useAuth();
   const { sessionId } = useParams();
-  const navigate = useNavigate();
 
   const [session, setSession] = useState<Session | null>(null);
   const [conditionMet, setConditionMet] = useState<boolean>(false);
@@ -34,8 +34,8 @@ export const SessionDetail = () => {
       setSession(response.data);
 
       // Check your condition here
-      const { target_status, pose_status } = response.data as Session;
-      if (pose_status === "SUCCESS" && target_status === "SUCCESS") {
+      const { processing_status } = response.data as Session;
+      if (processing_status === "SUCCESS") {
         setConditionMet(true);
       }
     } catch (error) {
@@ -70,16 +70,28 @@ export const SessionDetail = () => {
     );
   }
 
-  if (session.pose_status === "LIVE" || session.target_status === "LIVE") {
-    navigate(`/trainingSession/live/${session._id}`, { replace: true });
-  }
-
   return (
     <div>
-      <h1 className="text-4xl font-bold">Session Detail</h1>
-      <p className="mt-2 text-muted-foreground">
-        {format(new Date(session.created_at), "hh:mm a 'at' do MMMM yyyy")}
-      </p>
+      <div className="flex justify-between">
+        <div>
+          <h1 className="text-4xl font-bold">Session Detail</h1>
+          <p className="mt-2 text-muted-foreground">
+            {format(new Date(session.created_at), "hh:mm a 'at' do MMMM yyyy")}
+          </p>
+        </div>
+        {session.session_status === "STARTED" && (
+          <Link
+            to={`/trainingSession/live/${sessionId}`}
+            className={buttonVariants({
+              variant: "default",
+              className: "flex gap-1.5",
+            })}
+          >
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            Continue This Session
+          </Link>
+        )}
+      </div>
 
       <Tabs defaultValue="general" className="mt-6">
         <TabsList>
