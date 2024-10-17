@@ -17,22 +17,18 @@ import { ProcessingFailed } from "./RetryButton";
 
 interface SessionVideoProps {
   sessionData: Session;
+  selectedRound: number;
 }
 
 const FPS = 24;
 
 export const SessionVideo = (props: SessionVideoProps) => {
-  const { sessionData } = props;
+  const { sessionData, selectedRound } = props;
 
-  const {
-    target_video: targetVideo,
-    pose_video: poseVideo,
-    score,
-    pose_status,
-    target_status,
-  } = sessionData;
+  const { round_result } = sessionData;
 
-  const scoreDetail = score?.sort((a, b) => Number(a.id) - Number(b.id));
+  const { target_video, pose_video, score, target_status, pose_status } =
+    round_result[selectedRound];
 
   const [targetPlayerInstance, setTargetPlayerInstance] =
     useState<ByteArkPlayer | null>(null);
@@ -53,7 +49,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
     controls: false,
     sources: [
       {
-        src: targetVideo?.[0].playbackUrls[0].hls[0].url || "",
+        src: target_video?.[0].playbackUrls[0].hls[0].url || "",
         type: "application/x-mpegURL",
         title: "Target Video",
         videoId: "TargetVideoId",
@@ -68,7 +64,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
     controls: false,
     sources: [
       {
-        src: poseVideo?.[0].playbackUrls[0].hls[0].url || "",
+        src: pose_video?.[0].playbackUrls[0].hls[0].url || "",
         type: "application/x-mpegURL",
         title: "Pose Video",
         videoId: "PoseVideoId",
@@ -123,7 +119,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const onClickPrevious = () => {
-    seekToFrame(scoreDetail?.[0].frame || 0);
+    seekToFrame(score?.[0].frame || 0);
   };
 
   const onClickNext = () => {
@@ -145,15 +141,15 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const updateCurrentShot = (frame: number) => {
-    const currentShot = scoreDetail?.find((shot, index) => {
-      const nextShot = scoreDetail[index + 1];
+    const currentShot = score?.find((shot, index) => {
+      const nextShot = score[index + 1];
       return shot.frame <= frame && (!nextShot || nextShot.frame > frame);
     });
     setCurrentShot(currentShot ? Number(currentShot.id) : 0);
   };
 
   if (target_status === "FAILURE" || pose_status === "FAILURE") {
-    return <ProcessingFailed sessionData={sessionData}/>;
+    return <ProcessingFailed sessionData={sessionData} />;
   }
 
   return (
@@ -257,7 +253,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
         <Separator />
         <div className="h-[200px] overflow-scroll" ref={containerRef}>
           {target_status === "SUCCESS" ? (
-            scoreDetail?.map((hit) => (
+            score?.map((hit) => (
               <div
                 ref={(el) => (itemRefs.current[hit.id] = el)}
                 className={cn([

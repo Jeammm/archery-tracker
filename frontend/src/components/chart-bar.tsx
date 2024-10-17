@@ -27,12 +27,12 @@ export function ChartBar(props: LineChartLabelProps) {
     chartConfig,
     chartData,
     xAxisDataKey,
-    lineDataKey,
     footer,
     chartContainerClassName,
     stack,
   } = props;
 
+  const lineDataKey = Object.keys(chartConfig);
   return (
     <Card>
       <CardHeader>

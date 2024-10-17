@@ -24,6 +24,7 @@ def process_target_test(self, round_id):
     input_filename = f"target_video_raw_{round_id}"
     # input_filepath = "https://arch-devursqoxi.stream-playlist.byteark.com/streams/URSu4NYT7ATO/playlist.m3u8" # Short Version
     input_filepath = "https://arch-devursqoxi.stream-playlist.byteark.com/streams/URT2X8orjGVW/playlist.m3u8" # Long Version
+    dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"target_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
@@ -70,7 +71,7 @@ def process_target_test(self, round_id):
             {"$set": {"target_status": "UPLOADED"}}
         )
         
-        return scoring_detail, input_filepath, output_filepath
+        return scoring_detail, input_filepath, output_filepath, dummy_input_filepath
         
     except Exception as e:
         round_collection.update_one(
@@ -85,6 +86,7 @@ def process_pose_test(self, round_id):
     
     input_filename = f"pose_video_raw_{round_id}"
     input_filepath = f"https://arch-devursqoxi.stream-playlist.byteark.com/streams/URSu4OFPXyBt/playlist.m3u8"
+    dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"pose_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
@@ -122,7 +124,7 @@ def process_pose_test(self, round_id):
             {"$set": {"pose_status": "UPLOADED"}}
         )
         
-        return input_filepath, output_filepath
+        return input_filepath, output_filepath, dummy_input_filepath
         
     except Exception as e:
         round_collection.update_one(
@@ -135,9 +137,11 @@ def capture_pose_on_shot_detected_test(results, round_id):
     scoring_detail = results[0][0]
     raw_target_video_path = results[0][1]
     target_video_path = results[0][2]
+    dummy_raw_target_video_path = results[0][3]
     
     raw_pose_video_path = results[1][0]
     pose_video_path = results[1][1]
+    dummy_raw_pose_video_path = results[1][2]
     
     try:
         # Upload hit frames
@@ -154,8 +158,8 @@ def capture_pose_on_shot_detected_test(results, round_id):
         
         delete_video(target_video_path)
         delete_video(pose_video_path)
-        delete_video(raw_pose_video_path)
-        delete_video(raw_target_video_path)
+        delete_video(dummy_raw_pose_video_path)
+        delete_video(dummy_raw_target_video_path)
         
     except Exception as e:
         round_collection.update_one(
@@ -183,17 +187,24 @@ def upload_frames(scoring_detail, target_video_path, pose_video_path):
         pose_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
         pose_ret, pose_frame = pose_cap.read()
         
-        if target_ret and pose_ret:
+        target_upload_result = {'url': ""}
+        pose_upload_result = {'url': ""}
+        
+        if target_ret:
             _, target_buffer = cv2.imencode('.jpg', target_frame)
             target_image_stream = io.BytesIO(target_buffer)
-            
+            target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
+        
+        if pose_ret:
             _, pose_buffer = cv2.imencode('.jpg', pose_frame)
             pose_image_stream = io.BytesIO(pose_buffer)
-    
-            # Upload the frame to Cloudinary
-            target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
             pose_upload_result = cloudinary.uploader.upload(pose_image_stream, resource_type='image')
-            
-            hit_with_image = {**hit, 'target_image_url': target_upload_result['url'], 'pose_image_url': pose_upload_result['url']}
-            scoring_detail_with_images.append(hit_with_image)
+
+        print("====== uplaod result =====")
+        print(target_upload_result, pose_upload_result)
+        
+        hit_with_image = {**hit, 'target_image_url': target_upload_result['url'], 'pose_image_url': pose_upload_result['url']}
+        scoring_detail_with_images.append(hit_with_image)
+          
     return scoring_detail_with_images
+  

@@ -21,7 +21,7 @@ interface SessionCardProps {
   fetchSessionsData: () => Promise<void>;
 }
 
-const CARD_SIZE = "w-[200px]";
+const CARD_SIZE = "w-[212px] h-[266px]";
 
 export const SessionCard = (props: SessionCardProps) => {
   const { sessionData, fetchSessionsData } = props;
@@ -127,7 +127,7 @@ export const SessionCard = (props: SessionCardProps) => {
             </div>
             <div className="flex items-center">
               <TargetIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-              {`${accuracy}% Accuracy`}
+              {`${Math.floor((accuracy || 0) * 100)}% Accuracy`}
             </div>
             <div className="flex items-center col-span-2">
               <ZapIcon className="mr-2 h-4 w-4 text-muted-foreground" />

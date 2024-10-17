@@ -29,11 +29,9 @@ def handle_disconnect():
         user_role = active_sessions[session_id].get(user_id)
         
         if user_role == "target_camera":
-            print("target_camera_left")
             active_sessions[session_id].pop(user_id, None)
             emit('participant_leave', {'users': active_sessions[session_id]}, to=session_id)
         if user_role == "pose_camera":
-            print("pose_camear_left")
             active_sessions.pop(session_id, None)
             emit('session_ended', {'message': 'The room has ended.'}, to=session_id)
      
@@ -142,7 +140,5 @@ def stop_recording(data):
 def target_video_upload_complete(data):
     session_id = data["sessionId"]
     uploading_status = data["uploadingStatus"]
-    
-    print(data)
     
     emit('targetVideoUploadProgress', {"uploading_status": uploading_status}, to=session_id)

@@ -24,7 +24,6 @@ export interface LineChartLabelProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chartData: any[];
   xAxisDataKey: string;
-  lineDataKey: string[];
   footer: ReactNode;
   chartContainerClassName?: string;
   stack?: boolean;
@@ -37,10 +36,11 @@ export function LineChartLabel(props: LineChartLabelProps) {
     chartConfig,
     chartData,
     xAxisDataKey,
-    lineDataKey,
     footer,
     chartContainerClassName,
   } = props;
+
+  const lineDataKey = Object.keys(chartConfig);
 
   return (
     <Card>

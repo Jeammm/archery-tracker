@@ -11,9 +11,17 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 const chartConfig = {
-  score: {
-    label: "Score",
+  accuracy: {
+    label: "Accuracy",
     color: "hsl(var(--chart-1))",
+  },
+  totalScore: {
+    label: "Total Score",
+    color: "hsl(var(--chart-2))",
+  },
+  maximumScore: {
+    label: "Maximum Score",
+    color: "hsl(var(--chart-3))",
   },
 };
 
@@ -53,13 +61,20 @@ export const Dashboard = () => {
 
   const sessionsData = useMemo(() => {
     return sessions
-      ?.filter((session) => session.session_status === "ENDED")
+      ?.filter(
+        (session) =>
+          session.session_status === "ENDED" &&
+          session.processing_status === "SUCCESS"
+      )
       .map((session) => {
         return {
           date: session.created_at,
-          score: 10, // need to be fixed
+          accuracy: Math.floor((session.accuracy || 0) * 100),
+          totalScore: session.total_score,
+          maximumScore: session.maximum_score,
         };
-      });
+      })
+      .reverse();
   }, [sessions]);
 
   useEffect(() => {
@@ -155,7 +170,6 @@ export const Dashboard = () => {
           chartConfig={chartConfig}
           chartData={sessionsData}
           xAxisDataKey="date"
-          lineDataKey={["score"]}
           footer={undefined}
         />
       </div>

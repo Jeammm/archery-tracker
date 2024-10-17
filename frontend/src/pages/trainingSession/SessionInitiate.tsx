@@ -387,7 +387,7 @@ export const SessionInitiate = () => {
                 <input
                   type="checkbox"
                   defaultChecked={isTestMode}
-                  onChange={() => setIsTestMode(isTestMode)}
+                  onChange={() => setIsTestMode(!isTestMode)}
                 />
                 <p>Test Mode</p>
               </div>

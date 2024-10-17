@@ -1,9 +1,7 @@
-import { Session } from "@/types/session";
-import { Loader } from "../ui/loader";
+import { Hit, Session } from "@/types/session";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MousePointer2, Move3d, Target } from "lucide-react";
-import { ProcessingFailed } from "./RetryButton";
 
 interface SessionSummaryProps {
   sessionData: Session;
@@ -12,41 +10,30 @@ interface SessionSummaryProps {
 export const SessionSummary = (props: SessionSummaryProps) => {
   const { sessionData } = props;
 
-  const { target_status, score } = sessionData;
+  const { round_result } = sessionData;
 
   const [activeHitId, setActiveHitId] = useState<string | null>(null);
 
-  // const targetModel = modelChoices[0];
+  const allHits = useMemo(() => {
+    const hits: Hit[] = [];
+
+    round_result.map((round) => round.score?.map((hit) => hits.push(hit)));
+
+    return hits;
+  }, [round_result]);
 
   const getPositionInPercent = (point: number[]) => {
     const x = (point[0] / 1920) * 100;
     const y = (point[1] / 1080) * 100;
 
-    console.log(x, y);
-
     return [x, y];
   };
-
-  if (target_status === "FAILURE") {
-    return <ProcessingFailed sessionData={sessionData} />;
-  }
-
-  if (target_status !== "SUCCESS") {
-    return (
-      <div className="mt-4 border p-6">
-        <Loader>Processing...</Loader>
-      </div>
-    );
-  }
 
   return (
     <div className="grid grid-cols-2 gap-4 mt-6">
       <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
         <div className="m-8">
-          <img
-            src="https://static.toiimg.com/thumb/resizemode-4,width-1200,height-900,msid-103196097/103196097.jpg"
-            alt=""
-          />
+          <img src={round_result?.[0].score?.[0]?.pose_image_url} alt="" />
         </div>
         <div className="grid grid-cols-2 gap-x-4">
           <p>Head {90}°</p>
@@ -63,11 +50,11 @@ export const SessionSummary = (props: SessionSummaryProps) => {
       <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
         <div className="relative inline-block">
           <img
-            src={score?.[0]?.target_image_url}
+            src={round_result?.[0].score?.[0]?.target_image_url}
             alt="target1"
             className="w-full h-auto"
           />
-          {score?.map((hit) => {
+          {allHits?.map((hit) => {
             const [x, y] = getPositionInPercent(hit.point);
             return (
               <>

@@ -4,6 +4,12 @@ import { SessionSummary } from "@/components/stats/SessionSummary";
 import { SessionVideo } from "@/components/stats/SessionVideo";
 import { buttonVariants } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
@@ -20,6 +26,8 @@ export const SessionDetail = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [conditionMet, setConditionMet] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [currentTab, setCurrentTab] = useState<string>("general");
+  const [selectedRound, setSelectedRound] = useState<number>(0);
 
   const fetchSessionData = async () => {
     try {
@@ -93,13 +101,36 @@ export const SessionDetail = () => {
         )}
       </div>
 
-      <Tabs defaultValue="general" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="detail">Detail</TabsTrigger>
-          <TabsTrigger value="video">Video</TabsTrigger>
-          <TabsTrigger value="summary">Summary</TabsTrigger>
-        </TabsList>
+      <Tabs
+        value={currentTab}
+        onValueChange={(value) => setCurrentTab(value)}
+        className="mt-6"
+      >
+        <div className="flex justify-between">
+          <TabsList>
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="detail">Detail</TabsTrigger>
+            <TabsTrigger value="video">Video</TabsTrigger>
+            <TabsTrigger value="summary">Summary</TabsTrigger>
+          </TabsList>
+
+          {currentTab === "video" && (
+            <Select onValueChange={(value) => setSelectedRound(Number(value))}>
+              <SelectTrigger className="w-[180px]">
+                Round {selectedRound + 1}
+              </SelectTrigger>
+              <SelectContent>
+                {session.round_result.map((_, index) => {
+                  return (
+                    <SelectItem value={`${index}`}>
+                      Round {index + 1}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
         <TabsContent value="general">
           <GeneralData sessionData={session} />
         </TabsContent>
@@ -107,7 +138,11 @@ export const SessionDetail = () => {
           <DetailedShotData sessionData={session} />
         </TabsContent>
         <TabsContent value="video">
-          <SessionVideo sessionData={session} />
+          <SessionVideo
+            sessionData={session}
+            selectedRound={selectedRound}
+            key={`round-${selectedRound}`}
+          />
         </TabsContent>
         <TabsContent value="summary">
           <SessionSummary sessionData={session} />
