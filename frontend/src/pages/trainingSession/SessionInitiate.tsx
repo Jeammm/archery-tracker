@@ -333,6 +333,31 @@ export const SessionInitiate = () => {
     return <Loader />;
   }
 
+  if (session.session_status === "ENDED") {
+    return (
+      <div className="w-full h-full flex flex-col justify-center items-center gap-3">
+        <h2 className="text-4xl font-bold">This Session is ended</h2>
+        <p>
+          You can start new training session or visit this session's result.
+        </p>
+        <div className="flex gap-2">
+          <Link
+            className={buttonVariants({ variant: "default" })}
+            to="/trainingSession"
+          >
+            Start New Training Session
+          </Link>
+          <Link
+            className={buttonVariants({ variant: "outline" })}
+            to={`/sessions/${sessionId}`}
+          >
+            View Session Result
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between">
@@ -499,7 +524,10 @@ export const SessionInitiate = () => {
           {Object.entries(participantDevices.users)
             .filter(([key]) => key !== "is_recording")
             .map(([key, value]) => (
-              <div className="flex text-sm text-muted-foreground items-center gap-1">
+              <div
+                className="flex text-sm text-muted-foreground items-center gap-1"
+                key={key}
+              >
                 <p key={key}>{value}:</p>
                 <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
                   <div className="w-1 h-1 rounded-full bg-green-500" />
