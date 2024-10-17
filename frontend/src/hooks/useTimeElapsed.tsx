@@ -2,20 +2,24 @@ import { useState, useEffect } from "react";
 
 export const useTimeElapsed = ({
   startDatetime,
+  timeOffset,
 }: {
   startDatetime: string | undefined;
+  timeOffset?: number;
 }) => {
   const startTime = startDatetime
     ? new Date(startDatetime).getTime()
     : new Date().getTime();
 
+  const offsetTimeStamp = (timeOffset || 0) * 60 * 60 * 1000;
+
   const [elapsedTime, setElapsedTime] = useState(
-    new Date().getTime() - startTime
+    new Date().getTime() + offsetTimeStamp - startTime
   );
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const currentTime = new Date().getTime();
+      const currentTime = new Date().getTime() + offsetTimeStamp;
       const timeDifference = currentTime - startTime;
       setElapsedTime(timeDifference);
     }, 1000);
@@ -37,6 +41,6 @@ export const useTimeElapsed = ({
 
   return {
     elapsedTime: formatTime(elapsedTime),
-    timeReady: startDatetime && elapsedTime !== 0,
+    timeReady: startDatetime && elapsedTime !== 0 && elapsedTime >= 0,
   };
 };

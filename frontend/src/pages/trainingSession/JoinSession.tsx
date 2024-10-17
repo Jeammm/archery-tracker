@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 
 export const JoinSession = () => {
   const navigate = useNavigate();
-  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -87,7 +86,6 @@ export const JoinSession = () => {
 
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
-        setVideoStream(stream);
       }
 
       const pc = new RTCPeerConnection({
@@ -139,16 +137,19 @@ export const JoinSession = () => {
           }
         });
       });
+
+      return stream;
     };
 
     socket.on("session_ended", () => {
       setIsSessionEnded(true);
     });
 
+    let stream: Promise<MediaStream | undefined>;
     socket.on("participant_join", (data: { users: Record<string, string> }) => {
       setParticipantDevices(data);
       setSessionReady(true);
-      init();
+      stream = init();
     });
     socket.on("session_not_found", () => {
       setSessionReady(true);
@@ -161,6 +162,15 @@ export const JoinSession = () => {
       if (peerConnection) {
         peerConnection.close();
         socket.emit("leaveSession", { sessionId });
+      }
+      if (stream) {
+        stream.then((streamTrack) =>
+          streamTrack?.getTracks().forEach((track) => {
+            if (track.readyState === "live") {
+              track.stop();
+            }
+          })
+        );
       }
     };
 
@@ -221,14 +231,6 @@ export const JoinSession = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoBlob]);
-
-  useEffect(() => {
-    if (isSessionEnded && videoStream) {
-      videoStream.getTracks().forEach((track) => {
-        track.stop();
-      });
-    }
-  }, [isSessionEnded, videoStream]);
 
   if (!sessionReady) {
     return (

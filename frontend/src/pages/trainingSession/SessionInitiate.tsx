@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { db } from "@/services/fireStore";
 import {
   doc,
@@ -8,6 +8,9 @@ import {
   onSnapshot,
   collection,
   addDoc,
+  getDocs,
+  deleteDoc,
+  Firestore,
 } from "firebase/firestore";
 import { BASE_BACKEND_URL, BASE_FRONTEND_URL } from "@/services/baseUrl";
 import { Button } from "@/components/ui/button";
@@ -17,10 +20,10 @@ import { useAuth } from "@/context/AuthContext";
 import { Round, Session } from "@/types/session";
 import { Loader } from "@/components/ui/loader";
 import axios from "axios";
-import { useTimeElapsed } from "@/hooks/useTimeElapsed";
 import { socket } from "@/services/socket";
 import { cn } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Play, Square } from "lucide-react";
+import { RoundDetailsTable } from "./RoundDetailsTable";
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
@@ -46,10 +49,6 @@ export const SessionInitiate = () => {
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-
-  const { elapsedTime, timeReady } = useTimeElapsed({
-    startDatetime: roundData?.created_at,
-  });
 
   const fetchSessionData = useCallback(async () => {
     if (!sessionId || !user?.token) {
@@ -142,7 +141,7 @@ export const SessionInitiate = () => {
   useEffect(() => {
     const uploadVideoBlob = async () => {
       // Upload video
-      if (videoBlob) {
+      if (videoBlob && roundData) {
         const formData = new FormData();
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
 
@@ -156,90 +155,120 @@ export const SessionInitiate = () => {
             },
           }
         );
+        setRoundData(null);
       }
     };
     uploadVideoBlob();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoBlob]);
+  }, [videoBlob, roundData]);
 
-  useEffect(() => {
-    const init = async () => {
-      if (!sessionId) {
-        return;
+  const clearCandidates = async (db: Firestore, sessionId: string) => {
+    const callerCandidatesRef = collection(
+      db,
+      "sessions",
+      sessionId,
+      "callerCandidates"
+    );
+    const calleeCandidatesRef = collection(
+      db,
+      "sessions",
+      sessionId,
+      "calleeCandidates"
+    );
+
+    // Fetch all documents in the callerCandidates collection and delete them
+    const callerSnapshot = await getDocs(callerCandidatesRef);
+    callerSnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+
+    // Fetch all documents in the calleeCandidates collection and delete them
+    const calleeSnapshot = await getDocs(calleeCandidatesRef);
+    calleeSnapshot.forEach(async (doc) => {
+      await deleteDoc(doc.ref);
+    });
+  };
+
+  const init = async () => {
+    if (!sessionId) {
+      return;
+    }
+    // Set up local video
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: false,
+    });
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+
+    // Set up WebRTC
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    });
+    setPeerConnection(pc);
+
+    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+    pc.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
       }
-      // Set up local video
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
-
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-
-      // Set up WebRTC
-      const pc = new RTCPeerConnection({
-        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-      });
-      setPeerConnection(pc);
-
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-
-      pc.ontrack = (event) => {
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-        }
-      };
-
-      // Listen for remote connection
-      const sessionDoc = doc(db, "sessions", sessionId);
-      onSnapshot(sessionDoc, async (snapshot) => {
-        const data = snapshot.data();
-        if (!pc.currentRemoteDescription && data && data.answer) {
-          const remoteDesc = new RTCSessionDescription(data.answer);
-          await pc.setRemoteDescription(remoteDesc);
-          setIsCameraConnected(true);
-        }
-      });
-
-      // Handle ICE candidates
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          addDoc(
-            collection(db, "sessions", sessionId, "callerCandidates"),
-            event.candidate.toJSON()
-          );
-        }
-      };
-
-      // Create offer
-      const offerDescription = await pc.createOffer();
-      await pc.setLocalDescription(offerDescription);
-
-      const offer = {
-        sdp: offerDescription.sdp,
-        type: offerDescription.type,
-      };
-
-      await setDoc(sessionDoc, { offer });
-
-      // Listen for remote ICE candidates
-      onSnapshot(
-        collection(db, "sessions", sessionId, "calleeCandidates"),
-        (snapshot) => {
-          snapshot.docChanges().forEach(async (change) => {
-            if (change.type === "added") {
-              const data = change.doc.data();
-              await pc.addIceCandidate(new RTCIceCandidate(data));
-            }
-          });
-        }
-      );
-
-      ///////
     };
 
+    // Listen for remote connection
+    const sessionDoc = doc(db, "sessions", sessionId);
+    onSnapshot(sessionDoc, async (snapshot) => {
+      const data = snapshot.data();
+      if (!pc.currentRemoteDescription && data && data.answer) {
+        const remoteDesc = new RTCSessionDescription(data.answer);
+        await pc.setRemoteDescription(remoteDesc);
+        setIsCameraConnected(true);
+      }
+    });
+
+    // Handle ICE candidates
+    await clearCandidates(db, sessionId);
+    pc.onicecandidate = async (event) => {
+      if (!event.candidate) {
+        return;
+      }
+      addDoc(
+        collection(db, "sessions", sessionId, "callerCandidates"),
+        event.candidate.toJSON()
+      );
+    };
+
+    // Create offer
+    const offerDescription = await pc.createOffer();
+    await pc.setLocalDescription(offerDescription);
+
+    const offer = {
+      sdp: offerDescription.sdp,
+      type: offerDescription.type,
+    };
+
+    await setDoc(sessionDoc, { offer });
+
+    // Listen for remote ICE candidates
+    onSnapshot(
+      collection(db, "sessions", sessionId, "calleeCandidates"),
+      (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
+          if (change.type === "added") {
+            const data = change.doc.data();
+            await pc.addIceCandidate(new RTCIceCandidate(data));
+          }
+        });
+      }
+    );
+    return stream;
+    ///////
+  };
+
+  useEffect(() => {
     socket.emit("startSession", { sessionId });
     socket.on("recordingStarted", (data: { round_data: Round }) => {
       setRoundData(data.round_data);
@@ -251,6 +280,8 @@ export const SessionInitiate = () => {
       "participant_leave",
       (data: { users: Record<string, string> }) => {
         setParticipantDevices(data);
+        setIsCameraConnected(false);
+        init();
       }
     );
     socket.on(
@@ -259,12 +290,21 @@ export const SessionInitiate = () => {
         setTargetVideoUploadingStatus(data.uploading_status);
       }
     );
-    init();
+    const stream = init();
 
     // Cleanup function
     return () => {
       if (peerConnection) {
         peerConnection.close();
+      }
+      if (stream) {
+        stream.then((streamTrack) =>
+          streamTrack?.getTracks().forEach((track) => {
+            if (track.readyState === "live") {
+              track.stop();
+            }
+          })
+        );
       }
       socket.emit("sessionEnd", { sessionId });
     };
@@ -277,7 +317,6 @@ export const SessionInitiate = () => {
         !uploadedRoundVideo.includes(roundId) &&
         targetVideoUploadingStatus[roundId] === 100
       ) {
-        console.log("hrere");
         setUploadedRoundVideo((prev) => [...prev, roundId]);
         await sendVideoProcessRequest(roundId);
         await fetchSessionData();
@@ -289,109 +328,6 @@ export const SessionInitiate = () => {
   if (!session) {
     return <Loader />;
   }
-
-  const RoundDetails = ({ className }: { className?: string }) => {
-    return (
-      <div className={cn(["border rounded-md flex flex-col", className])}>
-        <div className="border-b p-2">
-          <h3 className="font-bold">Rounds Detail</h3>
-        </div>
-
-        <div className="p-2 flex flex-col gap-2">
-          {!recording && isCameraConnected && (
-            <Button
-              onClick={startRecording}
-              disabled={recording}
-              className="bg-green-200 hover:bg-green-100 flex gap-2 w-full h-14"
-            >
-              <Plus
-                strokeWidth={3}
-                className="text-inherit rounded-full p-2"
-                size={32}
-              />
-              <p>Start New Round</p>
-            </Button>
-          )}
-
-          {recording && isCameraConnected && (
-            <Button
-              onClick={stopRecording}
-              disabled={!recording}
-              variant="secondary"
-              className="bg-red-500 text-white hover:bg-red-400 h-14"
-            >
-              <div>
-                <div>
-                  {timeReady ? (
-                    <p>Elapsed Time : {elapsedTime}</p>
-                  ) : (
-                    <Loader containerClassName="w-fit">Loading...</Loader>
-                  )}
-                </div>
-                <p className="font-bold">End This Round</p>
-              </div>
-            </Button>
-          )}
-
-          {Object.keys(targetVideoUploadingStatus)
-            .filter((round) => !uploadedRoundVideo.includes(round))
-            .map((_, index) => {
-              return (
-                <div className="bg-slate-900 rounded-md p-2 border">
-                  <p className="font-extrabold">
-                    Round : {session.round_result.length + index + 1}
-                  </p>
-                  <div className="flex gap-1.5 items-center">
-                    <p>Poseture Video : </p>
-                    <Loader containerClassName="w-fit" spinnerSize="sm">
-                      <p className="text-muted-foreground">Uploading...</p>
-                    </Loader>
-                  </div>
-                  <div className="flex gap-1.5 items-center">
-                    <p>Target Video : </p>
-                    <Loader containerClassName="w-fit" spinnerSize="sm">
-                      <p className="text-muted-foreground">Uploading...</p>
-                    </Loader>
-                  </div>
-                </div>
-              );
-            })
-            .reverse()}
-          <div className="flex flex-col gap-2">
-            {session.round_result
-              .map((round, index) => {
-                return (
-                  <div className="bg-slate-900 rounded-md p-2 border">
-                    <p className="font-extrabold">Round : {index + 1}</p>
-                    <div className="flex gap-1.5 items-center">
-                      <p>Poseture Video : </p>
-                      {round.pose_status !== "SUCCESS" ? (
-                        <Loader containerClassName="w-fit" spinnerSize="sm">
-                          <p className="text-muted-foreground">Processing...</p>
-                        </Loader>
-                      ) : (
-                        <p className="text-muted-foreground">Success</p>
-                      )}
-                    </div>
-                    <div className="flex gap-1.5 items-center">
-                      <p>Target Video : </p>
-                      {round.target_status !== "SUCCESS" ? (
-                        <Loader containerClassName="w-fit" spinnerSize="sm">
-                          <p className="text-muted-foreground">Processing...</p>
-                        </Loader>
-                      ) : (
-                        <p className="text-muted-foreground">Success</p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-              .reverse()}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div>
@@ -411,7 +347,38 @@ export const SessionInitiate = () => {
       <div
         className={cn(["flex gap-4 mt-6", isCameraConnected ? "relative" : ""])}
       >
-        {isCameraConnected && <RoundDetails className="w-[300px]" />}
+        {isCameraConnected && (
+          <div className="w-[300px] grid grid-rows-[auto,1fr]">
+            <div className="mb-2 flex gap-2">
+              <Button
+                onClick={startRecording}
+                disabled={recording}
+                className="bg-green-500 hover:bg-green-400 h-8 flex-1 gap-1.5"
+              >
+                <Play fill="white" color="white" size={18} />
+                <p className="font-bold text-white">Start</p>
+              </Button>
+
+              <Button
+                onClick={stopRecording}
+                disabled={!recording}
+                variant="secondary"
+                className="bg-red-500 hover:bg-red-400 h-8 flex-1 gap-1.5"
+              >
+                <Square fill="white" color="white" size={18} />
+                <p className="font-bold text-white">End</p>
+              </Button>
+            </div>
+
+            <RoundDetailsTable
+              targetVideoUploadingStatus={targetVideoUploadingStatus}
+              session={session}
+              roundData={roundData}
+              uploadedRoundVideo={uploadedRoundVideo}
+              isCameraConnected
+            />
+          </div>
+        )}
         <div
           className={cn([
             "border rounded-md overflow-hidden",
@@ -422,25 +389,42 @@ export const SessionInitiate = () => {
         >
           <h4
             className={cn([
+              "w-full",
               isCameraConnected
-                ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all"
-                : "w-full text-center font-bold text-2xl tracking-widest",
+                ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all py-1 px-2 bg-black/30 backdrop-blur-sm"
+                : "text-center font-bold text-2xl tracking-widest",
             ])}
           >
             Posture
           </h4>
-          <div className="w-full aspect-[4/3]">
+          <div className="w-full aspect-[4/3] relative">
             <video
               ref={localVideoRef}
               autoPlay
               playsInline
               muted
-              className="w-full h-full"
+              className={cn([
+                localVideoRef?.current?.srcObject ? "w-full h-full" : "hidden",
+              ])}
             />
+            {!localVideoRef?.current?.srcObject && (
+              <div className="w-full h-full absolute flex justify-center items-center z-10 top-0 left-0">
+                <Loader spinnerSize="lg">
+                  <></>
+                </Loader>
+              </div>
+            )}
           </div>
         </div>
-        <div className="flex-1 border rounded-md overflow-hidden">
-          <h4 className="w-full text-center font-bold text-2xl tracking-widest">
+        <div className="flex-1 border rounded-md overflow-hidden group/target-feed relative">
+          <h4
+            className={cn([
+              "w-full",
+              isCameraConnected
+                ? "absolute opacity-0 group-hover/target-feed:opacity-100 transition-all z-10 py-1 px-2 bg-black/30 backdrop-blur-sm"
+                : "text-center font-bold text-2xl tracking-widest",
+            ])}
+          >
             Target
           </h4>
           <div className="w-full aspect-[4/3] relative">
@@ -448,7 +432,7 @@ export const SessionInitiate = () => {
               ref={remoteVideoRef}
               autoPlay
               playsInline
-              className="w-full h-full"
+              className={cn([isCameraConnected ? "w-full h-full" : "hidden"])}
             />
             {sessionId && !isCameraConnected && (
               <>
@@ -456,18 +440,30 @@ export const SessionInitiate = () => {
                   <Skeleton className="absolute w-full h-full" />
                 </div>
                 <div className="absolute z-30 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
-                  <QRCodeSVG
-                    value={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}
-                  />
-                  <p className="text-lg mt-3">
-                    Scan with mobile phone to use as target camera
+                  <div className="bg-white p-1 border relative">
+                    <QRCodeSVG
+                      value={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}
+                    />
+                  </div>
+                  <p className="text-lg mt-3 text-center w-full font-semibold">
+                    Scan with mobile phone <br />
+                    to use as target camera
                   </p>
 
-                  <Link to={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}>
+                  <div
+                    onClick={() => {
+                      window.open(
+                        `${BASE_FRONTEND_URL}/join?session=${sessionId}`,
+                        "newwindow",
+                        "width=800,height=400"
+                      );
+                      return false;
+                    }}
+                  >
                     <Button variant="outline" className="mt-2">
                       JOIN
                     </Button>
-                  </Link>
+                  </div>
                 </div>
               </>
             )}
@@ -491,7 +487,16 @@ export const SessionInitiate = () => {
             ))}
         </div>
       </div>
-      <div className="mt-6">{!isCameraConnected && <RoundDetails />}</div>
+      <div className="mt-6">
+        {!isCameraConnected && (
+          <RoundDetailsTable
+            targetVideoUploadingStatus={targetVideoUploadingStatus}
+            session={session}
+            roundData={roundData}
+            uploadedRoundVideo={uploadedRoundVideo}
+          />
+        )}
+      </div>
     </div>
   );
 };
