@@ -2,7 +2,17 @@ import { DetailedShotData } from "@/components/stats/DetailedShotData";
 import { GeneralData } from "@/components/stats/GeneralData";
 import { SessionSummary } from "@/components/stats/SessionSummary";
 import { SessionVideo } from "@/components/stats/SessionVideo";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Loader } from "@/components/ui/loader";
 import {
   Select,
@@ -16,18 +26,40 @@ import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { Session } from "@/types/session";
 import axios from "axios";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 export const SessionDetail = () => {
   const { user } = useAuth();
   const { sessionId } = useParams();
+  const navigate = useNavigate();
 
   const [session, setSession] = useState<Session | null>(null);
   const [conditionMet, setConditionMet] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentTab, setCurrentTab] = useState<string>("general");
   const [selectedRound, setSelectedRound] = useState<number>(0);
+
+  const onClickEndSession = async (roundExist: boolean) => {
+    try {
+      await axios.post(
+        `${BASE_BACKEND_URL}/end-sessions/${sessionId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
+      if (roundExist) {
+        navigate(0);
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error ending session:", error);
+    }
+  };
 
   const fetchSessionData = async () => {
     try {
@@ -67,6 +99,12 @@ export const SessionDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conditionMet]);
 
+  const isRoundExisted = useMemo(() => {
+    return (
+      (session?.round_result && session?.round_result?.length >= 1) || false
+    );
+  }, [session?.round_result]);
+
   if (!session) {
     if (isLoading) {
       return <Loader />;
@@ -88,16 +126,50 @@ export const SessionDetail = () => {
           </p>
         </div>
         {session.session_status === "STARTED" && (
-          <Link
-            to={`/trainingSession/live/${sessionId}`}
-            className={buttonVariants({
-              variant: "default",
-              className: "flex gap-1.5",
-            })}
-          >
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            Continue This Session
-          </Link>
+          <div className="flex flex-col gap-1.5 items-end">
+            <Link
+              to={`/trainingSession/live/${sessionId}`}
+              className={buttonVariants({
+                variant: "default",
+                className: "flex gap-1.5",
+              })}
+            >
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              Continue This Session
+            </Link>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="w-fit">
+                  End this session
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>End this session</DialogTitle>
+                  <DialogDescription>
+                    {isRoundExisted
+                      ? "This session will be marked as ended, you can rest now"
+                      : "This session has not a single round, ending this session now will resulted in this session getting deleted."}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                  <DialogClose>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <DialogClose>
+                    <Button
+                      variant="destructive"
+                      onClick={() => onClickEndSession(isRoundExisted)}
+                    >
+                      End session
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         )}
       </div>
 
@@ -114,7 +186,7 @@ export const SessionDetail = () => {
             <TabsTrigger value="summary">Summary</TabsTrigger>
           </TabsList>
 
-          {currentTab === "video" && (
+          {currentTab === "video" && isRoundExisted && (
             <Select onValueChange={(value) => setSelectedRound(Number(value))}>
               <SelectTrigger className="w-[180px]">
                 Round {selectedRound + 1}
@@ -132,20 +204,44 @@ export const SessionDetail = () => {
           )}
         </div>
         <TabsContent value="general">
-          <GeneralData sessionData={session} />
+          {isRoundExisted ? (
+            <GeneralData sessionData={session} />
+          ) : (
+            <div className="w-full text-lg text-muted-foreground text-center italic mt-5 font-semibold">
+              No round data yet...
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="detail">
-          <DetailedShotData sessionData={session} />
+          {isRoundExisted ? (
+            <DetailedShotData sessionData={session} />
+          ) : (
+            <div className="w-full text-lg text-muted-foreground text-center italic mt-5 font-semibold">
+              No round data yet...
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="video">
-          <SessionVideo
-            sessionData={session}
-            selectedRound={selectedRound}
-            key={`round-${selectedRound}`}
-          />
+          {isRoundExisted ? (
+            <SessionVideo
+              sessionData={session}
+              selectedRound={selectedRound}
+              key={`round-${selectedRound}`}
+            />
+          ) : (
+            <div className="w-full text-lg text-muted-foreground text-center italic mt-5 font-semibold">
+              No round data yet...
+            </div>
+          )}
         </TabsContent>
         <TabsContent value="summary">
-          <SessionSummary sessionData={session} />
+          {isRoundExisted ? (
+            <SessionSummary sessionData={session} />
+          ) : (
+            <div className="w-full text-lg text-muted-foreground text-center italic mt-5 font-semibold">
+              No round data yet...
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

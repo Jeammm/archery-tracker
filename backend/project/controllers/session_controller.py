@@ -123,7 +123,12 @@ def create_session(user_id):
 def end_session_by_id(user_id, session_id):
     try:
         session = collection.find_one({'_id': ObjectId(session_id), 'user_id': ObjectId(user_id)})
-        if session:
+        rounds = list(db[ROUND_COLLECTION].find({"session_id": ObjectId(session_id)}))
+        
+        if session and len(rounds) == 0:
+            collection.delete_one({"_id": ObjectId(session_id)})
+            return jsonify({'message': 'session ended with no round, deleted complete'})       
+        elif session:
             collection.update_one(
                 {"_id": ObjectId(session_id)},
                 {"$set": {"session_status": "ENDED"}}

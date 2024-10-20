@@ -3,9 +3,8 @@ import { DataTable } from "@/components/dataTable/data-table";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { Session } from "@/types/session";
-import { formatDateTime } from "@/utils/dateTime";
+import { formatDateTime, timeAgo } from "@/utils/dateTime";
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Play } from "lucide-react";
 import { useMemo } from "react";
 import useFetch from "react-fetch-hook";
 import { useNavigate } from "react-router-dom";
@@ -40,29 +39,46 @@ export const SessionsList = () => {
       ),
       cell: ({ row }) => {
         const created_at: string = row.getValue("created_at");
-        return formatDateTime(created_at);
+        return (
+          <div>
+            <p>{formatDateTime(created_at)}</p>
+            <p className="text-sm text-muted-foreground">
+              {timeAgo(created_at)}
+            </p>
+          </div>
+        );
       },
     },
     {
-      accessorKey: "pose_status",
+      accessorKey: "session_status",
       header: "Pose Status",
+      cell: ({ row }) => {
+        const session_status: string = row.getValue("session_status");
+        if (session_status === "STARTED") {
+          return (
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <p className="font-bold">LIVE</p>
+            </div>
+          );
+        }
+        return (
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+            <p className="font-bold">COMPLETED</p>
+          </div>
+        );
+      },
     },
     {
-      accessorKey: "target_status",
+      accessorKey: "processing_status",
       header: "Target Status",
     },
     {
       id: "actions",
       header: "",
-      cell: ({ row }) => {
-        const data = row.original;
-        const { pose_status, target_status } = data;
-
-        if (pose_status !== "LIVE" && target_status !== "LIVE") {
-          return <Eye />;
-        }
-
-        return <Play />;
+      cell: () => {
+        return <p className="text-muted-foreground">View Results</p>;
       },
     },
   ];
