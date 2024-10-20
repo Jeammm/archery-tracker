@@ -545,6 +545,7 @@ export const SessionInitiate = () => {
             session={session}
             roundData={roundData}
             uploadedRoundVideo={uploadedRoundVideo}
+            containerClassName="min-h-[150px]"
           />
         )}
       </div>

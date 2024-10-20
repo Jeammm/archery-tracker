@@ -1,5 +1,6 @@
 import { Loader } from "@/components/ui/loader";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
+import { cn } from "@/lib/utils";
 import { Round, Session } from "@/types/session";
 import { useMemo } from "react";
 
@@ -9,6 +10,7 @@ interface RoundDetailsTableProps {
   roundData: Round | null;
   uploadedRoundVideo: string[];
   isCameraConnected?: boolean;
+  containerClassName?: string;
 }
 
 export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
@@ -18,6 +20,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
     roundData,
     uploadedRoundVideo,
     isCameraConnected,
+    containerClassName,
   } = props;
 
   const { elapsedTime, timeReady } = useTimeElapsed({
@@ -34,16 +37,23 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
   }, [roundData, session?.round_result.length, targetVideoUploadingStatus]);
 
   return (
-    <div className="rounded-md border flex flex-col">
+    <div
+      className={cn(["rounded-md border flex flex-col", containerClassName])}
+    >
       <div className="border-b p-2">
         <h3 className="font-bold">Rounds Detail</h3>
       </div>
 
       <div className="p-2 h-1 flex-1 overflow-scroll">
-        <div className="gap-2 h-1 flex-1 flex-col flex">
+        <div
+          className={cn([
+            "gap-2 flex-1 flex-col flex",
+            isTableEmpty ? "h-[150px]" : "h-1",
+          ])}
+        >
           {isTableEmpty && (
             <div className="w-full flex justify-center items-center flex-1">
-              <p className="tracking-wider font-bold text-lg">
+              <p className="tracking-wider font-bold text-lg h-fit">
                 {isCameraConnected
                   ? "START YOUR FIRST ROUND!"
                   : "CONNECT THE CAMERA FIRST"}
