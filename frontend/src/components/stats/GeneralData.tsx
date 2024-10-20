@@ -64,7 +64,7 @@ export const GeneralData = (props: GeneralDataProps) => {
 
   return (
     <div>
-      <Table>
+      <Table className="border">
         <TableHeader>
           <TableRow>
             <TableHead>Round</TableHead>
@@ -76,10 +76,11 @@ export const GeneralData = (props: GeneralDataProps) => {
             <TableHead>Acc. Score</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody className="border">
-          {round_result.map((round, roundNo) => {
-            if (round.target_status === "FAILURE") {
-              return (
+
+        {round_result.map((round, roundNo) => {
+          if (round.target_status === "FAILURE") {
+            return (
+              <TableBody>
                 <TableRow>
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
@@ -94,11 +95,13 @@ export const GeneralData = (props: GeneralDataProps) => {
                     Error!
                   </TableCell>
                 </TableRow>
-              );
-            }
+              </TableBody>
+            );
+          }
 
-            if (round.target_status !== "SUCCESS") {
-              return (
+          if (round.target_status !== "SUCCESS" || !round.score) {
+            return (
+              <TableBody>
                 <TableRow>
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
@@ -107,46 +110,70 @@ export const GeneralData = (props: GeneralDataProps) => {
                     <Loader>Processing...</Loader>
                   </TableCell>
                 </TableRow>
-              );
-            }
+              </TableBody>
+            );
+          }
 
-            return round.score?.map((hit, shotNo) => {
-              if (shotNo === 0) {
+          if (round.score.length === 0) {
+            return (
+              <TableBody>
+                <TableRow>
+                  <TableCell className="border-x text-center">
+                    {roundNo + 1}
+                  </TableCell>
+                  <TableCell
+                    colSpan={4}
+                    className="text-muted-foreground italic text-center"
+                  >
+                    No hit detected
+                  </TableCell>
+                  <TableCell className="border-x text-center">0</TableCell>
+                  <TableCell>{accumulatedScore[roundNo]}</TableCell>
+                </TableRow>
+              </TableBody>
+            );
+          }
+
+          return (
+            <TableBody className="hover:bg-muted/50 group/multirow">
+              {round.score.map((hit, shotNo) => {
+                if (shotNo === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell
+                        rowSpan={round.score?.length}
+                        className="border-x text-center"
+                      >
+                        {roundNo + 1}
+                      </TableCell>
+                      <TableCell>{hit.id}</TableCell>
+                      <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
+                      <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
+                      <TableCell>{hit.score}</TableCell>
+                      <TableCell
+                        rowSpan={round.score?.length}
+                        className="border-x text-center"
+                      >
+                        {getTotalScore(round)}
+                      </TableCell>
+                      <TableCell rowSpan={round.score?.length}>
+                        {accumulatedScore[roundNo]}
+                      </TableCell>
+                    </TableRow>
+                  );
+                }
                 return (
                   <TableRow>
-                    <TableCell
-                      rowSpan={round.score?.length}
-                      className="border-x text-center"
-                    >
-                      {roundNo + 1}
-                    </TableCell>
                     <TableCell>{hit.id}</TableCell>
                     <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
                     <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
                     <TableCell>{hit.score}</TableCell>
-                    <TableCell
-                      rowSpan={round.score?.length}
-                      className="border-x text-center"
-                    >
-                      {getTotalScore(round)}
-                    </TableCell>
-                    <TableCell rowSpan={round.score?.length}>
-                      {accumulatedScore[roundNo]}
-                    </TableCell>
                   </TableRow>
                 );
-              }
-              return (
-                <TableRow>
-                  <TableCell>{hit.id}</TableCell>
-                  <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
-                  <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
-                  <TableCell>{hit.score}</TableCell>
-                </TableRow>
-              );
-            });
-          })}
-        </TableBody>
+              })}
+            </TableBody>
+          );
+        })}
         <TableFooter>
           <TableRow>
             <TableCell colSpan={6}>Total Score</TableCell>
