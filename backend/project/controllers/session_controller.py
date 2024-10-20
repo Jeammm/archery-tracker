@@ -6,6 +6,13 @@ from ..db import db
       
 collection = db[SESSION_COLLECTION]
 
+def sort_hit_by_id(round_item):
+    if 'score' in round_item and isinstance(round_item['score'], list):
+        sorted_hit = sorted(round_item['score'], key=lambda x: x["id"])
+        round_item['score'] = sorted_hit
+    
+    return round_item
+
 def add_rounds_to_sessions(sessions):
     """Helper function to add round results to each session and determine processing status."""
     for session in sessions:
@@ -18,6 +25,7 @@ def add_rounds_to_sessions(sessions):
         maximum_score = 0
         
         for round_item in rounds:
+            round_item = sort_hit_by_id(round_item)
             round_item['_id'] = str(round_item['_id'])
             round_item['session_id'] = str(round_item['session_id'])
             
