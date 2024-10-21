@@ -79,6 +79,7 @@ def on_leave_session(data):
 
     if session_id in active_sessions:
         active_sessions[session_id].pop(user_id, None)
+        active_sessions[session_id]["is_recording"] = False
     
     leave_room(session_id)
     emit('participant_leave', {'users': active_sessions[session_id]}, to=session_id)

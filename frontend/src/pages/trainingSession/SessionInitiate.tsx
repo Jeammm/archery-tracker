@@ -157,7 +157,7 @@ export const SessionInitiate = () => {
   useEffect(() => {
     const uploadVideoBlob = async () => {
       // Upload video
-      if (videoBlob && roundData) {
+      if (videoBlob && roundData && isCameraConnected) {
         const formData = new FormData();
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
 
@@ -178,7 +178,7 @@ export const SessionInitiate = () => {
     uploadVideoBlob();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoBlob, roundData]);
+  }, [videoBlob, roundData, isCameraConnected]);
 
   const clearCandidates = async (db: Firestore, sessionId: string) => {
     const callerCandidatesRef = collection(
@@ -297,8 +297,10 @@ export const SessionInitiate = () => {
       "participant_leave",
       (data: { users: Record<string, string> }) => {
         setParticipantDevices(data);
+        console.log(data);
         setIsCameraConnected(false);
-        init();
+        mediaRecorder?.stop();
+        setRecording(false);
       }
     );
     socket.on(
@@ -572,7 +574,7 @@ export const SessionInitiate = () => {
       <div className="mt-6">
         <div>
           {Object.entries(participantDevices.users)
-            .filter(([key]) => key !== "is_recording")
+            .filter(([key]) => key !== "is_recording" && key !== "round_data")
             .map(([key, value]) => (
               <div
                 className="flex text-sm text-muted-foreground items-center gap-1"

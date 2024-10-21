@@ -1,4 +1,5 @@
 import { Loader } from "@/components/ui/loader";
+import { Progress } from "@/components/ui/progress";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
 import { cn } from "@/lib/utils";
 import { Round, Session } from "@/types/session";
@@ -19,7 +20,6 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
     targetVideoUploadingStatus,
     session,
     roundData,
-    uploadedRoundVideo,
     isCameraConnected,
     containerClassName,
     recording,
@@ -67,43 +67,30 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             <div className="rounded-md p-2 border animate-blink">
               <p>
                 {`Round
-              ${
-                (session?.round_result.length || 0) +
-                Object.keys(targetVideoUploadingStatus).length +
-                1
-              }
+              ${(session?.round_result.length || 0) + 1}
               is Recording!`}
               </p>
               {timeReady ? (
                 <p>Elapse Time: {elapsedTime}</p>
               ) : (
-                <p>
-                  <Loader />
-                </p>
+                <Loader className="w-fit h-fit" />
               )}
             </div>
           )}
 
           {Object.keys(targetVideoUploadingStatus)
-            .filter((round) => !uploadedRoundVideo.includes(round))
-            .map((_, index) => {
+            .filter(
+              (round) =>
+                !session?.round_result?.some((result) => result._id === round)
+            )
+            .map((round, index) => {
               return (
                 <div className="bg-slate-900 rounded-md p-2 border">
                   <p className="font-extrabold">
-                    Round : {session?.round_result.length || 0 + index + 1}
+                    Round : {(session?.round_result.length || 0) + index + 1}{" "}
+                    Uploading...
                   </p>
-                  <div className="flex gap-1.5 items-center">
-                    <p>Poseture Video : </p>
-                    <Loader containerClassName="w-fit" spinnerSize="sm">
-                      <p className="text-muted-foreground">Uploading...</p>
-                    </Loader>
-                  </div>
-                  <div className="flex gap-1.5 items-center">
-                    <p>Target Video : </p>
-                    <Loader containerClassName="w-fit" spinnerSize="sm">
-                      <p className="text-muted-foreground">Uploading...</p>
-                    </Loader>
-                  </div>
+                  <Progress value={targetVideoUploadingStatus[round]} />
                 </div>
               );
             })

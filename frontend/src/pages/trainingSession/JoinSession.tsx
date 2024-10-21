@@ -420,7 +420,7 @@ export const JoinSession = () => {
         <div className="flex flex-col gap-1 mb-2 md:mt-4">
           <p>Round: {roundId}</p>
           {Object.entries(participantDevices.users)
-            .filter(([key]) => key !== "is_recording")
+            .filter(([key]) => key !== "is_recording" && key !== "round_data")
             .map(([key, value]) => (
               <div className="flex text-sm text-muted-foreground items-center gap-1">
                 <p key={key}>{value}:</p>

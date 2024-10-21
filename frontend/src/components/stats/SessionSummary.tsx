@@ -33,7 +33,11 @@ export const SessionSummary = (props: SessionSummaryProps) => {
     <div className="grid grid-cols-2 gap-4 mt-6">
       <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
         <div className="m-8">
-          <img src={round_result?.[0].score?.[0]?.pose_image_url} alt="" />
+          <img
+            src={round_result?.[0].score?.[0]?.pose_image_url}
+            alt=""
+            className="w-full h-auto"
+          />
         </div>
         <div className="grid grid-cols-2 gap-x-4">
           <p>Head {90}°</p>
