@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { db } from "@/services/fireStore";
@@ -24,6 +24,16 @@ import { socket } from "@/services/socket";
 import { cn } from "@/lib/utils";
 import { Play, Square } from "lucide-react";
 import { RoundDetailsTable } from "./RoundDetailsTable";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
@@ -68,7 +78,7 @@ export const SessionInitiate = () => {
     setSession(response.data);
   }, [sessionId, user?.token]);
 
-  const onClickEndSession = async () => {
+  const onClickEndSession = async (roundExist: boolean) => {
     try {
       await axios.post(
         `${BASE_BACKEND_URL}/end-sessions/${sessionId}`,
@@ -79,8 +89,11 @@ export const SessionInitiate = () => {
           },
         }
       );
-      socket.emit("sessionEnd", { sessionId });
-      navigate(`/sessions/${sessionId}`);
+      if (roundExist) {
+        navigate(`/sessions/${sessionId}`);
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.error("Error ending session:", error);
     }
@@ -329,6 +342,14 @@ export const SessionInitiate = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetVideoUploadingStatus, uploadedRoundVideo]);
 
+  const isRoundExisted = useMemo(() => {
+    return !(
+      Object.keys(targetVideoUploadingStatus).length === 0 &&
+      session?.round_result.length === 0 &&
+      !roundData
+    );
+  }, [roundData, session?.round_result.length, targetVideoUploadingStatus]);
+
   if (!session) {
     return <Loader />;
   }
@@ -377,9 +398,37 @@ export const SessionInitiate = () => {
           >
             Session Details
           </Link>
-          <Button onClick={onClickEndSession} variant="destructive">
-            End Session
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" className="w-fit">
+                End session
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>End this session</DialogTitle>
+                <DialogDescription>
+                  {isRoundExisted
+                    ? "This session will be marked as ended, you can rest now"
+                    : "This session has not a single round, ending this session now will resulted in this session getting deleted."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <DialogFooter>
+                <DialogClose>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <DialogClose>
+                  <Button
+                    variant="destructive"
+                    onClick={() => onClickEndSession(isRoundExisted)}
+                  >
+                    End session
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
