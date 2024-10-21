@@ -149,11 +149,11 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   if (target_status === "FAILURE" || pose_status === "FAILURE") {
-    return <ProcessingFailed sessionData={sessionData} />;
+    return <ProcessingFailed round={round_result[selectedRound]} />;
   }
 
   return (
-    <div>
+    <div className="mt-6">
       <div className="flex gap-3">
         <div className="flex-1 h-auto aspect-video rounded-md overflow-hidden">
           {pose_status === "SUCCESS" ? (

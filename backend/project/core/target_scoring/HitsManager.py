@@ -4,11 +4,8 @@ import numpy as np
 CANDIDATE = 0
 VERIFIED = 1
 
-candidate_hits = []
-verified_hits = []
-
 class Hit:
-    def __init__(self, x, y, score, bullseyeRelation, frame_count):
+    def __init__(self, x, y, score, bullseyeRelation, frame_count, verified_hits):
         '''
         {Number} x - x coordinate of the hit
         {Number} y - y coordinate of the hit
@@ -54,7 +51,8 @@ class Hit:
 
         return self.reputation >= repScore
 
-def create_scoreboard(hits, scale, ringsAmount, innerDiam, frame_count):
+
+def create_scoreboard(hits, scale, ringsAmount, innerDiam, frame_count, verified_hits):
     '''
     Calculate the score of each detected hit.
 
@@ -101,12 +99,12 @@ def create_scoreboard(hits, scale, ringsAmount, innerDiam, frame_count):
         elif score > 10:
             score = 10
         
-        hit_obj = Hit(int(hit[0]), int(hit[1]), score, hit[3], frame_count)
+        hit_obj = Hit(int(hit[0]), int(hit[1]), score, hit[3], frame_count, verified_hits)
         scoreboard.append(hit_obj)
 
     return scoreboard
 
-def is_verified_hit(point, distanceTolerance):
+def is_verified_hit(point, distanceTolerance, verified_hits, candidate_hits):
     '''
     Parameters:
         {Tuple} point - (
@@ -120,9 +118,9 @@ def is_verified_hit(point, distanceTolerance):
         {Boolean} True if the point is of a verified hit.
     '''
 
-    return type(get_hit(VERIFIED, point, distanceTolerance)) != type(None)
+    return type(get_hit(VERIFIED, point, distanceTolerance, verified_hits, candidate_hits)) != type(None)
 
-def is_candidate_hit(point, distanceTolerance):
+def is_candidate_hit(point, distanceTolerance, verified_hits, candidate_hits):
     '''
     Parameters:
         {Tuple} point - (
@@ -136,9 +134,9 @@ def is_candidate_hit(point, distanceTolerance):
         {Boolean} True if the point is of a known hit that's yet to be verified.
     '''
     
-    return type(get_hit(CANDIDATE, point, distanceTolerance)) != type(None)
+    return type(get_hit(CANDIDATE, point, distanceTolerance, verified_hits, candidate_hits)) != type(None)
 
-def get_hit(group, point, distanceTolerance):
+def get_hit(group, point, distanceTolerance, verified_hits, candidate_hits):
     '''
     Parameters:
         {Number} group - The group to which the hit belongs
@@ -156,7 +154,7 @@ def get_hit(group, point, distanceTolerance):
                             If no hit is found, this function returns None.
     '''
 
-    hits_list = get_hits(group)
+    hits_list = get_hits(group, verified_hits, candidate_hits)
     compatible_hits = []
 
     for hit in hits_list:
@@ -168,7 +166,7 @@ def get_hit(group, point, distanceTolerance):
     else:
         return None
 
-def eliminate_verified_redundancy(distanceTolerance):
+def eliminate_verified_redundancy(distanceTolerance, verified_hits):
     '''
     Find duplicate verified hits and eliminate them.
 
@@ -227,7 +225,7 @@ def eliminate_verified_redundancy(distanceTolerance):
         
         j_leap += 1
 
-def sort_hit(hit, distanceTolerance, minVerifiedReputation):
+def sort_hit(hit, distanceTolerance, minVerifiedReputation, verified_hits, candidate_hits):
     '''
     Sort a hit and place it in either of the lists.
     Increase the reputation of a hit that's already a candidate,
@@ -240,7 +238,7 @@ def sort_hit(hit, distanceTolerance, minVerifiedReputation):
         {Number} minVerifiedReputation - The minimum reputation needed to verify a hit
     '''
 
-    candidate = get_hit(CANDIDATE, hit.point, distanceTolerance)
+    candidate = get_hit(CANDIDATE, hit.point, distanceTolerance, verified_hits, candidate_hits)
 
     # the hit is a known candidate
     if type(candidate) != type(None):
@@ -253,14 +251,14 @@ def sort_hit(hit, distanceTolerance, minVerifiedReputation):
             candidate_hits.remove(candidate)
             
             # find duplicate verified hits and eliminate them
-            eliminate_verified_redundancy(distanceTolerance)
+            eliminate_verified_redundancy(distanceTolerance, verified_hits)
 
     # new candidate
     else:
         candidate_hits.append(hit)
         hit.iter_mark = True
 
-def discharge_hits():
+def discharge_hits(candidate_hits):
     '''
     Lower the reputation of hits that were not detected during the last iteration.
     Hits with reputation under 1 are disqualified and removed.
@@ -279,7 +277,7 @@ def discharge_hits():
         # get ready for the next iteration
         candidate.iter_mark = False
 
-def shift_hits(bullseye):
+def shift_hits(bullseye, verified_hits, candidate_hits):
     '''
     Shift all hits according to the new position of the bull'seye point in the target.
 
@@ -303,7 +301,7 @@ def shift_hits(bullseye):
         h.bullseye_relation = bullseye
         h.point = (new_x,new_y)
 
-def get_hits(group):
+def get_hits(group, verified_hits, candidate_hits):
     '''
     Parameters:
         {Number} group - The group to which the hit belongs

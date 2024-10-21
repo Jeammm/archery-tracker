@@ -172,6 +172,7 @@ export const SessionInitiate = () => {
           }
         );
         setRoundData(null);
+        setVideoBlob(null);
       }
     };
     uploadVideoBlob();
@@ -472,6 +473,7 @@ export const SessionInitiate = () => {
               roundData={roundData}
               uploadedRoundVideo={uploadedRoundVideo}
               isCameraConnected
+              recording={recording}
             />
           </div>
         )}
@@ -594,6 +596,7 @@ export const SessionInitiate = () => {
             roundData={roundData}
             uploadedRoundVideo={uploadedRoundVideo}
             containerClassName="min-h-[150px]"
+            recording={recording}
           />
         )}
       </div>

@@ -4,7 +4,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { RefreshCw, TriangleAlert } from "lucide-react";
-import { Session } from "@/types/session";
 import {
   Accordion,
   AccordionContent,
@@ -12,9 +11,10 @@ import {
   AccordionTrigger,
 } from "../ui/accordion";
 import { cn } from "@/lib/utils";
+import { Round } from "@/types/session";
 
 interface SessionDataProps {
-  sessionData: Session;
+  round: Round;
   className?: string;
   refreshAfterRetry?: boolean;
   fetchSessionsData?: () => Promise<void>;
@@ -23,14 +23,14 @@ interface SessionDataProps {
 export const RetryButton = (props: SessionDataProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { sessionData, className, refreshAfterRetry, fetchSessionsData } =
+  const { round, className, refreshAfterRetry, fetchSessionsData } =
     props;
 
   const onClickRetryProcess = async (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
     try {
       await axios.post(
-        `${BASE_BACKEND_URL}/process-target/${sessionData._id}`,
+        `${BASE_BACKEND_URL}/process-target/${round._id}`,
         {},
         {
           headers: {
@@ -58,7 +58,7 @@ export const RetryButton = (props: SessionDataProps) => {
 };
 
 export const ProcessingFailed = (props: SessionDataProps) => {
-  const { sessionData } = props;
+  const { round } = props;
 
   return (
     <div className="mt-4 border p-6 border-l-4 border-l-red-500 rounded-sm">
@@ -78,11 +78,11 @@ export const ProcessingFailed = (props: SessionDataProps) => {
         <AccordionItem value="errorMessage">
           <AccordionTrigger>Errors</AccordionTrigger>
           <AccordionContent>
-            {sessionData.pose_error_message && (
-              <p>Posture: {sessionData.pose_error_message}</p>
+            {round.pose_error_message && (
+              <p>Posture: {round.pose_error_message}</p>
             )}
-            {sessionData.target_error_message && (
-              <p>Target: {sessionData.target_error_message}</p>
+            {round.target_error_message && (
+              <p>Target: {round.target_error_message}</p>
             )}
           </AccordionContent>
         </AccordionItem>

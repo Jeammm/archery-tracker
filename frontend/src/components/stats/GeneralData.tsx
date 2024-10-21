@@ -63,7 +63,7 @@ export const GeneralData = (props: GeneralDataProps) => {
   // }
 
   return (
-    <div>
+    <div className="mt-6">
       <Table className="border">
         <TableHeader>
           <TableRow>
@@ -80,18 +80,17 @@ export const GeneralData = (props: GeneralDataProps) => {
         {round_result.map((round, roundNo) => {
           if (round.target_status === "FAILURE") {
             return (
-              <TableBody>
+              <TableBody key={`failed-${round._id}`}>
                 <TableRow>
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
                   </TableCell>
-                  <TableCell className="border-x text-center">
+                  <TableCell className="border-x text-center" colSpan={4}>
                     {round.target_error_message}
-                  </TableCell>
-                  <TableCell className="border-x text-center">
                     {round.pose_error_message}
                   </TableCell>
-                  <TableCell colSpan={99} className="border-x text-center">
+
+                  <TableCell className="border-x text-center" colSpan={2}>
                     Error!
                   </TableCell>
                 </TableRow>
@@ -101,7 +100,7 @@ export const GeneralData = (props: GeneralDataProps) => {
 
           if (round.target_status !== "SUCCESS" || !round.score) {
             return (
-              <TableBody>
+              <TableBody key={`processing-${round._id}`}>
                 <TableRow>
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
@@ -116,7 +115,7 @@ export const GeneralData = (props: GeneralDataProps) => {
 
           if (round.score.length === 0) {
             return (
-              <TableBody>
+              <TableBody key={`empty-${round._id}`}>
                 <TableRow>
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
@@ -135,11 +134,14 @@ export const GeneralData = (props: GeneralDataProps) => {
           }
 
           return (
-            <TableBody className="hover:bg-muted/50 group/multirow">
+            <TableBody
+              className="hover:bg-muted/50 group/multirow"
+              key={`success-${round._id}`}
+            >
               {round.score.map((hit, shotNo) => {
                 if (shotNo === 0) {
                   return (
-                    <TableRow>
+                    <TableRow key={`shot-row-${round._id}-${hit.id}-origin`}>
                       <TableCell
                         rowSpan={round.score?.length}
                         className="border-x text-center"
@@ -163,7 +165,7 @@ export const GeneralData = (props: GeneralDataProps) => {
                   );
                 }
                 return (
-                  <TableRow>
+                  <TableRow key={`shot-row-${round._id}-${hit.id}-child`}>
                     <TableCell>{hit.id}</TableCell>
                     <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
                     <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>

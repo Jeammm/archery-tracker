@@ -192,9 +192,12 @@ export const SessionDetail = () => {
                 Round {selectedRound + 1}
               </SelectTrigger>
               <SelectContent>
-                {session.round_result.map((_, index) => {
+                {session.round_result.map((round, index) => {
                   return (
-                    <SelectItem value={`${index}`}>
+                    <SelectItem
+                      value={`${index}`}
+                      key={`round-selector-${round._id}`}
+                    >
                       Round {index + 1}
                     </SelectItem>
                   );

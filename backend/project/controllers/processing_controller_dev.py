@@ -13,6 +13,9 @@ from ..db import db
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
 
+pose_video_demo = "https://arch-dev-02urpjaxj.stream-playlist.byteark.com/streams/URpLVxOGC9wp/playlist.m3u8"
+target_video_demo = "https://arch-dev-02urpjaxj.stream-playlist.byteark.com/streams/URpLVyBLDXml/playlist.m3u8"
+
 class MissingTargetModelError(Exception):
     pass
 
@@ -22,8 +25,7 @@ def process_target_test(self, round_id):
     timestamp = int(time.time())
     
     input_filename = f"target_video_raw_{round_id}"
-    # input_filepath = "https://arch-devursqoxi.stream-playlist.byteark.com/streams/URSu4NYT7ATO/playlist.m3u8" # Short Version
-    input_filepath = "https://arch-devursqoxi.stream-playlist.byteark.com/streams/URT2X8orjGVW/playlist.m3u8" # Long Version
+    input_filepath = target_video_demo
     dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"target_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
@@ -85,7 +87,7 @@ def process_pose_test(self, round_id):
     timestamp = int(time.time())
     
     input_filename = f"pose_video_raw_{round_id}"
-    input_filepath = f"https://arch-devursqoxi.stream-playlist.byteark.com/streams/URSu4OFPXyBt/playlist.m3u8"
+    input_filepath = pose_video_demo
     dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"pose_video_processed_{timestamp}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"

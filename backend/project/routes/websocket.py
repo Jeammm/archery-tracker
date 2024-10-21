@@ -16,6 +16,15 @@ def find_user_in_sessions(user_id):
 def init_websocket(app):
     return socketio.init_app(app)
 
+def discard_current_round(session_id):
+    db = current_app.config['db']
+    collection = db[ROUND_COLLECTION]
+    if session_id in active_sessions and 'round_data' in active_sessions[session_id]:
+        current_round = active_sessions[session_id]['round_data']
+        print(f"=== discarding round: {current_round['_id']} ")
+        collection.delete_one({'_id': ObjectId(current_round['_id'])})
+        emit('discard_current_round', {'message': 'Lost camera connection, this round will be discarded'}, to=session_id)
+
 @socketio.on('connect')
 def handle_connect():
     print(f'websocket ID: {request.sid} connected')
@@ -28,12 +37,15 @@ def handle_disconnect():
     if session_id and session_id in active_sessions:
         user_role = active_sessions[session_id].get(user_id)
         
+        discard_current_round(session_id)
+        
         if user_role == "target_camera":
             active_sessions[session_id].pop(user_id, None)
             emit('participant_leave', {'users': active_sessions[session_id]}, to=session_id)
         if user_role == "pose_camera":
             active_sessions.pop(session_id, None)
             emit('session_ended', {'message': 'The room has ended.'}, to=session_id)
+        
      
 @socketio.on('startSession')
 def on_join_session(data):    
@@ -76,6 +88,7 @@ def on_session_end(data):
     session_id = data['sessionId']
     
     if session_id in active_sessions:
+        discard_current_round(session_id)
         active_sessions.pop(session_id, None)
     
     leave_room(session_id)
@@ -116,6 +129,7 @@ def start_recording(data):
         }
 
         # Emit the dictionary directly, without wrapping it in a response
+        active_sessions[session_id]['round_data'] = response_data
         emit('recordingStarted', {'round_data': response_data}, to=session_id)
     else:
         emit('recordingStarted', {'message': 'Already recording!'}, to=session_id)
@@ -123,18 +137,14 @@ def start_recording(data):
 @socketio.on('recordingStopped')
 def stop_recording(data):
     session_id = data['sessionId']
-    is_recording = True
     
-    if session_id in active_sessions:
-        is_recording = active_sessions[session_id]['is_recording']
-    else:
+    if session_id not in active_sessions:
         active_sessions[session_id]['is_recording'] = True
     
-    if not is_recording:
-        active_sessions[session_id]['is_recording'] = False
-        emit('recordingStopped', {'message': 'Recording stoped!'}, to=session_id)
-    else:
-        emit('recordingStopped', {'message': 'Recording already stoped!'}, to=session_id)
+    active_sessions[session_id]['is_recording'] = False
+    active_sessions[session_id].pop('round_data', None)
+    
+    emit('recordingStopped', {'message': 'Recording stoped!'}, to=session_id)
         
 @socketio.on("targetVideoUploadProgress")
 def target_video_upload_complete(data):

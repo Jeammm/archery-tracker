@@ -226,6 +226,8 @@ export const JoinSession = () => {
           sessionId,
           uploadingStatus: { [roundId]: 100 },
         });
+
+        setRoundId(null);
       }
     };
     uploadVideoBlob();

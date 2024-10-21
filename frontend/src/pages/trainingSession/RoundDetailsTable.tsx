@@ -11,6 +11,7 @@ interface RoundDetailsTableProps {
   uploadedRoundVideo: string[];
   isCameraConnected?: boolean;
   containerClassName?: string;
+  recording: boolean;
 }
 
 export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
@@ -21,6 +22,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
     uploadedRoundVideo,
     isCameraConnected,
     containerClassName,
+    recording,
   } = props;
 
   const { elapsedTime, timeReady } = useTimeElapsed({
@@ -61,7 +63,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             </div>
           )}
 
-          {roundData && (
+          {recording && (
             <div className="rounded-md p-2 border animate-blink">
               <p>
                 {`Round

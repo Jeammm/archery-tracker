@@ -45,6 +45,9 @@ class VideoAnalyzer:
         self.homography_setup_done = False
         self.frame_life = 0
         self.frame_count = 0
+        
+        self.verified_hits = []
+        self.candidate_hits = []
 
     def _setup_homography(self, frame):
         matches, (train_keys, train_desc) = matcher.ratio_match(self.sift, self.model_desc, frame, .7)
@@ -123,7 +126,7 @@ class VideoAnalyzer:
         suspect_hits = visuals.find_suspect_hits(proj_contours, self.warped_vertices, self.scale)
 
         # calculate hits and draw circles around them
-        scoreboard = hitsMngr.create_scoreboard(suspect_hits, self.scale, self.rings_amount, self.inner_diam, self.frame_count)
+        scoreboard = hitsMngr.create_scoreboard(suspect_hits, self.scale, self.rings_amount, self.inner_diam, self.frame_count, self.verified_hits)
             
         self.frame_life += 1
 
@@ -153,18 +156,18 @@ class VideoAnalyzer:
                 # increase reputation of consistent hits
                 # or add them as new candidates
                 for hit in scoreboard:
-                    hitsMngr.sort_hit(hit, 30, HOMOGRAPHY_LIFE_SPAN * 2)
+                    hitsMngr.sort_hit(hit, 30, HOMOGRAPHY_LIFE_SPAN * 2, self.verified_hits, self.candidate_hits)
                 
                 # decrease reputation of inconsistent hits
-                hitsMngr.discharge_hits()
+                hitsMngr.discharge_hits(self.candidate_hits)
                 
                 # stabilize all hits according to the slightly shifted bull'seye point
                 if type(bullseye) != type(None):
-                    hitsMngr.shift_hits(bullseye)
+                    hitsMngr.shift_hits(bullseye, self.verified_hits, self.candidate_hits)
 
                 # reference hit groups
-                candidate_hits = hitsMngr.get_hits(hitsMngr.CANDIDATE)
-                verified_hits = hitsMngr.get_hits(hitsMngr.VERIFIED)
+                candidate_hits = hitsMngr.get_hits(hitsMngr.CANDIDATE, self.verified_hits, self.candidate_hits)
+                verified_hits = hitsMngr.get_hits(hitsMngr.VERIFIED, self.verified_hits, self.candidate_hits)
 
                 # extract grouping data
                 grouping_contour = grouper.create_group_polygon(frame, verified_hits)
@@ -172,22 +175,22 @@ class VideoAnalyzer:
                 grouping_diameter = grouper.measure_grouping_diameter(grouping_contour) if has_group else 0
                     
                 # write meta data on frame
-                sketcher.draw_data_block(frame)
+                # sketcher.draw_data_block(frame)
                 # sketcher.draw_meta_data_block(frame)
                 verified_scores = [h.score for h in verified_hits]
                 arrows_amount = len(verified_scores)
-                sketcher.type_arrows_amount(frame, arrows_amount, (0x0,0x0,0xff))
-                sketcher.type_total_score(frame, sum(verified_scores), arrows_amount * 10, (0x0,189,62))
-                sketcher.type_grouping_diameter(frame, grouping_diameter, (0xff,133,14))
+                # sketcher.type_arrows_amount(frame, arrows_amount, (0x0,0x0,0xff))
+                # sketcher.type_total_score(frame, sum(verified_scores), arrows_amount * 10, (0x0,189,62))
+                # sketcher.type_grouping_diameter(frame, grouping_diameter, (0xff,133,14))
                 
                 # mark hits and grouping
-                sketcher.draw_grouping(frame, grouping_contour)
+                # sketcher.draw_grouping(frame, grouping_contour)
                 sketcher.mark_hits(frame, candidate_hits, foreground=(0x0,0x0,0xff),
                                    diam=2, withOutline=False, withScore=False)
                 
                 sketcher.mark_hits(frame, verified_hits, foreground=(0x0,0xff,0x0),
                                    diam=5, withOutline=True, withScore=True)
-                sketcher.shot_label_table(frame, verified_hits)
+                # sketcher.shot_label_table(frame, verified_hits)
                 
                 # write frame to output file
                 out.write(frame)
@@ -212,5 +215,5 @@ class VideoAnalyzer:
                 ),
                 "bullseye_relation": hit.bullseye_relation.tolist()
             }
-            for hit in hitsMngr.verified_hits
+            for hit in self.verified_hits
         ]
