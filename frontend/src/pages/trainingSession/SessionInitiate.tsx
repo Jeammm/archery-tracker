@@ -145,7 +145,6 @@ export const SessionInitiate = () => {
     if (mediaRecorder) {
       mediaRecorder.stop();
       setRecording(false);
-
       // Emit stop recording event
       socket.emit("recordingStopped", { sessionId });
     }

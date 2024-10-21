@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Round } from "@/types/session";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 export const JoinSession = () => {
   const navigate = useNavigate();
@@ -356,8 +357,6 @@ export const JoinSession = () => {
         <QuestionMarkCircledIcon />
       </div>
 
-      <div>{JSON.stringify(uploadingStatus)}</div>
-
       <div className="md:hidden flex gap-2 items-center bg-secondary text-secondary-foreground py-2 rounded-md w-full justify-center">
         <div
           className={cn([
@@ -369,6 +368,18 @@ export const JoinSession = () => {
           Target Camera : {isRecording ? "Recording" : "Online"}
         </h2>
       </div>
+
+      {Object.keys(uploadingStatus).map((file) => {
+        if (uploadingStatus[file] !== 100) {
+          return (
+            <div className="flex flex-col gap-1.5 md:hidden w-full border rounded-md p-1">
+              <p>File Uploading</p>
+              <Progress value={uploadingStatus[file]} />
+            </div>
+          );
+        }
+      })}
+
       <div className="border mx-4 rounded-xl flex-1 overflow-hidden object-fill">
         <video
           ref={localVideoRef}
@@ -394,6 +405,16 @@ export const JoinSession = () => {
             Target Camera : {isRecording ? "Recording" : "Online"}
           </h2>
         </div>
+        {Object.keys(uploadingStatus).map((file) => {
+          if (uploadingStatus[file] !== 100) {
+            return (
+              <div className="md:flex flex-col gap-1.5 hidden w-full border rounded-md p-1">
+                <p>File Uploading</p>
+                <Progress value={uploadingStatus[file]} />
+              </div>
+            );
+          }
+        })}
         <div className="flex flex-col gap-1 mb-2 md:mt-4">
           <p>Round: {roundId}</p>
           {Object.entries(participantDevices.users)
