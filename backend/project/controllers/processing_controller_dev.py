@@ -201,9 +201,6 @@ def upload_frames(scoring_detail, target_video_path, pose_video_path):
             _, pose_buffer = cv2.imencode('.jpg', pose_frame)
             pose_image_stream = io.BytesIO(pose_buffer)
             pose_upload_result = cloudinary.uploader.upload(pose_image_stream, resource_type='image')
-
-        print("====== uplaod result =====")
-        print(target_upload_result, pose_upload_result)
         
         hit_with_image = {**hit, 'target_image_url': target_upload_result['url'], 'pose_image_url': pose_upload_result['url']}
         scoring_detail_with_images.append(hit_with_image)
