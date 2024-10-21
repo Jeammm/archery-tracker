@@ -1,20 +1,18 @@
 from celery import shared_task
+from project.controllers.processing_controller import upload_frames
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION
 from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
 import time
-import cv2
-import io
-import cloudinary.uploader
 from bson.objectid import ObjectId
 from ..db import db
 
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
 
-pose_video_demo = "https://arch-dev-02urpjaxj.stream-playlist.byteark.com/streams/URpLVxOGC9wp/playlist.m3u8"
-target_video_demo = "https://arch-dev-02urpjaxj.stream-playlist.byteark.com/streams/URpLVyBLDXml/playlist.m3u8"
+pose_video_demo = "https://arch-dev-03urrcc2d.stream-playlist.byteark.com/streams/URrCmyPygfA8/playlist.m3u8"
+target_video_demo = "https://arch-dev-03urrcc2d.stream-playlist.byteark.com/streams/URrCmxlAxj3Z/playlist.m3u8"
 
 class MissingTargetModelError(Exception):
     pass
@@ -175,35 +173,4 @@ def capture_pose_on_shot_detected_test(results, round_id):
                 }}
         )
         raise e
-
-def upload_frames(scoring_detail, target_video_path, pose_video_path):
-    scoring_detail_with_images = []
-    target_cap = cv2.VideoCapture(target_video_path)
-    pose_cap = cv2.VideoCapture(pose_video_path)
-    
-    for hit in scoring_detail:
-        frame = hit['frame']
-        target_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
-        target_ret, target_frame = target_cap.read()
-        
-        pose_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
-        pose_ret, pose_frame = pose_cap.read()
-        
-        target_upload_result = {'url': ""}
-        pose_upload_result = {'url': ""}
-        
-        if target_ret:
-            _, target_buffer = cv2.imencode('.jpg', target_frame)
-            target_image_stream = io.BytesIO(target_buffer)
-            target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
-        
-        if pose_ret:
-            _, pose_buffer = cv2.imencode('.jpg', pose_frame)
-            pose_image_stream = io.BytesIO(pose_buffer)
-            pose_upload_result = cloudinary.uploader.upload(pose_image_stream, resource_type='image')
-        
-        hit_with_image = {**hit, 'target_image_url': target_upload_result['url'], 'pose_image_url': pose_upload_result['url']}
-        scoring_detail_with_images.append(hit_with_image)
-          
-    return scoring_detail_with_images
   

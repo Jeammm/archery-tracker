@@ -2,6 +2,7 @@ import { Hit, Session } from "@/types/session";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { MousePointer2, Move3d, Target } from "lucide-react";
+import { SkeletonFeature } from "./SkeletonFeature";
 
 interface SessionSummaryProps {
   sessionData: Session;
@@ -10,9 +11,9 @@ interface SessionSummaryProps {
 export const SessionSummary = (props: SessionSummaryProps) => {
   const { sessionData } = props;
 
-  const { round_result } = sessionData;
+  const { round_result, features } = sessionData;
 
-  const [activeHitId, setActiveHitId] = useState<string | null>(null);
+  const [activeHitId, setActiveHitId] = useState<number | null>(null);
 
   const allHits = useMemo(() => {
     const hits: Hit[] = [];
@@ -39,17 +40,7 @@ export const SessionSummary = (props: SessionSummaryProps) => {
             className="w-full h-auto"
           />
         </div>
-        <div className="grid grid-cols-2 gap-x-4">
-          <p>Head {90}°</p>
-          <p>Left shoulder {91}°</p>
-          <p>Left elbow {13}°</p>
-          <p>Left leg {78}°</p>
-
-          <p>Hip {90}°</p>
-          <p>Right shoulder {91}°</p>
-          <p>Right elbow {180}°</p>
-          <p>Right leg {70}°</p>
-        </div>
+        <SkeletonFeature features={features} />
       </div>
       <div className="rounded-md bg-secondary text-secondary-foreground flex flex-col items-center">
         <div className="relative inline-block">
@@ -118,13 +109,18 @@ export const SessionSummary = (props: SessionSummaryProps) => {
         </div>
         <div className="grid grid-cols-2 w-full text-center">
           <p>Total Score </p>
-          <p>{112}</p>
+          <p>{sessionData.total_score}</p>
           <p>Average Score</p>
-          <p> {8.7}</p>
+          <p>
+            {" "}
+            {sessionData.total_score && sessionData.maximum_score
+              ? (sessionData.total_score / sessionData.maximum_score) * 10
+              : 0}
+          </p>
           <p>Average TTS</p>
           <p> {2012} ms</p>
           <p>Accuracy </p>
-          <p>{93} %</p>
+          <p>{sessionData.accuracy ? sessionData.accuracy * 100 : 0} %</p>
           <p>Time </p>
           <p>{35} min</p>
         </div>

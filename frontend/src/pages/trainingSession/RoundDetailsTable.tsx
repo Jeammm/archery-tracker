@@ -85,7 +85,10 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             )
             .map((round, index) => {
               return (
-                <div className="bg-slate-900 rounded-md p-2 border">
+                <div
+                  className="bg-slate-900 rounded-md p-2 border"
+                  key={`uploading-round-${round}`}
+                >
                   <p className="font-extrabold">
                     Round : {(session?.round_result.length || 0) + index + 1}{" "}
                     Uploading...
@@ -99,7 +102,10 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
           {session?.round_result
             .map((round, index) => {
               return (
-                <div className="bg-slate-900 rounded-md p-2 border">
+                <div
+                  className="bg-slate-900 rounded-md p-2 border"
+                  key={`uploaded-round-${round._id}`}
+                >
                   <p className="font-extrabold">Round : {index + 1}</p>
                   <div className="flex gap-1.5 items-center">
                     <p>Poseture Video : </p>

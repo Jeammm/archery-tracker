@@ -1,4 +1,5 @@
 from celery import shared_task
+from project.core.pose_estimation.PoseEstimator import PoseEstimator
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION
 from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
@@ -182,17 +183,33 @@ def upload_frames(scoring_detail, target_video_path, pose_video_path):
         pose_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
         pose_ret, pose_frame = pose_cap.read()
         
-        if target_ret and pose_ret:
+        # default value
+        target_upload_result = {'secure_url': ""}
+        pose_upload_result = {'secure_url': ""}
+        skeleton_data = {}
+        features = {}
+        phase = "No Pose Detected"
+        
+        if target_ret:
             _, target_buffer = cv2.imencode('.jpg', target_frame)
             target_image_stream = io.BytesIO(target_buffer)
-            
+            target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
+        
+        if pose_ret:
             _, pose_buffer = cv2.imencode('.jpg', pose_frame)
             pose_image_stream = io.BytesIO(pose_buffer)
-    
-            # Upload the frame to Cloudinary
-            target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
             pose_upload_result = cloudinary.uploader.upload(pose_image_stream, resource_type='image')
-            
-            hit_with_image = {**hit, 'target_image_url': target_upload_result['url'], 'pose_image_url': pose_upload_result['url']}
-            scoring_detail_with_images.append(hit_with_image)
+            pose_estimator = PoseEstimator()
+            skeleton_data, features, phase = pose_estimator.process_pose_frame(pose_frame)
+            skeleton_data = PoseEstimator().convert_keys_to_strings(skeleton_data)
+        
+        hit_with_image = {
+            **hit,
+            'target_image_url': target_upload_result['secure_url'],
+            'pose_image_url': pose_upload_result['secure_url'],
+            'skeleton_data': skeleton_data,
+            'features': features,
+            'phase': phase
+            }
+        scoring_detail_with_images.append(hit_with_image)
     return scoring_detail_with_images

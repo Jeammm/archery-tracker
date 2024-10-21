@@ -1,47 +1,34 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { modelChoices, TargetModel } from "@/types/constant";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
-import useFetch from "react-fetch-hook";
 import { useAuth } from "@/context/AuthContext";
-import { Session } from "@/types/session";
-import { Loader } from "@/components/ui/loader";
+import axios from "axios";
 
 export const TargetModelSelect = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [selectedModel, setSelectedModel] = useState<TargetModel | null>(null);
+  const onClickModel = async (modelData: TargetModel) => {
+    try {
+      const response = await axios.post(
+        `${BASE_BACKEND_URL}/sessions`,
+        { model: modelData.model },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
 
-  const { isLoading, error, data } = useFetch(`${BASE_BACKEND_URL}/sessions`, {
-    depends: [selectedModel],
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${user?.token || ""}`,
-    },
-    body: JSON.stringify({ model: selectedModel?.model }),
-  });
-
-  const onClickModel = (modelData: TargetModel) => {
-    setSelectedModel(modelData);
+      navigate(`/trainingSession/live/${response.data._id}`);
+    } catch (error) {
+      console.error(`error selecting target model: ${error}`);
+    }
   };
-
-  useEffect(() => {
-    const session = data as Session | undefined;
-    if (session && session._id) {
-      navigate(`/trainingSession/live/${session._id}`);
-    }
-  }, [data, navigate]);
-
-  useEffect(() => {
-    if (error) {
-      setSelectedModel(null);
-    }
-  }, [error]);
 
   return (
     <div>
@@ -59,13 +46,6 @@ export const TargetModelSelect = () => {
               onClick={() => onClickModel(model)}
               key={model.model}
             >
-              {isLoading && (
-                <div className="absolute w-full h-full left-0 top-0 bg-white/50">
-                  <Loader>
-                    <></>
-                  </Loader>
-                </div>
-              )}
               <img
                 src={model.model_path}
                 alt={model.model}

@@ -573,21 +573,19 @@ export const SessionInitiate = () => {
 
       <div className="mt-6">
         <div>
-          {Object.entries(participantDevices.users)
-            .filter(([key]) => key !== "is_recording" && key !== "round_data")
-            .map(([key, value]) => (
-              <div
-                className="flex text-sm text-muted-foreground items-center gap-1"
-                key={key}
-              >
-                <p key={key}>{value}:</p>
-                <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
-                  <div className="w-1 h-1 rounded-full bg-green-500" />
-                  <p className="text-secondary-foreground text-xs">online</p>
-                </div>
-                <p>({key})</p>
+          {Object.entries(participantDevices.users).map(([key, value]) => (
+            <div
+              className="flex text-sm text-muted-foreground items-center gap-1"
+              key={key}
+            >
+              <p key={key}>{value}:</p>
+              <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
+                <div className="w-1 h-1 rounded-full bg-green-500" />
+                <p className="text-secondary-foreground text-xs">online</p>
               </div>
-            ))}
+              <p>({key})</p>
+            </div>
+          ))}
         </div>
       </div>
       <div className="mt-6">

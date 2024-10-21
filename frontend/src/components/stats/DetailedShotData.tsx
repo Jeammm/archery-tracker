@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { TargetImageWithModal } from "./TargetImageWithModal";
 import { PostureImageWithModal } from "./PostureImageWithModal";
 import { ProcessingFailed } from "./RetryButton";
+import { SkeletonFeature } from "./SkeletonFeature";
 
 interface DetailedShotDataProps {
   sessionData: Session;
@@ -31,7 +32,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
     <div>
       {round_result.map((round, roundNo) => {
         if (round.target_status === "FAILURE") {
-          return <ProcessingFailed round={round}/>;
+          return <ProcessingFailed round={round} />;
         }
 
         if (round.target_status !== "SUCCESS") {
@@ -44,6 +45,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
         return (
           <div className="flex flex-col gap-4" key={round._id}>
             {round.score?.map((hit, shotNo) => {
+              const features = hit.features;
               return (
                 <div
                   className="border rounded-lg m-3justify-between overflow-hidden"
@@ -63,33 +65,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
                   </div>
                   <div className="grid grid-cols-2 gap-2 p-2">
                     <div className="flex justify-between">
-                      <div className="flex flex-col gap-2">
-                        <p>Head {90}°</p>
-                        <p>Hip {90}°</p>
-                        <div>
-                          <p>Shoulders</p>
-                          <div className="flex justify-between gap-4">
-                            <p>Left {91}°</p>
-                            <p>Right {91}°</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <p>Elbows</p>
-                          <div className="flex justify-between gap-4">
-                            <p>Left {91}°</p>
-                            <p>Right {91}°</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <p>Legs</p>
-                          <div className="flex justify-between gap-4">
-                            <p>Left {91}°</p>
-                            <p>Right {91}°</p>
-                          </div>
-                        </div>
-                      </div>
+                      <SkeletonFeature features={features} />
 
                       <PostureImageWithModal hit={hit} />
                     </div>

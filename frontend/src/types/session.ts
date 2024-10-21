@@ -1,3 +1,4 @@
+import { BodyFeatures, Skeleton } from "./skeleton";
 import { MediaVideo } from "./video";
 
 export interface Session {
@@ -12,12 +13,13 @@ export interface Session {
   total_score?: number;
   maximum_score?: number;
   accuracy?: number;
+  features?: BodyFeatures;
 }
 
 export interface Hit {
   frame: number;
   hit_time: string;
-  id: string;
+  id: number;
   point: number[];
   score: number;
   bullseye_relation: number[];
@@ -25,6 +27,9 @@ export interface Hit {
   target_clean_image_url?: string;
   pose_image_url?: string;
   pose_clean_image_url?: string;
+  skeleton_data?: Skeleton;
+  features?: BodyFeatures;
+  phase?: string;
 }
 
 export interface Round {

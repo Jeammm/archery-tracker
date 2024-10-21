@@ -36,7 +36,7 @@ export const GeneralData = (props: GeneralDataProps) => {
   };
 
   const getRoundData = (rounds: Round[]) => {
-    const roundsData: { shotNo: string; score: number }[] = [];
+    const roundsData: { shotNo: number; score: number }[] = [];
 
     rounds.map((round) => {
       round.score?.map((hit) => {

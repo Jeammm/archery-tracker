@@ -24,6 +24,9 @@ def add_rounds_to_sessions(sessions):
         total_score = 0
         maximum_score = 0
         
+        total_feature = {}
+        feature_count = 0
+        
         for round_item in rounds:
             round_item = sort_hit_by_id(round_item)
             round_item['_id'] = str(round_item['_id'])
@@ -31,9 +34,17 @@ def add_rounds_to_sessions(sessions):
             
             
             scores = [hit['score'] for hit in round_item.get('score', []) if 'score' in hit]
+            features = [hit['features'] for hit in round_item.get('score', []) if 'features' in hit]
             round_total_score = sum(scores)
             round_maximum_score = len(scores) * 10
             round_accuracy = round_total_score / round_maximum_score if round_maximum_score > 0 else 0  
+            
+            for feature in features:
+                feature_count += 1
+                for key, value in feature.items():
+                    if key not in total_feature:
+                        total_feature[key] = 0
+                    total_feature[key] += value
             
             round_item['total_score'] = round_total_score
             round_item['maximum_score'] = round_maximum_score
@@ -46,6 +57,10 @@ def add_rounds_to_sessions(sessions):
         session['maximum_score'] = maximum_score
         session['accuracy'] = total_score / maximum_score if maximum_score > 0 else 0  
         session['round_result'] = rounds
+        
+        for key in total_feature:
+            total_feature[key] = round(total_feature[key] / feature_count, 2)
+        session['features'] = total_feature
         
         
         # Determine processing status based on pose_status and target_status

@@ -108,6 +108,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
     }
   }, [currentShot]);
 
+  const getFrameFromShotNumber = (shotNo: number) => {
+    return score?.find((hit) => hit.id === shotNo)?.frame || 0;
+  };
+
   const onClickPause = () => {
     targetPlayerInstance?.pause();
     posePlayerInstance?.pause();
@@ -119,11 +123,21 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const onClickPrevious = () => {
-    seekToFrame(score?.[0].frame || 0);
+    seekToFrame(getFrameFromShotNumber(currentShot - 1));
   };
 
   const onClickNext = () => {
-    // Implement next functionality
+    seekToFrame(getFrameFromShotNumber(currentShot + 1));
+  };
+
+  const onPlayerClick = () => {
+    if (isVideoPlaying) {
+      targetPlayerInstance?.pause();
+      posePlayerInstance?.pause();
+    } else {
+      targetPlayerInstance?.play();
+      posePlayerInstance?.play();
+    }
   };
 
   const handleSliderChange = (value: number[]) => {
@@ -131,6 +145,11 @@ export const SessionVideo = (props: SessionVideoProps) => {
     targetPlayerInstance?.currentTime(newTime);
     posePlayerInstance?.currentTime(newTime);
     setCurrentTime(newTime);
+
+    if (isVideoPlaying) {
+      targetPlayerInstance?.play();
+      posePlayerInstance?.play();
+    }
   };
 
   const seekToFrame = (frameNumber: number) => {
@@ -138,6 +157,11 @@ export const SessionVideo = (props: SessionVideoProps) => {
     targetPlayerInstance?.currentTime(newTime);
     posePlayerInstance?.currentTime(newTime);
     setCurrentTime(newTime);
+
+    if (isVideoPlaying) {
+      targetPlayerInstance?.play();
+      posePlayerInstance?.play();
+    }
   };
 
   const updateCurrentShot = (frame: number) => {
@@ -154,7 +178,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
 
   return (
     <div className="mt-6">
-      <div className="flex gap-3">
+      <div className="flex gap-3" onClick={onPlayerClick}>
         <div className="flex-1 h-auto aspect-video rounded-md overflow-hidden">
           {pose_status === "SUCCESS" ? (
             <ByteArkPlayerContainer
@@ -192,7 +216,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
             onClick={onClickPrevious}
             variant="clean"
             size="no-space"
-            disabled={pose_status !== "SUCCESS" && target_status !== "SUCCESS"}
+            disabled={
+              (pose_status !== "SUCCESS" && target_status !== "SUCCESS") ||
+              currentShot <= 1
+            }
           >
             <ArrowBigLeft fill="white" />
           </Button>
@@ -223,7 +250,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
             onClick={onClickNext}
             variant="clean"
             size="no-space"
-            disabled={pose_status !== "SUCCESS" && target_status !== "SUCCESS"}
+            disabled={
+              (pose_status !== "SUCCESS" && target_status !== "SUCCESS") ||
+              currentShot === score?.length
+            }
           >
             <ArrowBigRight fill="white" />
           </Button>
@@ -233,11 +263,13 @@ export const SessionVideo = (props: SessionVideoProps) => {
               processing
             </p>
           ) : (
-            <p className="text-sm tracking-tighter">{`${formatSecondsToMMSS(
+            <p className="text-xs tracking-tighter mx-1">{`${formatSecondsToMMSS(
               currentTime
-            )} / ${formatSecondsToMMSS(
-              targetPlayerInstance?.duration() || 0
-            )}`}</p>
+            )} ${
+              targetPlayerInstance?.duration()
+                ? `/ ${formatSecondsToMMSS(targetPlayerInstance?.duration())}`
+                : ""
+            }`}</p>
           )}
         </div>
         <Slider
