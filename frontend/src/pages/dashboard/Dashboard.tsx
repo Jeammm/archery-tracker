@@ -1,14 +1,15 @@
 import { SessionCard } from "@/components/stats/SessionCard";
-import { Session } from "@/types/session";
+import { Session, Stats } from "@/types/session";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { LineChartLabel } from "@/components/chart-line-label";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Monitor, MoveUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { StatHighlight } from "./StatHighlight";
 
 const chartConfig = {
   accuracy: {
@@ -28,6 +29,7 @@ const chartConfig = {
 export const Dashboard = () => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -59,12 +61,29 @@ export const Dashboard = () => {
     setIsLoading(false);
   }, [user?.token]);
 
+  const fetchStatsData = useCallback(async () => {
+    try {
+      const response = await axios.get<Stats>(
+        `${BASE_BACKEND_URL}/dashboard-stats`,
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token || ""}`,
+          },
+        }
+      );
+      setStats(response.data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  }, [user?.token]);
+
   const sessionsData = useMemo(() => {
     return sessions
       ?.filter((session) => session.maximum_score !== 0)
       .map((session) => {
         return {
-          date: session.created_at,
+          date: format(session.created_at, "dd EEE, HH:mm"),
           accuracy: Math.floor((session.accuracy || 0) * 100),
           totalScore: session.total_score,
           maximumScore: session.maximum_score,
@@ -78,10 +97,14 @@ export const Dashboard = () => {
 
     const intervalId = setInterval(() => {
       fetchSessionsData();
-    }, 5000);
+    }, 10000);
 
     return () => clearInterval(intervalId);
   }, [fetchSessionsData]);
+
+  useEffect(() => {
+    fetchStatsData();
+  }, [fetchStatsData]);
 
   if (error || !sessionsData) {
     return (
@@ -97,68 +120,7 @@ export const Dashboard = () => {
       <p className="mt-2 text-muted-foreground">
         {format(new Date(), "hh:mm a 'at' do MMMM yyyy")}
       </p>
-      <div className="grid grid-cols-3 gap-4 mt-6">
-        <div className="border rounded-lg px-4 py-6">
-          <div className="flex items-center">
-            <div className="border rounded-md p-2.5 w-fit">
-              <Monitor size={18} />
-            </div>
-            <div className="rounded-full bg-green-500/40 text-green-500 p-0.5 ml-4">
-              <MoveUpRight size={16} />
-            </div>
-            <p className="text-green-500 ml-1">+20.00 %</p>
-          </div>
-          <h3 className="font-bold text-muted-foreground tracking-wider text-sm mt-2">
-            Total Practice
-          </h3>
-          <p className="font-bold text-2xl tracking-wider mt-1">
-            {sessions?.length} Sessions
-          </p>
-          <p className="text-muted-foreground text-sm">
-            Increase from last week ({sessions?.length} sessions)
-          </p>
-        </div>
-        <div className="border rounded-lg px-4 py-6">
-          <div className="flex items-center">
-            <div className="border rounded-md p-2.5 w-fit">
-              <Monitor size={18} />
-            </div>
-            <div className="rounded-full bg-green-500/40 text-green-500 p-0.5 ml-4">
-              <MoveUpRight size={16} />
-            </div>
-            <p className="text-green-500 ml-1">+20.00 %</p>
-          </div>
-          <h3 className="font-bold text-muted-foreground tracking-wider text-sm mt-2">
-            Total Practice
-          </h3>
-          <p className="font-bold text-2xl tracking-wider mt-1">
-            {sessions?.length} Sessions
-          </p>
-          <p className="text-muted-foreground text-sm">
-            Increase from last week ({sessions?.length} sessions)
-          </p>
-        </div>
-        <div className="border rounded-lg px-4 py-6">
-          <div className="flex items-center">
-            <div className="border rounded-md p-2.5 w-fit">
-              <Monitor size={18} />
-            </div>
-            <div className="rounded-full bg-green-500/40 text-green-500 p-0.5 ml-4">
-              <MoveUpRight size={16} />
-            </div>
-            <p className="text-green-500 ml-1">+20.00 %</p>
-          </div>
-          <h3 className="font-bold text-muted-foreground tracking-wider text-sm mt-2">
-            Total Practice
-          </h3>
-          <p className="font-bold text-2xl tracking-wider mt-1">
-            {sessions?.length} Sessions
-          </p>
-          <p className="text-muted-foreground text-sm">
-            Increase from last week ({sessions?.length} sessions)
-          </p>
-        </div>
-      </div>
+      <StatHighlight stats={stats} />
       <div className="mt-4">
         <LineChartLabel
           title="Performance"
@@ -166,7 +128,6 @@ export const Dashboard = () => {
           chartConfig={chartConfig}
           chartData={sessionsData}
           xAxisDataKey="date"
-          footer={undefined}
         />
       </div>
       <div className="mt-8">

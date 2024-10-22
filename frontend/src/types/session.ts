@@ -51,3 +51,14 @@ export interface Round {
   maximum_score?: number;
   accuracy?: number;
 }
+
+export interface StatsValue {
+  compare: number;
+  last_week: number;
+  current_week: number;
+}
+export interface Stats {
+  total_training_time_compare: StatsValue;
+  total_round_count_campare: StatsValue;
+  total_accuracy_compare: StatsValue;
+}

@@ -27,6 +27,8 @@ def add_rounds_to_sessions(sessions):
         total_feature = {}
         feature_count = 0
         
+        round_time = 0
+        
         for round_item in rounds:
             round_item = sort_hit_by_id(round_item)
             round_item['_id'] = str(round_item['_id'])
@@ -37,7 +39,22 @@ def add_rounds_to_sessions(sessions):
             features = [hit['features'] for hit in round_item.get('score', []) if 'features' in hit]
             round_total_score = sum(scores)
             round_maximum_score = len(scores) * 10
-            round_accuracy = round_total_score / round_maximum_score if round_maximum_score > 0 else 0  
+            round_accuracy = round_total_score / round_maximum_score if round_maximum_score > 0 else 0 
+            
+            start_time = round_item.get('created_at') 
+            end_time = round_item.get('start_process_at') 
+            
+            
+            if start_time and end_time:
+                if isinstance(start_time, str):
+                    start_time = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')  # Adjust format as needed
+                if isinstance(end_time, str):
+                    end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')  # Adjust format as needed
+
+                round_time += (end_time - start_time).total_seconds()
+                round_item['round_time'] = (end_time - start_time).total_seconds()
+            
+                
             
             for feature in features:
                 feature_count += 1
@@ -57,6 +74,7 @@ def add_rounds_to_sessions(sessions):
         session['maximum_score'] = maximum_score
         session['accuracy'] = total_score / maximum_score if maximum_score > 0 else 0  
         session['round_result'] = rounds
+        session['total_session_time'] = round_time
         
         for key in total_feature:
             total_feature[key] = round(total_feature[key] / feature_count, 2)

@@ -24,7 +24,7 @@ export interface LineChartLabelProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   chartData: any[];
   xAxisDataKey: string;
-  footer: ReactNode;
+  footer?: ReactNode;
   chartContainerClassName?: string;
   stack?: boolean;
 }
@@ -68,7 +68,7 @@ export function LineChartLabel(props: LineChartLabelProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
+              // tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}
@@ -103,12 +103,6 @@ export function LineChartLabel(props: LineChartLabelProps) {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         {footer}
-        {/* <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
-        </div> */}
       </CardFooter>
     </Card>
   );
