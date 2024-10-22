@@ -51,7 +51,7 @@ export const SessionsList = () => {
     },
     {
       accessorKey: "session_status",
-      header: "Pose Status",
+      header: "Session Status",
       cell: ({ row }) => {
         const session_status: string = row.getValue("session_status");
         if (session_status === "STARTED") {
@@ -72,7 +72,7 @@ export const SessionsList = () => {
     },
     {
       accessorKey: "processing_status",
-      header: "Target Status",
+      header: "Processing Status",
     },
     {
       id: "actions",

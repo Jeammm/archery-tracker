@@ -1,11 +1,11 @@
 import { CalendarIcon, TargetIcon, ZapIcon } from "lucide-react";
 import { Session } from "@/types/session";
 import { formatDateTime } from "@/utils/dateTime";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Loader } from "../ui/loader";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import {
   Card,
   CardContent,
@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from "../ui/card";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
-import { RetryButton } from "./RetryButton";
 
 interface SessionCardProps {
   sessionData: Session;
@@ -24,8 +23,7 @@ interface SessionCardProps {
 const CARD_SIZE = "w-[212px] h-[266px]";
 
 export const SessionCard = (props: SessionCardProps) => {
-  const { sessionData, fetchSessionsData } = props;
-  const navigate = useNavigate();
+  const { sessionData } = props;
 
   const {
     created_at,
@@ -55,34 +53,43 @@ export const SessionCard = (props: SessionCardProps) => {
             <div className="w-1 h-1 rounded-full bg-green-500 mr-2" /> LIVE
           </Badge>
           <Button className="mt-2">Continue Training</Button>
+          <Link
+            to={`/sessions/${_id}`}
+            className={buttonVariants({
+              variant: "link",
+              className: "text-muted-foreground text-sm",
+            })}
+          >
+            Training Results
+          </Link>
         </div>
       </Link>
     );
   }
 
-  if (processing_status === "FAILURE" && session_status === "ENDED") {
-    return (
-      <div
-        onClick={() => {
-          navigate(`/sessions/${_id}`);
-        }}
-        className={cn([CARD_SIZE, "shrink-0"])}
-      >
-        <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
-          <h3 className="font-bold text-2xl text-red-500">SESSION ERROR</h3>
-          <p className="text-red-600">{formatDateTime(created_at)}</p>
-          <Badge variant="outline">
-            <div className="w-1 h-1 rounded-full bg-red-500 mr-2" /> ERROR
-          </Badge>
-          <RetryButton
-            sessionData={sessionData}
-            className="mt-2"
-            fetchSessionsData={fetchSessionsData}
-          />
-        </div>
-      </div>
-    );
-  }
+  // if (processing_status === "FAILURE" && session_status === "ENDED") {
+  //   return (
+  //     <div
+  //       onClick={() => {
+  //         navigate(`/sessions/${_id}`);
+  //       }}
+  //       className={cn([CARD_SIZE, "shrink-0"])}
+  //     >
+  //       <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
+  //         <h3 className="font-bold text-2xl text-red-500">SESSION ERROR</h3>
+  //         <p className="text-red-600">{formatDateTime(created_at)}</p>
+  //         <Badge variant="outline">
+  //           <div className="w-1 h-1 rounded-full bg-red-500 mr-2" /> ERROR
+  //         </Badge>
+  //         <RetryButton
+  //           sessionData={sessionData}
+  //           className="mt-2"
+  //           fetchSessionsData={fetchSessionsData}
+  //         />
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (session_status === "ENDED" && processing_status === "PROCESSING") {
     return (

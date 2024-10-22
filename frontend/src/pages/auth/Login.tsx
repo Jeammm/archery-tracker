@@ -4,6 +4,12 @@ import { useAuth } from "@/context/AuthContext";
 import { Credentials } from "@/types/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { jwtDecode } from "jwt-decode";
+import { Loader } from "@/components/ui/loader";
+
+interface JwtPayload {
+  exp: number;
+}
 
 const Login = () => {
   const [credentials, setCredentials] = useState<Credentials>({
@@ -11,11 +17,24 @@ const Login = () => {
     password: "",
   });
   const { login, user } = useAuth();
+  const [loading, setLoading] = useState(true); // Add loading state
   const navigate = useNavigate();
   const location = useLocation();
 
+  const isTokenExpired = (token: string): boolean => {
+    try {
+      const decoded: JwtPayload = jwtDecode(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+      return decoded.exp < currentTime;
+    } catch (error) {
+      return true;
+    }
+  };
+
   const handleSubmit = async () => {
+    setLoading(true); // Set loading state while processing login
     const success = await login(credentials);
+    setLoading(false); // Stop loading after login is processed
     if (success) {
       const origin =
         (location.state as { from: { pathname: string } })?.from?.pathname ||
@@ -27,13 +46,28 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      const origin =
-        (location.state as { from: { pathname: string } })?.from?.pathname ||
-        "/dashboard";
-      navigate(origin);
+    if (user && user.token) {
+      if (isTokenExpired(user.token)) {
+        alert("Session expired. Please log in again.");
+        setLoading(false); // Stop loading if session is expired
+      } else {
+        const origin =
+          (location.state as { from: { pathname: string } })?.from?.pathname ||
+          "/dashboard";
+        const searchParams = location.search;
+        navigate(`${origin}${searchParams}`);
+      }
     }
-  }, [location.state, navigate, user]);
+    setLoading(false); // Stop loading if no user token is found
+  }, [location.search, location.state, navigate, user]);
+
+  if (loading) {
+    return (
+      <div className="w-screen h-screen fixed top-0 left-0 flex items-center justify-center">
+        <Loader />;
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-grid-pattern">

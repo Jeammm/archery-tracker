@@ -179,7 +179,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   return (
     <div className="mt-6">
       <div className="flex gap-3" onClick={onPlayerClick}>
-        <div className="flex-1 h-auto aspect-video rounded-md overflow-hidden">
+        <div className="flex-1 h-auto aspect-video overflow-hidden">
           {pose_status === "SUCCESS" ? (
             <ByteArkPlayerContainer
               {...posePlayerOptions}
@@ -194,7 +194,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
             </div>
           )}
         </div>
-        <div className="flex-1 h-auto aspect-video rounded-md overflow-hidden">
+        <div className="flex-1 h-auto aspect-video overflow-hidden">
           {target_status === "SUCCESS" ? (
             <ByteArkPlayerContainer
               {...targetPlayerOptions}
@@ -210,7 +210,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
           )}
         </div>
       </div>
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2 mt-2 border rounded-sm p-2">
         <div className="flex gap-1  shrink-0 items-center">
           <Button
             onClick={onClickPrevious}
@@ -232,7 +232,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
                 pose_status !== "SUCCESS" && target_status !== "SUCCESS"
               }
             >
-              <Pause fill="white" />
+              <Pause fill="white" size={20} />
             </Button>
           ) : (
             <Button
@@ -243,7 +243,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
                 pose_status !== "SUCCESS" && target_status !== "SUCCESS"
               }
             >
-              <Play fill="white" />
+              <Play fill="white" size={20} />
             </Button>
           )}
           <Button

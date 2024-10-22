@@ -27,17 +27,28 @@ import { Session } from "@/types/session";
 import axios from "axios";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 
 export const SessionDetail = () => {
   const { user } = useAuth();
   const { sessionId } = useParams();
   const navigate = useNavigate();
 
+  const [searchParams, setSearchParmas] = useSearchParams();
+  const tab = searchParams.get("tab");
+  const onChangeTab = (value: string) => {
+    setSearchParmas((prev) => ({ ...prev, tab: value }));
+  };
+
   const [session, setSession] = useState<Session | null>(null);
   const [conditionMet, setConditionMet] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentTab, setCurrentTab] = useState<string>("general");
+
   const [selectedRound, setSelectedRound] = useState<number>(0);
 
   const onClickEndSession = async (roundExist: boolean) => {
@@ -174,8 +185,8 @@ export const SessionDetail = () => {
       </div>
 
       <Tabs
-        value={currentTab}
-        onValueChange={(value) => setCurrentTab(value)}
+        value={tab || "general"}
+        onValueChange={onChangeTab}
         className="mt-6"
       >
         <div className="flex justify-between">
@@ -186,7 +197,7 @@ export const SessionDetail = () => {
             <TabsTrigger value="summary">Summary</TabsTrigger>
           </TabsList>
 
-          {currentTab === "video" && isRoundExisted && (
+          {tab === "video" && isRoundExisted && (
             <Select onValueChange={(value) => setSelectedRound(Number(value))}>
               <SelectTrigger className="w-[180px]">
                 Round {selectedRound + 1}

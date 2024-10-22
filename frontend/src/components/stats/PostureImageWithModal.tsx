@@ -8,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import DEFAULT_IMAGE from "/placeholder-image.jpg";
+import { SkeletonFeature } from "./SkeletonFeature";
 
 interface PostureImageWithModalProps {
   className?: string;
@@ -23,62 +25,32 @@ export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
   return (
     <>
       <div
-        className={cn([
-          "w-[200px] aspect-square border cursor-pointer",
-          className,
-        ])}
+        className={cn(["border cursor-pointer", className])}
         onClick={() => setIsTargetImageModalOpen(true)}
       >
-        <img src={hit.pose_image_url} className="object-cover w-full h-full" />
+        <img
+          src={hit.pose_image_url || DEFAULT_IMAGE}
+          className="object-cover w-full h-full"
+        />
       </div>
       <Dialog
         open={isTargetImageModalOpen}
         onOpenChange={setIsTargetImageModalOpen}
         modal
       >
-        <DialogContent>
+        <DialogContent className="max-w-[80vw]">
           <DialogHeader>
-            <DialogTitle>Shot result (Target image)</DialogTitle>
+            <DialogTitle>Shot result (Posture image)</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <div className="flex gap-2">
-            <div
-              className={cn([
-                "w-full aspect-square border object-fill cursor-pointer",
-              ])}
-            >
+            <div className={cn(["w-full border object-fill cursor-pointer"])}>
               <img
-                src={hit.pose_image_url}
+                src={hit.pose_image_url || DEFAULT_IMAGE}
                 className="object-cover w-full h-full"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <p>Head {90}°</p>
-              <p>Hip {90}°</p>
-              <div>
-                <p>Shoulders</p>
-                <div className="flex justify-between gap-4">
-                  <p>Left {91}°</p>
-                  <p>Right {91}°</p>
-                </div>
-              </div>
-
-              <div>
-                <p>Elbows</p>
-                <div className="flex justify-between gap-4">
-                  <p>Left {91}°</p>
-                  <p>Right {91}°</p>
-                </div>
-              </div>
-
-              <div>
-                <p>Legs</p>
-                <div className="flex justify-between gap-4">
-                  <p>Left {91}°</p>
-                  <p>Right {91}°</p>
-                </div>
-              </div>
-            </div>
+            <SkeletonFeature features={hit.features} />
           </div>
         </DialogContent>
       </Dialog>

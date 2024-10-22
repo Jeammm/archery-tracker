@@ -61,11 +61,7 @@ export const Dashboard = () => {
 
   const sessionsData = useMemo(() => {
     return sessions
-      ?.filter(
-        (session) =>
-          session.session_status === "ENDED" &&
-          session.processing_status === "SUCCESS"
-      )
+      ?.filter((session) => session.maximum_score !== 0)
       .map((session) => {
         return {
           date: session.created_at,

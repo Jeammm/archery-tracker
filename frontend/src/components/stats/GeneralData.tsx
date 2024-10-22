@@ -12,6 +12,9 @@ import { Loader } from "../ui/loader";
 import { calculateAccumulatedScore } from "@/utils/formatScore";
 import { format } from "date-fns";
 import { ChartBar } from "../chart-bar";
+import { ChartPie } from "../chart-pie";
+import { useMemo } from "react";
+import { set } from "lodash";
 
 interface GeneralDataProps {
   sessionData: Session;
@@ -34,6 +37,19 @@ export const GeneralData = (props: GeneralDataProps) => {
       color: "hsl(var(--chart-1))",
     },
   };
+
+  const pieChartConfig = useMemo(() => {
+    const config = {};
+
+    round_result.map((round, index) => {
+      set(config, round._id, {
+        label: `Round ${index + 1}`,
+        color: `hsl(var(--chart-${(index % 5) + 1}))`,
+      });
+    });
+
+    return config;
+  }, [round_result]);
 
   const getRoundData = (rounds: Round[]) => {
     const roundsData: { shotNo: number; score: number }[] = [];
@@ -184,15 +200,30 @@ export const GeneralData = (props: GeneralDataProps) => {
         </TableFooter>
       </Table>
 
-      <div className="mt-4 grid grid-cols-2">
-        <ChartBar
-          title="Shot Statistic"
-          description="Your Shot Statistic"
-          chartConfig={chartConfig}
-          chartData={getRoundData(round_result)}
-          xAxisDataKey="shotNo"
-          footer={undefined}
-          stack
+      <div className="mt-4 grid grid-cols-3 gap-4">
+        <div className="col-span-2">
+          <ChartBar
+            title="Shot Statistic"
+            description="Your Shot Statistic"
+            chartConfig={chartConfig}
+            chartData={getRoundData(round_result)}
+            xAxisDataKey="shotNo"
+            footer={undefined}
+            stack
+          />
+        </div>
+        <ChartPie
+          chartData={round_result.map((round) => ({
+            round: round._id,
+            score: round.total_score,
+            fill: `var(--color-${round._id})`,
+          }))}
+          title="Totle Shot Score"
+          description="All your shots"
+          chartConfig={pieChartConfig}
+          nameKey="round"
+          dataKey="score"
+          totalLable="Points"
         />
       </div>
     </div>
