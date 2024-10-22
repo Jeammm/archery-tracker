@@ -1,5 +1,6 @@
 from bson import ObjectId
 from celery import chord
+from datetime import timezone
 from flask import Blueprint, jsonify, request
 from datetime import datetime
 from project.constants.constants import ROUND_COLLECTION
@@ -48,19 +49,19 @@ def upload_pose_video(user_id, round_id):
 @token_required
 def process_target_route(user_id, round_id):    
     collection = db[ROUND_COLLECTION]
-    
+
     chord_tasks = chord(
         [process_target.s(round_id), process_pose.s(round_id)]
     )(capture_pose_on_shot_detected.s(round_id))
-    
+
     task_data = {
         "target_task_id": chord_tasks.parent[0].id,
         "pose_task_id": chord_tasks.parent[1].id,
-        "target_status": chord_tasks.parent[0].status,  # Initial status "PENDING"
-        "pose_status": chord_tasks.parent[1].status,  # Initial status "PENDING"
-        "start_process_at": datetime.utcnow(),
+        "target_status": chord_tasks.parent[0].status,
+        "pose_status": chord_tasks.parent[1].status,
+        "start_process_at": datetime.now(timezone.utc),
     }
-    
+
     existing_task = collection.find_one({"_id": ObjectId(round_id)})
 
     if existing_task:
@@ -76,10 +77,10 @@ def process_target_route(user_id, round_id):
 
     # Fetch the updated or inserted task
     updated_task = collection.find_one({"_id": ObjectId(round_id)})
-    
+
     if not updated_task:
         return jsonify({"error": "Failed to retrieve the task after update"}), 500
-    
+
     return jsonify({
         "_id": round_id,
         "target_task_id": chord_tasks.parent[0].id,
@@ -92,19 +93,19 @@ def process_target_route(user_id, round_id):
 @token_required
 def process_target_route_test(user_id, round_id):    
     collection = db[ROUND_COLLECTION]
-    
+
     chord_tasks = chord(
         [process_target_test.s(round_id), process_pose_test.s(round_id)]
     )(capture_pose_on_shot_detected_test.s(round_id))
-    
+
     task_data = {
         "target_task_id": chord_tasks.parent[0].id,
         "pose_task_id": chord_tasks.parent[1].id,
-        "target_status": chord_tasks.parent[0].status,  # Initial status "PENDING"
-        "pose_status": chord_tasks.parent[1].status,  # Initial status "PENDING"
-        "start_process_at": datetime.utcnow(),
+        "target_status": chord_tasks.parent[0].status,
+        "pose_status": chord_tasks.parent[1].status,
+        "start_process_at": datetime.now(timezone.utc),
     }
-    
+
     existing_task = collection.find_one({"_id": ObjectId(round_id)})
 
     if existing_task:
@@ -120,10 +121,10 @@ def process_target_route_test(user_id, round_id):
 
     # Fetch the updated or inserted task
     updated_task = collection.find_one({"_id": ObjectId(round_id)})
-    
+
     if not updated_task:
         return jsonify({"error": "Failed to retrieve the task after update"}), 500
-    
+
     return jsonify({
         "_id": round_id,
         "target_task_id": chord_tasks.parent[0].id,
