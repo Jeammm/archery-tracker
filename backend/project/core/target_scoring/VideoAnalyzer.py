@@ -6,7 +6,7 @@ from project.core.target_scoring import HitsManager as hitsMngr
 import numpy as np
 import cv2
 
-HOMOGRAPHY_LIFE_SPAN = 24
+HOMOGRAPHY_LIFE_SPAN = 30
 
 class VideoAnalyzer:
     def __init__(self, videoPath, model, bullseye, ringsAmount, diamPx):
@@ -20,7 +20,7 @@ class VideoAnalyzer:
         {Number} ringsAmount - Amount of rings in the target
         {Number} diamPx - The diameter of the most inner ring in the target image [px]
         '''
-
+        self.video_path = videoPath
         self.cap = cv2.VideoCapture(videoPath)
         _, test_sample = self.cap.read()
         frameSize = test_sample.shape
@@ -45,6 +45,7 @@ class VideoAnalyzer:
         self.homography_setup_done = False
         self.frame_life = 0
         self.frame_count = 0
+        self.current_hit_id = 1
         
         self.verified_hits = []
         self.candidate_hits = []
@@ -126,13 +127,13 @@ class VideoAnalyzer:
         suspect_hits = visuals.find_suspect_hits(proj_contours, self.warped_vertices, self.scale)
 
         # calculate hits and draw circles around them
-        scoreboard = hitsMngr.create_scoreboard(suspect_hits, self.scale, self.rings_amount, self.inner_diam, self.frame_count, self.verified_hits)
+        scoreboard = hitsMngr.create_scoreboard(suspect_hits, self.scale, self.rings_amount, self.inner_diam, self.frame_count, self.current_hit_id)
             
         self.frame_life += 1
 
         return self.bullseye_point, scoreboard
 
-    def analyze(self, outputName, sketcher, start_time, video_fps):
+    def analyze_and_draw_simultaneously(self, outputName, sketcher, start_time, video_fps):
         '''
         Analyze a video completely and output the same video, with additional data written in it.
 
@@ -175,22 +176,22 @@ class VideoAnalyzer:
                 grouping_diameter = grouper.measure_grouping_diameter(grouping_contour) if has_group else 0
                     
                 # write meta data on frame
-                # sketcher.draw_data_block(frame)
-                # sketcher.draw_meta_data_block(frame)
+                sketcher.draw_data_block(frame)
+                sketcher.draw_meta_data_block(frame)
                 verified_scores = [h.score for h in verified_hits]
                 arrows_amount = len(verified_scores)
-                # sketcher.type_arrows_amount(frame, arrows_amount, (0x0,0x0,0xff))
-                # sketcher.type_total_score(frame, sum(verified_scores), arrows_amount * 10, (0x0,189,62))
-                # sketcher.type_grouping_diameter(frame, grouping_diameter, (0xff,133,14))
+                sketcher.type_arrows_amount(frame, arrows_amount, (0x0,0x0,0xff))
+                sketcher.type_total_score(frame, sum(verified_scores), arrows_amount * 10, (0x0,189,62))
+                sketcher.type_grouping_diameter(frame, grouping_diameter, (0xff,133,14))
                 
                 # mark hits and grouping
-                # sketcher.draw_grouping(frame, grouping_contour)
+                sketcher.draw_grouping(frame, grouping_contour)
                 sketcher.mark_hits(frame, candidate_hits, foreground=(0x0,0x0,0xff),
                                    diam=2, withOutline=False, withScore=False)
                 
                 sketcher.mark_hits(frame, verified_hits, foreground=(0x0,0xff,0x0),
                                    diam=5, withOutline=True, withScore=True)
-                # sketcher.shot_label_table(frame, verified_hits)
+                sketcher.shot_label_table(frame, verified_hits)
                 
                 # write frame to output file
                 out.write(frame)
@@ -198,15 +199,12 @@ class VideoAnalyzer:
             else:
                 break
                 
-        # close window properly
         self.cap.release()
         out.release()
-        # cv2.destroyAllWindows()
-        # cv2.waitKey(1)
         
         return [
             {
-                "id": hit.id, 
+                "id": index + 1, 
                 "point": hit.point, 
                 "score": hit.score, 
                 "frame": hit.frame_count,
@@ -215,5 +213,84 @@ class VideoAnalyzer:
                 ),
                 "bullseye_relation": hit.bullseye_relation.tolist()
             }
-            for hit in self.verified_hits
+            for index, hit in enumerate(sorted(self.verified_hits, key=lambda x: x.id))
+        ]
+        
+    def analyze(self, outputName, sketcher, start_time, video_fps):
+        '''
+        Analyze a video completely to gather verified hits, then write these hits to the output video,
+        drawing previous hits in dimmer colors and the current hit in a brighter color.
+
+        Parameters:
+            {String} outputName - The path of the output file
+            {Sketcher} sketcher - A Sketcher object to use when writing the data to the output video
+        '''
+        
+        while True:
+            ret, frame = self.cap.read()
+            self.frame_count += 1
+
+            if ret:
+                bullseye, scoreboard = self._analyze_frame(frame)
+                
+                for hit in scoreboard:
+                    hitsMngr.sort_hit(hit, 30, HOMOGRAPHY_LIFE_SPAN * 2, self.verified_hits, self.candidate_hits)
+                
+                hitsMngr.discharge_hits(self.candidate_hits)
+
+                if type(bullseye) != type(None):
+                    hitsMngr.shift_hits(bullseye, self.verified_hits, self.candidate_hits)
+            
+            else:
+                break
+
+        drawing_cap = cv2.VideoCapture(self.video_path)
+        frame_size = (self.frame_w, self.frame_h)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(outputName, fourcc, video_fps, frame_size)
+        
+        sorted_hits = sorted(self.verified_hits, key=lambda x: x.frame_count)
+
+        current_drawing_frame = 0
+        
+        while True:
+            ret, frame = drawing_cap.read()
+            current_drawing_frame += 1
+            if not ret:
+                break
+            
+            print(current_drawing_frame)
+
+            previous_hits = [hit for hit in sorted_hits if hit.frame_count <= current_drawing_frame]
+            
+            if previous_hits:
+                current_hit = previous_hits[-1]
+
+                # Draw previous hits with dimmer color
+                sketcher.mark_hits(frame, previous_hits, foreground=(0x80, 0x80, 0x80),  # Dimmer color (grayish)
+                                diam=5, withOutline=True, withScore=False)
+
+                # Draw current hits with full intensity
+                sketcher.mark_hits(frame, [current_hit], foreground=(0x0, 0xff, 0x0),    # Full intensity (green)
+                                diam=5, withOutline=True, withScore=True)
+
+            out.write(frame)
+
+        # Release resources
+        drawing_cap.release()
+        out.release()
+
+        # Return the processed hit information
+        return [
+            {
+                "id": index + 1,
+                "point": hit.point,
+                "score": hit.score,
+                "frame": hit.frame_count,
+                "hit_time": utils.calculate_time_from_video_frame(
+                    start_time, hit.frame_count, video_fps
+                ),
+                "bullseye_relation": hit.bullseye_relation.tolist()
+            }
+            for index, hit in enumerate(sorted_hits)
         ]

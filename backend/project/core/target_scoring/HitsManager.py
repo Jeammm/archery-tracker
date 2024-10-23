@@ -5,7 +5,7 @@ CANDIDATE = 0
 VERIFIED = 1
 
 class Hit:
-    def __init__(self, x, y, score, bullseyeRelation, frame_count, verified_hits):
+    def __init__(self, x, y, score, bullseyeRelation, frame_count, current_hit_id):
         '''
         {Number} x - x coordinate of the hit
         {Number} y - y coordinate of the hit
@@ -20,7 +20,7 @@ class Hit:
         self.score = score
         self.reputation = 1
         self.bullseye_relation = bullseyeRelation
-        self.id = len(verified_hits) + 1
+        self.id = current_hit_id
         self.frame_count = frame_count
         
         # has this hit been checked during current iteration
@@ -52,7 +52,7 @@ class Hit:
         return self.reputation >= repScore
 
 
-def create_scoreboard(hits, scale, ringsAmount, innerDiam, frame_count, verified_hits):
+def create_scoreboard(hits, scale, ringsAmount, innerDiam, frame_count, current_hit_id):
     '''
     Calculate the score of each detected hit.
 
@@ -99,8 +99,9 @@ def create_scoreboard(hits, scale, ringsAmount, innerDiam, frame_count, verified
         elif score > 10:
             score = 10
         
-        hit_obj = Hit(int(hit[0]), int(hit[1]), score, hit[3], frame_count, verified_hits)
+        hit_obj = Hit(int(hit[0]), int(hit[1]), score, hit[3], frame_count, current_hit_id)
         scoreboard.append(hit_obj)
+        current_hit_id += 1
 
     return scoreboard
 

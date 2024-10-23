@@ -81,7 +81,12 @@ export const JoinSession = () => {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 },
+        },
         audio: false,
       });
 
@@ -419,17 +424,16 @@ export const JoinSession = () => {
         })}
         <div className="flex flex-col gap-1 mb-2 md:mt-4">
           <p>Round: {roundId}</p>
-          {Object.entries(participantDevices.users)
-            .map(([key, value]) => (
-              <div className="flex text-sm text-muted-foreground items-center gap-1">
-                <p key={key}>{value}:</p>
-                <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
-                  <div className="w-1 h-1 rounded-full bg-green-500" />
-                  <p className="text-secondary-foreground text-xs">online</p>
-                </div>
-                <p>({key})</p>
+          {Object.entries(participantDevices.users).map(([key, value]) => (
+            <div className="flex text-sm text-muted-foreground items-center gap-1">
+              <p key={key}>{value}:</p>
+              <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
+                <div className="w-1 h-1 rounded-full bg-green-500" />
+                <p className="text-secondary-foreground text-xs">online</p>
               </div>
-            ))}
+              <p>({key})</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
