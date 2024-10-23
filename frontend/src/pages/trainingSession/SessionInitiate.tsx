@@ -434,9 +434,102 @@ export const SessionInitiate = () => {
         </div>
       </div>
 
-      <div
-        className={cn(["flex gap-4 mt-6", isCameraConnected ? "relative" : ""])}
-      >
+      <div className={"flex gap-4 mt-6"}>
+        <div className="flex gap-4 flex-1 relative">
+          <div
+            className={cn([
+              "border rounded-md overflow-hidden",
+              isCameraConnected
+                ? "absolute bottom-3 right-3 z-10 w-36 bg-black group/posture-feed"
+                : "flex-1",
+            ])}
+          >
+            <h4
+              className={cn([
+                "w-full",
+                isCameraConnected
+                  ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all py-1 px-2 bg-black/30 backdrop-blur-sm"
+                  : "text-center font-bold text-2xl tracking-widest",
+              ])}
+            >
+              Posture
+            </h4>
+            <div className="w-full aspect-[4/3] relative">
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className={cn([
+                  localVideoRef?.current?.srcObject
+                    ? "w-full h-full"
+                    : "hidden",
+                ])}
+              />
+              {!localVideoRef?.current?.srcObject && (
+                <div className="w-full h-full absolute flex justify-center items-center z-10 top-0 left-0">
+                  <Loader spinnerSize="lg">
+                    <></>
+                  </Loader>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex-1 border rounded-md overflow-hidden group/target-feed relative">
+            <h4
+              className={cn([
+                "w-full",
+                isCameraConnected
+                  ? "absolute opacity-0 group-hover/target-feed:opacity-100 transition-all z-10 py-1 px-2 bg-black/30 backdrop-blur-sm"
+                  : "text-center font-bold text-2xl tracking-widest",
+              ])}
+            >
+              Target
+            </h4>
+            <div className="w-full aspect-[4/3] relative">
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className={cn([isCameraConnected ? "w-full h-full" : "hidden"])}
+              />
+              {sessionId && !isCameraConnected && (
+                <>
+                  <div className="absolute z-20 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
+                    <Skeleton className="absolute w-full h-full" />
+                  </div>
+                  <div className="absolute z-30 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
+                    <div className="bg-white p-1 border relative">
+                      <QRCodeSVG
+                        value={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}
+                      />
+                    </div>
+                    <p className="text-lg mt-3 text-center w-full font-semibold">
+                      Scan with mobile phone <br />
+                      to use as target camera
+                    </p>
+
+                    <div
+                      onClick={() => {
+                        window.open(
+                          `${BASE_FRONTEND_URL}/join?session=${sessionId}`,
+                          "newwindow",
+                          "width=800,height=400"
+                        );
+                        return false;
+                      }}
+                    >
+                      <Button variant="outline" className="mt-2">
+                        JOIN
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
         {isCameraConnected && (
           <div className="w-[300px] grid grid-rows-[auto,1fr]">
             <div className="mb-2 flex gap-2">
@@ -479,96 +572,6 @@ export const SessionInitiate = () => {
             />
           </div>
         )}
-        <div
-          className={cn([
-            "border rounded-md overflow-hidden",
-            isCameraConnected
-              ? "absolute bottom-3 right-3 z-10 w-36 bg-black group/posture-feed"
-              : "flex-1",
-          ])}
-        >
-          <h4
-            className={cn([
-              "w-full",
-              isCameraConnected
-                ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all py-1 px-2 bg-black/30 backdrop-blur-sm"
-                : "text-center font-bold text-2xl tracking-widest",
-            ])}
-          >
-            Posture
-          </h4>
-          <div className="w-full aspect-[4/3] relative">
-            <video
-              ref={localVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className={cn([
-                localVideoRef?.current?.srcObject ? "w-full h-full" : "hidden",
-              ])}
-            />
-            {!localVideoRef?.current?.srcObject && (
-              <div className="w-full h-full absolute flex justify-center items-center z-10 top-0 left-0">
-                <Loader spinnerSize="lg">
-                  <></>
-                </Loader>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex-1 border rounded-md overflow-hidden group/target-feed relative">
-          <h4
-            className={cn([
-              "w-full",
-              isCameraConnected
-                ? "absolute opacity-0 group-hover/target-feed:opacity-100 transition-all z-10 py-1 px-2 bg-black/30 backdrop-blur-sm"
-                : "text-center font-bold text-2xl tracking-widest",
-            ])}
-          >
-            Target
-          </h4>
-          <div className="w-full aspect-[4/3] relative">
-            <video
-              ref={remoteVideoRef}
-              autoPlay
-              playsInline
-              className={cn([isCameraConnected ? "w-full h-full" : "hidden"])}
-            />
-            {sessionId && !isCameraConnected && (
-              <>
-                <div className="absolute z-20 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
-                  <Skeleton className="absolute w-full h-full" />
-                </div>
-                <div className="absolute z-30 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
-                  <div className="bg-white p-1 border relative">
-                    <QRCodeSVG
-                      value={`${BASE_FRONTEND_URL}/join?session=${sessionId}`}
-                    />
-                  </div>
-                  <p className="text-lg mt-3 text-center w-full font-semibold">
-                    Scan with mobile phone <br />
-                    to use as target camera
-                  </p>
-
-                  <div
-                    onClick={() => {
-                      window.open(
-                        `${BASE_FRONTEND_URL}/join?session=${sessionId}`,
-                        "newwindow",
-                        "width=800,height=400"
-                      );
-                      return false;
-                    }}
-                  >
-                    <Button variant="outline" className="mt-2">
-                      JOIN
-                    </Button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
       </div>
 
       <div className="mt-6">
