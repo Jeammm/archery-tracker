@@ -16,6 +16,7 @@ import { Round } from "@/types/session";
 interface SessionDataProps {
   round: Round;
   className?: string;
+  containerClassName?: string;
   refreshAfterRetry?: boolean;
   fetchSessionsData?: () => Promise<void>;
 }
@@ -23,8 +24,7 @@ interface SessionDataProps {
 export const RetryButton = (props: SessionDataProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { round, className, refreshAfterRetry, fetchSessionsData } =
-    props;
+  const { round, className, refreshAfterRetry, fetchSessionsData } = props;
 
   const onClickRetryProcess = async (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -58,10 +58,15 @@ export const RetryButton = (props: SessionDataProps) => {
 };
 
 export const ProcessingFailed = (props: SessionDataProps) => {
-  const { round } = props;
+  const { round, containerClassName } = props;
 
   return (
-    <div className="mt-4 border p-6 border-l-4 border-l-red-500 rounded-sm">
+    <div
+      className={cn([
+        "mt-4 border p-6 border-l-4 border-l-red-500 rounded-sm",
+        containerClassName,
+      ])}
+    >
       <div className="flex justify-between items-center">
         <div>
           <div className="flex gap-2 text-red-500 items-center">

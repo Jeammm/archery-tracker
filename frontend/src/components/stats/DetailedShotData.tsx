@@ -8,6 +8,7 @@ import { ProcessingFailed } from "./RetryButton";
 import { SkeletonFeature } from "./SkeletonFeature";
 import React, { ReactNode } from "react";
 import { timeAgo } from "@/utils/dateTime";
+import { isNil } from "lodash";
 
 interface DetailedShotDataProps {
   sessionData: Session;
@@ -26,12 +27,16 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
         if (round.target_status === "FAILURE") {
           return (
             <TimelineWrapper
-              index={roundNo}
-              totalLength={totalLength}
+              roundNo={roundNo}
+              roundLength={totalLength}
               type="error"
               timestamp={round.created_at}
             >
-              <ProcessingFailed round={round} key={round._id} />
+              <ProcessingFailed
+                round={round}
+                key={round._id}
+                containerClassName="mb-4 mt-0 w-full"
+              />
             </TimelineWrapper>
           );
         }
@@ -39,8 +44,8 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
         if (round.target_status !== "SUCCESS") {
           return (
             <TimelineWrapper
-              index={roundNo}
-              totalLength={totalLength}
+              roundNo={roundNo}
+              roundLength={totalLength}
               type="loading"
               timestamp={round.created_at}
             >
@@ -57,8 +62,8 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
         if (round.score?.length === 0) {
           return (
             <TimelineWrapper
-              index={roundNo}
-              totalLength={totalLength}
+              roundNo={roundNo}
+              roundLength={totalLength}
               type="empty"
               timestamp={round.created_at}
             >
@@ -79,8 +84,10 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
             {round.score?.map((hit, shotNo) => {
               return (
                 <TimelineWrapper
-                  index={roundNo}
-                  totalLength={totalLength}
+                  roundNo={roundNo}
+                  shotNo={shotNo}
+                  roundLength={totalLength}
+                  shotLength={round.score?.length || 0}
                   type="success"
                   key={hit.hit_time}
                   timestamp={hit.hit_time}
@@ -117,27 +124,58 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
 };
 
 interface TimelineWrapperProps {
-  index: number;
-  totalLength: number;
+  roundNo: number;
+  shotNo?: number;
+  roundLength: number;
+  shotLength?: number;
   type: "loading" | "error" | "success" | "empty";
   children: ReactNode;
   timestamp?: string;
 }
 
 const TimelineWrapper = (props: TimelineWrapperProps) => {
-  const { index, totalLength, children, type, timestamp } = props;
+  const {
+    roundNo,
+    roundLength,
+    shotNo,
+    shotLength,
+    children,
+    type,
+    timestamp,
+  } = props;
 
   const LeftLine = () => {
-    if (totalLength === 1) {
+    if (!isNil(shotNo) && !isNil(shotLength)) {
+      if (roundNo === 0 && shotNo === 0) {
+        return (
+          <div className="w-1.5 h-full bg-muted absolute top-3 left-[50%] -translate-x-[50%]" />
+        );
+      }
+
+      if (roundLength === 1 && shotLength === 1) {
+        return <></>;
+      }
+
+      if (roundNo === roundLength - 1 && shotNo === shotLength - 1)
+        return (
+          <div className="w-1.5 h-3 bg-muted absolute top-0 left-[50%] -translate-x-[50%]" />
+        );
+
+      return (
+        <div className="w-1.5 h-full bg-muted absolute top-0 left-[50%] -translate-x-[50%]" />
+      );
+    }
+
+    if (roundLength === 1) {
       return <></>;
     }
 
-    if (index === 0)
+    if (roundNo === 0)
       return (
         <div className="w-1.5 h-full bg-muted absolute top-3 left-[50%] -translate-x-[50%]" />
       );
 
-    if (index === totalLength - 1)
+    if (roundNo === roundLength - 1)
       return (
         <div className="w-1.5 h-3 bg-muted absolute top-0 left-[50%] -translate-x-[50%]" />
       );

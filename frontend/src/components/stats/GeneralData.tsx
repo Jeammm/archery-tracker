@@ -11,10 +11,10 @@ import { Round, Session } from "@/types/session";
 import { Loader } from "../ui/loader";
 import { calculateAccumulatedScore } from "@/utils/formatScore";
 import { format } from "date-fns";
-import { ChartBar } from "../chart-bar";
 import { ChartPie } from "../chart-pie";
 import { useMemo } from "react";
 import { set } from "lodash";
+import { GeneralShotDataChart } from "../charts/GeneralShotDataChart";
 
 interface GeneralDataProps {
   sessionData: Session;
@@ -31,13 +31,6 @@ export const GeneralData = (props: GeneralDataProps) => {
     return round.score?.reduce((sum, obj) => sum + obj.score, 0) || 1;
   };
 
-  const chartConfig = {
-    score: {
-      label: "Score",
-      color: "hsl(var(--chart-1))",
-    },
-  };
-
   const pieChartConfig = useMemo(() => {
     const config = {};
 
@@ -50,33 +43,6 @@ export const GeneralData = (props: GeneralDataProps) => {
 
     return config;
   }, [round_result]);
-
-  const getRoundData = (rounds: Round[]) => {
-    const roundsData: { shotNo: number; score: number }[] = [];
-
-    rounds.map((round) => {
-      round.score?.map((hit) => {
-        roundsData.push({
-          shotNo: hit.id,
-          score: hit.score,
-        });
-      });
-    });
-
-    return roundsData;
-  };
-
-  // if (target_status === "FAILURE") {
-  //   return <ProcessingFailed sessionData={sessionData} />;
-  // }
-
-  // if (target_status !== "SUCCESS") {
-  //   return (
-  //     <div className="mt-4 border p-6">
-  //       <Loader>Processing...</Loader>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="mt-6">
@@ -202,15 +168,7 @@ export const GeneralData = (props: GeneralDataProps) => {
 
       <div className="mt-4 grid grid-cols-3 gap-4">
         <div className="col-span-2">
-          <ChartBar
-            title="Shot Statistic"
-            description="Your Shot Statistic"
-            chartConfig={chartConfig}
-            chartData={getRoundData(round_result)}
-            xAxisDataKey="shotNo"
-            footer={undefined}
-            stack
-          />
+          <GeneralShotDataChart round_result={round_result} />
         </div>
         <ChartPie
           chartData={round_result.map((round) => ({

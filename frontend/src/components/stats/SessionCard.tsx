@@ -1,4 +1,4 @@
-import { CalendarIcon, TargetIcon, ZapIcon } from "lucide-react";
+import { CalendarIcon, TargetIcon, TriangleAlert, ZapIcon } from "lucide-react";
 import { Session } from "@/types/session";
 import { formatDateTime } from "@/utils/dateTime";
 import { Link } from "react-router-dom";
@@ -14,13 +14,14 @@ import {
   CardTitle,
 } from "../ui/card";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
+import { Skeleton } from "../ui/skeleton";
 
 interface SessionCardProps {
   sessionData: Session;
   fetchSessionsData: () => Promise<void>;
 }
 
-const CARD_SIZE = "w-[212px] h-[266px]";
+export const CARD_SIZE = "w-[212px] h-[266px]";
 
 export const SessionCard = (props: SessionCardProps) => {
   const { sessionData } = props;
@@ -67,30 +68,6 @@ export const SessionCard = (props: SessionCardProps) => {
     );
   }
 
-  // if (processing_status === "FAILURE" && session_status === "ENDED") {
-  //   return (
-  //     <div
-  //       onClick={() => {
-  //         navigate(`/sessions/${_id}`);
-  //       }}
-  //       className={cn([CARD_SIZE, "shrink-0"])}
-  //     >
-  //       <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
-  //         <h3 className="font-bold text-2xl text-red-500">SESSION ERROR</h3>
-  //         <p className="text-red-600">{formatDateTime(created_at)}</p>
-  //         <Badge variant="outline">
-  //           <div className="w-1 h-1 rounded-full bg-red-500 mr-2" /> ERROR
-  //         </Badge>
-  //         <RetryButton
-  //           sessionData={sessionData}
-  //           className="mt-2"
-  //           fetchSessionsData={fetchSessionsData}
-  //         />
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   if (session_status === "ENDED" && processing_status === "PROCESSING") {
     return (
       <Link to={`/sessions/${_id}`} className={cn([CARD_SIZE, "shrink-0"])}>
@@ -118,8 +95,15 @@ export const SessionCard = (props: SessionCardProps) => {
       >
         <CardHeader className="space-y-0 pb-2">
           <CardTitle className="font-bold text-2xl">COMPLETED</CardTitle>
-          <CardDescription className="text-sm font-medium">
-            Session Data
+          <CardDescription className="flex gap-1.5 items-center">
+            <p className="text-sm font-medium">Session Data</p>
+            {processing_status === "FAILURE" && (
+              <TriangleAlert
+                className="text-amber-500"
+                size={18}
+                strokeWidth={2.5}
+              />
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,5 +128,29 @@ export const SessionCard = (props: SessionCardProps) => {
         </CardContent>
       </Card>
     </Link>
+  );
+};
+
+export const CardSkeleton = () => {
+  return (
+    <Card className={CARD_SIZE}>
+      <CardHeader className="space-y-0 pb-2">
+        <CardTitle className="font-bold text-2xl">
+          <Skeleton className="w-[162px] h-[32px]" />
+        </CardTitle>
+        <CardDescription>
+          <Skeleton className="w-[85px] h-[20px] mt-1.5" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="w-[100px] h-[32px]" />
+        <Skeleton className="w-[40px] h-[16px] mt-1.5" />
+        <div className="mt-4 flex flex-col gap-2 text-sm">
+          <Skeleton className="w-[150px] h-[25px]" />
+          <Skeleton className="w-[150px] h-[25px]" />
+          <Skeleton className="w-[150px] h-[25px]" />
+        </div>
+      </CardContent>
+    </Card>
   );
 };

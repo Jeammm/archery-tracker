@@ -22,10 +22,10 @@ export const StatHighlight = (props: StatHighlightProps) => {
 
   const getDescription = (stat: StatsValue, name: string) => {
     return stat.compare > 0
-      ? `Increase from last week (${stat.last_week} ${name})`
+      ? `Increase from last week (${stat.last_week.toFixed(2)} ${name})`
       : stat.compare === 0
       ? ""
-      : `Decrease from last week (${stat.last_week} ${name})`;
+      : `Decrease from last week (${stat.last_week.toFixed(2)} ${name})`;
   };
 
   return (
@@ -87,7 +87,7 @@ export const StatHighlight = (props: StatHighlightProps) => {
           Practice Time This Week
         </h3>
         <p className="font-bold text-2xl tracking-wider mt-1">
-          {stats.total_training_time_compare.current_week} Seconds
+          {stats.total_training_time_compare.current_week.toFixed(2)} Seconds
         </p>
         <p className="text-muted-foreground text-sm">
           {getDescription(stats.total_training_time_compare, "Seconds")}

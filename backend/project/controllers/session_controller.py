@@ -84,6 +84,10 @@ def add_rounds_to_sessions(sessions):
         # Determine processing status based on pose_status and target_status
         processing_status = "SUCCESS"
         for round_item in rounds:
+            if round_item.get('pose_status') == "FAILURE" or round_item.get('target_status') == "FAILURE":
+                processing_status = "FAILURE"
+                break
+            
             if round_item.get('pose_status') != "SUCCESS" or round_item.get('target_status') != "SUCCESS":
                 processing_status = "PROCESSING"
                 break

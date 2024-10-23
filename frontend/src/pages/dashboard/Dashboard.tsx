@@ -1,7 +1,6 @@
-import { SessionCard } from "@/components/stats/SessionCard";
+import { CardSkeleton, SessionCard } from "@/components/stats/SessionCard";
 import { Session, Stats } from "@/types/session";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { LineChartLabel } from "@/components/chart-line-label";
@@ -142,8 +141,8 @@ export const Dashboard = () => {
         </div>
         <div className="w-full flex gap-4 overflow-scroll py-3">
           {isLoading
-            ? [1, 2, 3, 4].map((index) => {
-                return <Skeleton key={index} className="w-full h-full" />;
+            ? [1, 2, 3, 4, 5, 6].map((i) => {
+                return <CardSkeleton key={`card-skeleton-${i}`} />;
               })
             : sessions?.slice(0, 10).map((session) => {
                 return (
