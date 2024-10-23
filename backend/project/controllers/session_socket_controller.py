@@ -1,7 +1,7 @@
 from flask import current_app
 from flask_socketio import emit, join_room, leave_room
 from bson.objectid import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 from project.constants.constants import ROUND_COLLECTION
 
 class SessionSocketController:
@@ -13,9 +13,7 @@ class SessionSocketController:
         '''
     
     def is_session_exist(self, session_id):
-        if session_id in self.active_sessions:
-          return True
-        return False
+        return session_id in self.active_sessions
 
     def find_user_in_sessions(self, user_id):
         for session_id, session_data in self.active_sessions.items():
@@ -100,7 +98,7 @@ class SessionSocketController:
             emit('recordingStarted', {'message': 'Already recording!'}, to=session_id)
             return
           
-        created_date = datetime.utcnow()
+        created_date = datetime.now(timezone.utc)
 
         round_data = {
             "session_id": ObjectId(session_id),

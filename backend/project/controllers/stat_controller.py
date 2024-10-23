@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from project.controllers.session_controller import add_rounds_to_sessions, convert_object_ids
 from bson.objectid import ObjectId
 from flask import jsonify
@@ -8,28 +8,25 @@ from ..db import db
 collection = db[SESSION_COLLECTION]
 
 def calculate_sum_training_time(sessions):
-    sum_session_time = 0
-    
-    for session in sessions:
-        if 'total_session_time' in session:
-            sum_session_time += session.get('total_session_time')
-    
-    return sum_session_time
+    return sum(
+        session.get('total_session_time')
+        for session in sessions
+        if 'total_session_time' in session
+    )
 
 def calculate_sum_round_count(sessions):
     return sum(len(session['round_result']) for session in sessions)
 
-def calculate_average_accuracy(sessions):
-    round_count = calculate_sum_round_count(sessions)
-    if (round_count == 0):
+def calculate_average_accuracy(sessions):    
+    if sum_accuracy := [session['accuracy'] for session in sessions]:
+        return round(sum(sum_accuracy) / len(sum_accuracy) * 10, 2)
+    else:
         return 0
-    
-    return round(sum(session['accuracy'] for session in sessions) / round_count * 10, 2)
     
       
 def get_stat(user_id):
     try:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         start_of_current_week = now - timedelta(days=7)
         end_of_current_week = now
 
