@@ -1,0 +1,22 @@
+@property --number {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes count {
+  from {
+    --number: 5;
+  }
+  to {
+    --number: 0;
+  }
+}
+
+.timer:after {
+  display:block;
+  counter-reset: number calc(0 + var(--number));
+  animation: count 5s linear;
+  content: counter(number);
+  font-size: 200px;
+}

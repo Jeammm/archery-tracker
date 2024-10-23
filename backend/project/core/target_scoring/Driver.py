@@ -29,5 +29,5 @@ def process_target_video_data(input_filepath, output_filepath, target_model):
   sketcher = Sketcher(measure_unit, measure_unit_name)
   video_analyzer = VideoAnalyzer(video_name, model, bullseye_point, rings_amount, inner_diameter_px)
   scoring_detail = video_analyzer.analyze(output_filepath, sketcher, start_time, video_fps)
-  print("========== Score Result Processing Completed ===========")
+  print("😇 Score Result Processing Completed 😇")
   return scoring_detail

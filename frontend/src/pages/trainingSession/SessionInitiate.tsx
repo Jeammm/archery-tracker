@@ -34,6 +34,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import * as tf from "@tensorflow/tfjs";
+import * as poseDetection from "@tensorflow-models/pose-detection";
+import { PoseDetector, Keypoint } from "@tensorflow-models/pose-detection";
+import { CountDownOverlay } from "@/components/countdown/CountDownOverlay";
+
+const THRESHOLD = 0.6;
 
 export const SessionInitiate = () => {
   const { sessionId } = useParams();
@@ -57,10 +63,16 @@ export const SessionInitiate = () => {
   >({});
   const [uploadedRoundVideo, setUploadedRoundVideo] = useState<string[]>([]);
 
-  const [isTestMode, setIsTestMode] = useState<boolean>(true);
+  const [isRecordingTriggered, setIsRecordingTriggered] =
+    useState<boolean>(false);
+  const [isEndTriggered, setIsEndTriggered] = useState<boolean>(false);
+
+  const [isTestMode, setIsTestMode] = useState<boolean>(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const poseDetectorRef = useRef<PoseDetector | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const fetchSessionData = useCallback(async () => {
     if (!sessionId || !user?.token) {
@@ -117,7 +129,91 @@ export const SessionInitiate = () => {
     }
   };
 
-  const startRecording = () => {
+  const drawKeypoints = (poses: Keypoint[]) => {
+    const canvas = canvasRef.current;
+
+    if (!canvas || !poses) {
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+    const video = localVideoRef.current;
+
+    if (ctx && video) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      poses.map((keypoint) => {
+        if ((keypoint?.score || 0) > THRESHOLD) {
+          ctx.beginPath();
+          ctx.arc(keypoint.x, keypoint.y, 10, 0, 2 * Math.PI);
+          ctx.fillStyle = "red"; // Color of the keypoint
+          ctx.fill();
+        }
+      });
+    }
+  };
+
+  const loadPoseDetector = async () => {
+    await tf.setBackend("webgl");
+    const detector = await poseDetection.createDetector(
+      poseDetection.SupportedModels.MoveNet
+    );
+    poseDetectorRef.current = detector;
+    detectPose();
+  };
+
+  async function detectPose() {
+    if (!poseDetectorRef.current || !localVideoRef.current) {
+      return requestAnimationFrame(detectPose);
+    }
+
+    const poses = await poseDetectorRef.current.estimatePoses(
+      localVideoRef.current
+    );
+
+    // Check if hand is raised above head
+    if (poses?.[0] && poses?.[0].keypoints) {
+      const pose = poses[0];
+      const leftWrist = pose.keypoints.find((k) => k.name === "left_wrist");
+      const rightWrist = pose.keypoints.find((k) => k.name === "right_wrist");
+      const nose = pose.keypoints.find((k) => k.name === "nose");
+
+      if (leftWrist && rightWrist && nose && !recording) {
+        drawKeypoints([leftWrist, rightWrist]);
+
+        const isLeftHandOverHead = isHandOverhead(leftWrist, nose);
+        const isRightHandOverHead = isHandOverhead(rightWrist, nose);
+
+        if (isRightHandOverHead) {
+          triggerStartRecording();
+        } else if (isLeftHandOverHead) {
+          triggerEndRecording();
+        }
+      }
+    }
+
+    requestAnimationFrame(detectPose);
+  }
+
+  function isHandOverhead(wrist: Keypoint, head: Keypoint) {
+    return (
+      (wrist.score || 0) > THRESHOLD &&
+      (head.score || 0) > THRESHOLD &&
+      wrist.y < head.y
+    ); // Hand is above head if wrist is higher than the head
+  }
+
+  function triggerStartRecording() {
+    setIsRecordingTriggered(true);
+  }
+
+  function triggerEndRecording() {
+    setIsEndTriggered(true);
+  }
+
+  const startRecording = useCallback(() => {
     if (localVideoRef.current) {
       const stream = localVideoRef.current.srcObject as MediaStream;
       const recorder = new MediaRecorder(stream);
@@ -139,16 +235,18 @@ export const SessionInitiate = () => {
       // Emit start recording event
       socket.emit("recordingStarted", { sessionId });
     }
-  };
+  }, [sessionId]);
 
-  const stopRecording = async () => {
+  const stopRecording = useCallback(async () => {
+    setIsRecordingTriggered(false);
+    setIsEndTriggered(false);
     if (mediaRecorder) {
       mediaRecorder.stop();
       setRecording(false);
       // Emit stop recording event
       socket.emit("recordingStopped", { sessionId });
     }
-  };
+  }, [mediaRecorder, sessionId]);
 
   useEffect(() => {
     fetchSessionData();
@@ -297,7 +395,6 @@ export const SessionInitiate = () => {
       "participant_leave",
       (data: { users: Record<string, string> }) => {
         setParticipantDevices(data);
-        console.log(data);
         setIsCameraConnected(false);
         mediaRecorder?.stop();
         setRecording(false);
@@ -310,6 +407,7 @@ export const SessionInitiate = () => {
       }
     );
     const stream = init();
+    loadPoseDetector();
 
     // Cleanup function
     return () => {
@@ -329,6 +427,20 @@ export const SessionInitiate = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  useEffect(() => {
+    if (isRecordingTriggered && isCameraConnected && !recording) {
+      setTimeout(() => {
+        startRecording();
+      }, 5500);
+    }
+  }, [isCameraConnected, isRecordingTriggered, recording, startRecording]);
+
+  useEffect(() => {
+    if (isEndTriggered && isCameraConnected && recording) {
+      stopRecording();
+    }
+  }, [isCameraConnected, isEndTriggered, recording, stopRecording]);
 
   useEffect(() => {
     Object.keys(targetVideoUploadingStatus).map(async (roundId) => {
@@ -386,6 +498,9 @@ export const SessionInitiate = () => {
       <div className="flex justify-between">
         <div>
           <h1 className="text-4xl font-bold">Start Training!</h1>
+          {isRecordingTriggered && !recording && isCameraConnected && (
+            <CountDownOverlay />
+          )}
           <p className="mt-2 text-muted-foreground">
             Start time:{" "}
             {format(session.created_at, "hh:mm a 'at' do MMMM yyyy")}
@@ -455,11 +570,17 @@ export const SessionInitiate = () => {
               Posture
             </h4>
             <div className="w-full aspect-[4/3] relative">
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full left-0 top-0 absolute"
+              />
               <video
                 ref={localVideoRef}
                 autoPlay
                 playsInline
                 muted
+                width={480}
+                height={480}
                 className={cn([
                   localVideoRef?.current?.srcObject
                     ? "w-full h-full"
