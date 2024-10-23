@@ -27,7 +27,6 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
 
   const { elapsedTime, timeReady } = useTimeElapsed({
     startDatetime: roundData?.created_at,
-    timeOffset: -7,
   });
 
   const isTableEmpty = useMemo(() => {
@@ -64,7 +63,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
           )}
 
           {recording && (
-            <div className="rounded-md p-2 border animate-blink">
+            <div className="rounded-md p-2 border animate-blink h-[90px]">
               <p>
                 {`Round
               ${(session?.round_result.length || 0) + 1}
@@ -73,7 +72,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
               {timeReady ? (
                 <p>Elapse Time: {elapsedTime}</p>
               ) : (
-                <Loader className="w-fit h-fit" />
+                <p>Starting...</p>
               )}
             </div>
           )}

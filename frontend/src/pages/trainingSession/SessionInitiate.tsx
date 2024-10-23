@@ -411,8 +411,8 @@ export const SessionInitiate = () => {
                 <DialogTitle>End this session</DialogTitle>
                 <DialogDescription>
                   {isRoundExisted
-                    ? "This session will be marked as ended, you can rest now"
-                    : "This session has not a single round, ending this session now will resulted in this session getting deleted."}
+                    ? "This session will be marked as ended. You can rest now"
+                    : "This session does not contain any rounds. Ending the session now will result in its deletion."}
                 </DialogDescription>
               </DialogHeader>
 

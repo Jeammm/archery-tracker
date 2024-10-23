@@ -172,6 +172,9 @@ export const SessionVideo = (props: SessionVideoProps) => {
     setCurrentShot(currentShot ? Number(currentShot.id) : 0);
   };
 
+  const isVideoNotReady =
+    pose_status !== "SUCCESS" && target_status !== "SUCCESS";
+
   if (target_status === "FAILURE" || pose_status === "FAILURE") {
     return <ProcessingFailed round={round_result[selectedRound]} />;
   }
@@ -180,7 +183,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
     <div className="mt-6">
       <div className="flex gap-3" onClick={onPlayerClick}>
         <div className="flex-1 h-auto aspect-video overflow-hidden">
-          {pose_status === "SUCCESS" ? (
+          {!isVideoNotReady ? (
             <ByteArkPlayerContainer
               {...posePlayerOptions}
               onReady={onPoseVideoReady}
@@ -195,7 +198,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
           )}
         </div>
         <div className="flex-1 h-auto aspect-video overflow-hidden">
-          {target_status === "SUCCESS" ? (
+          {!isVideoNotReady ? (
             <ByteArkPlayerContainer
               {...targetPlayerOptions}
               onReady={onTargetVideoReady}
@@ -216,10 +219,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
             onClick={onClickPrevious}
             variant="clean"
             size="no-space"
-            disabled={
-              (pose_status !== "SUCCESS" && target_status !== "SUCCESS") ||
-              currentShot <= 1
-            }
+            disabled={isVideoNotReady || currentShot <= 1}
           >
             <ArrowBigLeft fill="white" />
           </Button>
@@ -228,9 +228,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
               onClick={onClickPause}
               variant="clean"
               size="no-space"
-              disabled={
-                pose_status !== "SUCCESS" && target_status !== "SUCCESS"
-              }
+              disabled={isVideoNotReady}
             >
               <Pause fill="white" size={20} />
             </Button>
@@ -239,9 +237,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
               onClick={onClickPlay}
               variant="clean"
               size="no-space"
-              disabled={
-                pose_status !== "SUCCESS" && target_status !== "SUCCESS"
-              }
+              disabled={isVideoNotReady}
             >
               <Play fill="white" size={20} />
             </Button>
@@ -250,15 +246,12 @@ export const SessionVideo = (props: SessionVideoProps) => {
             onClick={onClickNext}
             variant="clean"
             size="no-space"
-            disabled={
-              (pose_status !== "SUCCESS" && target_status !== "SUCCESS") ||
-              currentShot === score?.length
-            }
+            disabled={isVideoNotReady || currentShot === score?.length}
           >
             <ArrowBigRight fill="white" />
           </Button>
 
-          {pose_status !== "SUCCESS" && target_status !== "SUCCESS" ? (
+          {isVideoNotReady ? (
             <p className="text-sm tracking-tighter text-muted-foreground">
               processing
             </p>
@@ -277,14 +270,14 @@ export const SessionVideo = (props: SessionVideoProps) => {
           max={targetPlayerInstance?.duration()}
           step={1}
           onValueChange={(value) => handleSliderChange(value)}
-          disabled={pose_status !== "SUCCESS" && target_status !== "SUCCESS"}
+          disabled={isVideoNotReady}
         />
       </div>
       <div className="rounded-md mt-4 overflow-hidden border">
         <h2 className="p-3 bg-slate-900">Shots</h2>
         <Separator />
         <div className="h-[200px] overflow-scroll" ref={containerRef}>
-          {target_status === "SUCCESS" ? (
+          {!isVideoNotReady ? (
             score?.map((hit) => (
               <div
                 ref={(el) => (itemRefs.current[hit.id] = el)}

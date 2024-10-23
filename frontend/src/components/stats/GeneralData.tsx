@@ -80,7 +80,7 @@ export const GeneralData = (props: GeneralDataProps) => {
             );
           }
 
-          if (round.target_status !== "SUCCESS" || !round.score) {
+          if (!round.score) {
             return (
               <TableBody key={`processing-${round._id}`}>
                 <TableRow>
