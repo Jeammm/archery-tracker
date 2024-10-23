@@ -129,8 +129,8 @@ def process_pose_test(self, round_id):
             {"$set": {"pose_status": "FAILURE", "pose_error_message": str(e)}}
         )
 
-@shared_task
-def capture_pose_on_shot_detected_test(results, round_id):
+@shared_task(bind=True, max_retries=3, default_retry_delay=30)
+def capture_pose_on_shot_detected_test(self, results, round_id):
     scoring_detail = results[0][0]
     target_video_path = results[0][2]
     dummy_raw_target_video_path = results[0][3]

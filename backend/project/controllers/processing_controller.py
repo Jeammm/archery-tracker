@@ -127,7 +127,7 @@ def process_pose(self, round_id):
             {"$set": {"pose_status": "FAILURE", "pose_error_message": str(e)}}
         )
 
-@shared_task(bind=True)
+@shared_task(bind=True, max_retries=3, default_retry_delay=30)
 def capture_pose_on_shot_detected(self, results, round_id):
     scoring_detail = results[0][0]
     raw_target_video_path = results[0][1]
