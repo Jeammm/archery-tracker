@@ -41,7 +41,10 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
           );
         }
 
-        if (round.target_status === "PROCESSING") {
+        if (
+          round.target_status === "PROCESSING" ||
+          round.capture_status && round.capture_status !== "SUCCESS"
+        ) {
           return (
             <TimelineWrapper
               roundNo={roundNo}
