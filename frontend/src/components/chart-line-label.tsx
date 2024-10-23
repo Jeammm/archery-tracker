@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CartesianGrid, LabelList, Line, LineChart, XAxis } from "recharts";
 
 import {
@@ -58,17 +59,18 @@ export function LineChartLabel(props: LineChartLabelProps) {
             data={chartData}
             margin={{
               top: 20,
-              left: 12,
-              right: 12,
+              left: 50,
+              right: 30,
+              bottom: 10,
             }}
           >
             <CartesianGrid vertical={false} />
             <XAxis
+              tick={<CustomizedAxisTick />}
               dataKey={xAxisDataKey}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              // tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}
@@ -101,9 +103,55 @@ export function LineChartLabel(props: LineChartLabelProps) {
           </LineChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        {footer}
-      </CardFooter>
+      {footer && (
+        <CardFooter className="flex-col items-start gap-2 text-sm">
+          {footer}
+        </CardFooter>
+      )}
     </Card>
+  );
+}
+
+interface TickProps {
+  fill?: any;
+  height?: any;
+  orientation?: any;
+  payload?: any;
+  stroke?: any;
+  textAnchor?: any;
+  type?: any;
+  width?: any;
+  x?: any;
+  y?: any;
+}
+
+function CustomizedAxisTick(props: TickProps) {
+  const {
+    fill,
+    height,
+    orientation,
+    payload,
+    stroke,
+    textAnchor,
+    type,
+    width,
+    x,
+    y,
+  } = props;
+
+  return (
+    <text
+      {...{ fill, height, orientation, stroke, textAnchor, type, width, x, y }}
+      className="recharts-text recharts-cartesian-axis-tick-value"
+    >
+      {payload.value.split("\n").map((value: string, index: number) => {
+        const dy = 0.3 * (index + 1) + "em";
+        return (
+          <tspan dy={dy} key={index} x={payload.tickCoord}>
+            {value}
+          </tspan>
+        );
+      })}
+    </text>
   );
 }

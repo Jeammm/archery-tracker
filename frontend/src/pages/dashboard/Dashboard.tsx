@@ -83,7 +83,10 @@ export const Dashboard = () => {
       ?.filter((session) => session.maximum_score !== 0)
       .map((session) => {
         return {
-          date: format(session.created_at, "dd EEE, HH:mm"),
+          date: `
+            ${format(session.created_at, "HH:mm")}\n
+            ${format(session.created_at, "dd MMM")}
+            `,
           accuracy: Math.floor((session.accuracy || 0) * 100),
           totalScore: session.total_score,
           maximumScore: session.maximum_score,
