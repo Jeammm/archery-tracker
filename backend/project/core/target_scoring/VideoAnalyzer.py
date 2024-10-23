@@ -259,8 +259,6 @@ class VideoAnalyzer:
             if not ret:
                 break
             
-            print(current_drawing_frame)
-
             previous_hits = [hit for hit in sorted_hits if hit.frame_count <= current_drawing_frame]
             
             if previous_hits:

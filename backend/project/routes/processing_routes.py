@@ -57,8 +57,10 @@ def process_target_route(user_id, round_id):
     task_data = {
         "target_task_id": chord_tasks.parent[0].id,
         "pose_task_id": chord_tasks.parent[1].id,
+        "capture_task_id": chord_tasks.id,
         "target_status": chord_tasks.parent[0].status,
         "pose_status": chord_tasks.parent[1].status,
+        "capture_status": chord_tasks.status,
         "start_process_at": datetime.now(timezone.utc),
     }
 
@@ -85,8 +87,10 @@ def process_target_route(user_id, round_id):
         "_id": round_id,
         "target_task_id": chord_tasks.parent[0].id,
         "pose_task_id": chord_tasks.parent[1].id,
+        "capture_task_id": chord_tasks.id,
         "target_status": chord_tasks.parent[0].status,
         "pose_status": chord_tasks.parent[1].status,
+        "capture_status": chord_tasks.status,
     }), 202
     
 @processing_bp.route('/process-target-test/<round_id>', methods=['POST'])
@@ -103,6 +107,8 @@ def process_target_route_test(user_id, round_id):
         "pose_task_id": chord_tasks.parent[1].id,
         "target_status": chord_tasks.parent[0].status,
         "pose_status": chord_tasks.parent[1].status,
+        "capture_task_id": chord_tasks.id,
+        "capture_status": chord_tasks.status,
         "start_process_at": datetime.now(timezone.utc),
     }
 
@@ -131,4 +137,6 @@ def process_target_route_test(user_id, round_id):
         "pose_task_id": chord_tasks.parent[1].id,
         "target_status": chord_tasks.parent[0].status,
         "pose_status": chord_tasks.parent[1].status,
+        "capture_task_id": chord_tasks.id,
+        "capture_status": chord_tasks.status,
     }), 202

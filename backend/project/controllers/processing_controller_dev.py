@@ -4,7 +4,6 @@ from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION
 from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
-import time
 from bson.objectid import ObjectId
 from ..db import db
 
@@ -20,12 +19,11 @@ class MissingTargetModelError(Exception):
 @shared_task(bind=True)
 def process_target_test(self, round_id):
     task_id = self.request.id
-    timestamp = int(time.time())
     
     input_filename = f"target_video_raw_{round_id}"
     input_filepath = target_video_demo
     dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
-    output_filename = f"target_video_processed_{timestamp}"
+    output_filename = f"target_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
     round_collection.update_one(
@@ -68,7 +66,7 @@ def process_target_test(self, round_id):
         
         round_collection.update_one(
             {"target_task_id": task_id},
-            {"$set": {"target_status": "UPLOADED"}}
+            {"$set": {"target_status": "SUCCESS"}}
         )
         
         return scoring_detail, input_filepath, output_filepath, dummy_input_filepath
@@ -82,12 +80,11 @@ def process_target_test(self, round_id):
 @shared_task(bind=True)
 def process_pose_test(self, round_id):
     task_id = self.request.id
-    timestamp = int(time.time())
     
     input_filename = f"pose_video_raw_{round_id}"
     input_filepath = pose_video_demo
     dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
-    output_filename = f"pose_video_processed_{timestamp}"
+    output_filename = f"pose_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
     round_collection.update_one(
@@ -121,7 +118,7 @@ def process_pose_test(self, round_id):
         
         round_collection.update_one(
             {"pose_task_id": task_id},
-            {"$set": {"pose_status": "UPLOADED"}}
+            {"$set": {"pose_status": "SUCCESS"}}
         )
         
         return input_filepath, output_filepath, dummy_input_filepath
@@ -135,11 +132,9 @@ def process_pose_test(self, round_id):
 @shared_task
 def capture_pose_on_shot_detected_test(results, round_id):
     scoring_detail = results[0][0]
-    raw_target_video_path = results[0][1]
     target_video_path = results[0][2]
     dummy_raw_target_video_path = results[0][3]
     
-    raw_pose_video_path = results[1][0]
     pose_video_path = results[1][1]
     dummy_raw_pose_video_path = results[1][2]
     
@@ -151,8 +146,7 @@ def capture_pose_on_shot_detected_test(results, round_id):
                 {"_id": ObjectId(round_id)},
                 {"$set": {
                     "score": scoring_detail_with_images,
-                    "pose_status": "SUCCESS",
-                    "target_status": "SUCCESS",
+                    "capture_status": "SUCCESS",
                     }}
             )
         
@@ -165,10 +159,8 @@ def capture_pose_on_shot_detected_test(results, round_id):
         round_collection.update_one(
             {"_id": ObjectId(round_id)},
             {"$set": {
-                "pose_status": "FAILURE",
-                "pose_error_message": str(e),
-                "target_status": "FAILURE",
-                "target_error_message": str(e),
+                "capture_status": "FAILURE",
+                "capture_error_message": str(e),
                 "score": scoring_detail,
                 }}
         )
