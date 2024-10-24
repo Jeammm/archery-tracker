@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Round } from "@/types/session";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { ParticipantsList } from "@/components/participants/ParticipantsList";
 
 export const JoinSession = () => {
   const navigate = useNavigate();
@@ -424,16 +425,7 @@ export const JoinSession = () => {
         })}
         <div className="flex flex-col gap-1 mb-2 md:mt-4">
           <p>Round: {roundId}</p>
-          {Object.entries(participantDevices.users).map(([key, value]) => (
-            <div className="flex text-sm text-muted-foreground items-center gap-1">
-              <p key={key}>{value}:</p>
-              <div className="flex bg-secondary  px-1 gap-1 rounded-sm items-center">
-                <div className="w-1 h-1 rounded-full bg-green-500" />
-                <p className="text-secondary-foreground text-xs">online</p>
-              </div>
-              <p>({key})</p>
-            </div>
-          ))}
+          <ParticipantsList participantDevices={participantDevices} />
         </div>
       </div>
     </div>

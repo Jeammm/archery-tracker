@@ -85,3 +85,5 @@ export const modelChoices: TargetModel[] = [
     model_path: "/olympic_standard_target.jpg"
   },
 ];
+
+export type SetStateActionType<T> = React.Dispatch<React.SetStateAction<T>>;
