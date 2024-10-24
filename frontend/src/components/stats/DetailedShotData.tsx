@@ -43,7 +43,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
 
         if (
           round.target_status === "PROCESSING" ||
-          round.capture_status && round.capture_status !== "SUCCESS"
+          (round.capture_status && round.capture_status !== "SUCCESS")
         ) {
           return (
             <TimelineWrapper
@@ -209,7 +209,7 @@ const TimelineWrapper = (props: TimelineWrapperProps) => {
 
   return (
     <div className="flex">
-      <div className="w-[75px] shrink-0 relative">
+      <div className="w-[90px] shrink-0 relative">
         {timestamp && (
           <div className="text-xs text-muted-foreground absolute top-3">
             <div className="flex gap-1 items-center ">
