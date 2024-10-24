@@ -51,6 +51,16 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "toast-success": {
+          DEFAULT: "#ecfdf2",
+          border: "#d3fde5",
+          foreground: "#008a2e",
+        },
+        "toast-warning": {
+          DEFAULT: "#fffcf0",
+          border: "#fdf5d3",
+          foreground: "#dc7609",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

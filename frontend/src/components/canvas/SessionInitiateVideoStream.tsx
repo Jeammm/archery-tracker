@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader } from "@/components/ui/loader";
 import { CountDownOverlay } from "../countdown/CountDownOverlay";
 import { VideoOverlayCanvas } from "./VideoOverlayCanvas";
+import { toast } from "@/hooks/use-toast";
 
 interface SessionInitiateVideoStreamProps {
   session: Session;
@@ -135,11 +136,13 @@ export const SessionInitiateVideoStream = (
   }
 
   function triggerStartRecording() {
+    setIsEndTriggered(false);
     setIsRecordingTriggered(true);
   }
 
   function triggerEndRecording() {
     setIsEndTriggered(true);
+    setIsRecordingTriggered(false);
   }
 
   const startRecording = useCallback(() => {
@@ -163,6 +166,11 @@ export const SessionInitiateVideoStream = (
 
       // Emit start recording event
       socket.emit("recordingStarted", { sessionId: session._id });
+      toast({
+        title: "Round Start!",
+        description: "Round has been started, Do your best!",
+        variant: "warning",
+      });
     }
   }, [session._id, setRecording]);
 
@@ -174,6 +182,12 @@ export const SessionInitiateVideoStream = (
       setRecording(false);
       // Emit stop recording event
       socket.emit("recordingStopped", { sessionId: session._id });
+      toast({
+        title: "Round Success!",
+        description:
+          "Your recording has been saved! The round result will be ready shortly",
+        variant: "success",
+      });
     }
   }, [mediaRecorder, session._id, setRecording]);
 
@@ -325,6 +339,7 @@ export const SessionInitiateVideoStream = (
         setIsCameraConnected(false);
         mediaRecorder?.stop();
         setRecording(false);
+        // init()
       }
     );
     socket.on(
@@ -359,25 +374,43 @@ export const SessionInitiateVideoStream = (
     if (isRecordingTriggered && !isCameraConnected) {
       setIsRecordingTriggered(false);
     }
-    if (isRecordingTriggered && isCameraConnected && !recording) {
-      setIsEndTriggered(false);
-      setTimeout(() => {
-        startRecording();
-      }, 5500);
-    }
-  }, [isCameraConnected, isRecordingTriggered, recording, startRecording]);
 
-  useEffect(() => {
     if (isEndTriggered && isCameraConnected && recording) {
       stopRecording();
     }
-  }, [isCameraConnected, isEndTriggered, recording, stopRecording]);
+
+    let timeout: NodeJS.Timeout;
+    if (
+      isRecordingTriggered &&
+      isCameraConnected &&
+      !recording &&
+      !isEndTriggered
+    ) {
+      setIsEndTriggered(false);
+      timeout = setTimeout(() => {
+        startRecording();
+      }, 5500);
+    }
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [
+    isCameraConnected,
+    isRecordingTriggered,
+    recording,
+    startRecording,
+    isEndTriggered,
+    stopRecording,
+  ]);
 
   return (
     <div className="flex gap-4 mt-6">
-      {isRecordingTriggered && !recording && isCameraConnected && (
-        <CountDownOverlay />
-      )}
+      {isRecordingTriggered &&
+        !recording &&
+        isCameraConnected &&
+        !isEndTriggered && <CountDownOverlay />}
+
       <div className="flex gap-4 flex-1 relative">
         <div
           className={cn([

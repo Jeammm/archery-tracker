@@ -42,7 +42,10 @@ export const VideoOverlayCanvas = (props: VideoOverlayCanvasProps) => {
               size
             );
 
-            const text = keypoint.name || "";
+            const text =
+              keypoint.name === "right_wrist"
+                ? "Raise To Start"
+                : "Raise To Stop";
             ctx.font = "34px Arial"; // Set font size to 34px
             ctx.fillStyle = "red"; // Fill color red
             ctx.strokeStyle = "white"; // Stroke color white
