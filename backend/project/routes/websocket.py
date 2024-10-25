@@ -52,7 +52,13 @@ def stop_recording(data):
     Sessions.stop_recording(session_id)
         
 @socketio.on("targetVideoUploadProgress")
-def target_video_upload_complete(data):
+def target_video_upload_progress(data):
     session_id = data["sessionId"]
     uploading_status = data["uploadingStatus"]
     Sessions.update_target_upload_progress(session_id, uploading_status)
+    
+@socketio.on("targetVideoUploadDone")
+def target_video_upload_completed(data):
+    session_id = data["sessionId"]
+    round_id = data["roundId"]
+    Sessions.target_upload_completed(session_id, round_id)

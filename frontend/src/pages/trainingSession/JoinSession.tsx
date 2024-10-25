@@ -234,9 +234,9 @@ export const JoinSession = () => {
           }
         );
 
-        socket.emit("targetVideoUploadProgress", {
+        socket.emit("targetVideoUploadDone", {
           sessionId,
-          uploadingStatus: { [roundId]: 100 },
+          roundId,
         });
 
         setRoundId(null);

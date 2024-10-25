@@ -38,7 +38,6 @@ interface SessionInitiateVideoStreamProps {
   isTestMode: boolean;
   isCameraConnected: boolean;
   participantDevices: { users: Record<string, string> };
-  uploadedRoundVideo: string[];
   targetVideoUploadingStatus: Record<string, number>;
   setRoundData: SetStateActionType<Round | null>;
   setRecording: SetStateActionType<boolean>;
@@ -46,6 +45,9 @@ interface SessionInitiateVideoStreamProps {
   setIsCameraConnected: SetStateActionType<boolean>;
   setParticipantDevices: SetStateActionType<{ users: Record<string, string> }>;
   setTargetVideoUploadingStatus: SetStateActionType<Record<string, number>>;
+
+  setUploadedTargetVideos: SetStateActionType<string[]>;
+  setUploadedPoseVideos: SetStateActionType<string[]>;
 }
 
 const THRESHOLD = 0.6;
@@ -68,7 +70,8 @@ export const SessionInitiateVideoStream = (
     targetVideoUploadingStatus,
     setTargetVideoUploadingStatus,
     setParticipantDevices,
-    uploadedRoundVideo,
+    setUploadedTargetVideos,
+    setUploadedPoseVideos,
   } = props;
 
   const [keypoints, setKeypoints] = useState<Keypoint[]>([]);
@@ -214,6 +217,7 @@ export const SessionInitiateVideoStream = (
             },
           }
         );
+        setUploadedPoseVideos((prev) => [...prev, roundData?._id]);
         setRoundData(null);
         setVideoBlob(null);
       }
@@ -354,6 +358,9 @@ export const SessionInitiateVideoStream = (
         setTargetVideoUploadingStatus(data.uploading_status);
       }
     );
+    socket.on("targetVideoUploadDone", (data: { round_id: string }) => {
+      setUploadedTargetVideos((prev) => [...prev, data.round_id]);
+    });
     const stream = init();
     detectPose();
 
@@ -553,7 +560,6 @@ export const SessionInitiateVideoStream = (
             targetVideoUploadingStatus={targetVideoUploadingStatus}
             session={session}
             roundData={roundData}
-            uploadedRoundVideo={uploadedRoundVideo}
             isCameraConnected
             recording={recording}
           />

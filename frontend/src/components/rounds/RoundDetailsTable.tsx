@@ -9,7 +9,6 @@ interface RoundDetailsTableProps {
   targetVideoUploadingStatus: Record<string, number>;
   session: Session | null;
   roundData: Round | null;
-  uploadedRoundVideo: string[];
   isCameraConnected?: boolean;
   containerClassName?: string;
   recording: boolean;

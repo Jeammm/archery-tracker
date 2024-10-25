@@ -21,13 +21,20 @@ export const SessionInitiate = () => {
   const [roundData, setRoundData] = useState<Round | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [isCameraConnected, setIsCameraConnected] = useState<boolean>(false);
-  const [uploadedRoundVideo, setUploadedRoundVideo] = useState<string[]>([]);
   const [participantDevices, setParticipantDevices] = useState<{
     users: Record<string, string>;
   }>({ users: {} });
   const [targetVideoUploadingStatus, setTargetVideoUploadingStatus] = useState<
     Record<string, number>
   >({});
+
+  const [uploadedTargetVideos, setUploadedTargetVideos] = useState<string[]>(
+    []
+  );
+  const [uploadedPoseVideos, setUploadedPoseVideos] = useState<string[]>([]);
+  const [roundProcessRequestSent, setRoundProcessRequestSent] = useState<
+    string[]
+  >([]);
 
   const fetchSessionData = useCallback(async () => {
     if (!sessionId || !user?.token) {
@@ -89,18 +96,18 @@ export const SessionInitiate = () => {
   }, [fetchSessionData]);
 
   useEffect(() => {
-    Object.keys(targetVideoUploadingStatus).map(async (roundId) => {
+    uploadedPoseVideos.map(async (roundId) => {
       if (
-        !uploadedRoundVideo.includes(roundId) &&
-        targetVideoUploadingStatus[roundId] === 100
+        uploadedTargetVideos.includes(roundId) &&
+        !roundProcessRequestSent.includes(roundId)
       ) {
-        setUploadedRoundVideo((prev) => [...prev, roundId]);
+        setRoundProcessRequestSent((prev) => [...prev, roundId]);
         await sendVideoProcessRequest(roundId);
         await fetchSessionData();
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetVideoUploadingStatus, uploadedRoundVideo]);
+  }, [roundProcessRequestSent, uploadedPoseVideos, uploadedTargetVideos]);
 
   if (!session) {
     return <Loader />;
@@ -154,7 +161,8 @@ export const SessionInitiate = () => {
         setRoundData={setRoundData}
         setTargetVideoUploadingStatus={setTargetVideoUploadingStatus}
         targetVideoUploadingStatus={targetVideoUploadingStatus}
-        uploadedRoundVideo={uploadedRoundVideo}
+        setUploadedTargetVideos={setUploadedTargetVideos}
+        setUploadedPoseVideos={setUploadedPoseVideos}
       />
 
       <div className="mt-6">
@@ -166,7 +174,6 @@ export const SessionInitiate = () => {
             targetVideoUploadingStatus={targetVideoUploadingStatus}
             session={session}
             roundData={roundData}
-            uploadedRoundVideo={uploadedRoundVideo}
             containerClassName="min-h-[150px]"
             recording={recording}
           />

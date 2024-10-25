@@ -130,4 +130,7 @@ class SessionSocketController:
     
     def update_target_upload_progress(self, session_id, uploading_status):        
         emit('targetVideoUploadProgress', {"uploading_status": uploading_status}, to=session_id)
+        
+    def target_upload_completed(self, session_id, round_id):
+        emit('targetVideoUploadDone', {'round_id': round_id}, to=session_id)
             
