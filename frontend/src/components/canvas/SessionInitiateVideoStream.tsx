@@ -74,6 +74,7 @@ export const SessionInitiateVideoStream = (
   const [keypoints, setKeypoints] = useState<Keypoint[]>([]);
   const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
   const [isEndTriggered, setIsEndTriggered] = useState<boolean>(false);
+  const [recordingTimestamp, setRecordingTimestamp] = useState<number>(0);
   const [isRecordingTriggered, setIsRecordingTriggered] =
     useState<boolean>(false);
   const [peerConnection, setPeerConnection] =
@@ -160,6 +161,10 @@ export const SessionInitiateVideoStream = (
         setVideoBlob(videoBlob);
       };
 
+      recorder.onstart = () => {
+        setRecordingTimestamp(Date.now());
+      };
+
       recorder.start();
       setMediaRecorder(recorder);
       setRecording(true);
@@ -197,6 +202,7 @@ export const SessionInitiateVideoStream = (
       if (videoBlob && roundData && isCameraConnected) {
         const formData = new FormData();
         formData.append("video", videoBlob, `session_${session._id}.webm`);
+        formData.append("recording_start_timestamp", `${recordingTimestamp}`);
 
         await axios.post(
           `${BASE_BACKEND_URL}/upload-pose-video/${roundData?._id}`,
@@ -250,7 +256,7 @@ export const SessionInitiateVideoStream = (
     }
     // Set up local video
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: { frameRate: { ideal: 30 } },
       audio: false,
     });
 
@@ -515,7 +521,7 @@ export const SessionInitiateVideoStream = (
         <div className="w-[300px] grid grid-rows-[auto,1fr]">
           <div className="mb-2 flex gap-2">
             <Button
-              onClick={startRecording}
+              onClick={triggerStartRecording}
               disabled={recording}
               className="bg-green-500 hover:bg-green-400 h-8 flex-1 gap-1.5"
             >
@@ -524,7 +530,7 @@ export const SessionInitiateVideoStream = (
             </Button>
 
             <Button
-              onClick={stopRecording}
+              onClick={triggerEndRecording}
               disabled={!recording}
               variant="secondary"
               className="bg-red-500 hover:bg-red-400 h-8 flex-1 gap-1.5"

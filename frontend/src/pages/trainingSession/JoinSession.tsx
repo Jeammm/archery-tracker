@@ -39,6 +39,7 @@ export const JoinSession = () => {
   const [uploadingStatus, setUploadingStatus] = useState<
     Record<string, number>
   >({});
+  const [recordingTimestamp, setRecordingTimestamp] = useState<number>(0);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const location = useLocation();
@@ -58,6 +59,10 @@ export const JoinSession = () => {
       recorder.onstop = () => {
         const videoBlob = new Blob(chunks, { type: "video/webm" });
         setVideoBlob(videoBlob);
+      };
+
+      recorder.onstart = () => {
+        setRecordingTimestamp(Date.now());
       };
 
       recorder.start();
@@ -201,6 +206,7 @@ export const JoinSession = () => {
       if (videoBlob && roundId) {
         const formData = new FormData();
         formData.append("video", videoBlob, `session_${sessionId}.webm`);
+        formData.append("recording_start_timestamp", `${recordingTimestamp}`);
 
         await axios.post(
           `${BASE_BACKEND_URL}/upload-target-video/${roundId}`,

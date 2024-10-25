@@ -1,6 +1,7 @@
+import os
 from celery import shared_task
 from project.core.pose_estimation.PoseEstimator import PoseEstimator
-from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION
+from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, VIDEO_COLLECTION
 from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
@@ -12,16 +13,19 @@ from ..db import db
 
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
+video_collection = db[VIDEO_COLLECTION]
 
 class MissingTargetModelError(Exception):
     pass
 
 @shared_task(bind=True)
-def process_target(self, round_id):
+def process_target(self, round_id, video_timestamps):
     task_id = self.request.id
     
     input_filename = f"target_video_raw_{round_id}"
     input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
+    trimmed_filename = f"target_video_trimmed_{round_id}"
+    trimmed_filepath = f"/app/project/core/res/output/{trimmed_filename}.webm"
     output_filename = f"target_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
@@ -39,7 +43,8 @@ def process_target(self, round_id):
         
         model = existing_session['model']
         
-        scoring_detail = process_target_video_data(input_filepath, output_filepath, model)
+        check_and_trim_video("target", video_timestamps, input_filepath, trimmed_filepath)
+        scoring_detail = process_target_video_data(trimmed_filepath, output_filepath, model)
         
         round_collection.update_one(
             {"target_task_id": task_id},
@@ -59,7 +64,7 @@ def process_target(self, round_id):
                 }}
         )
         
-        upload_video(input_filepath, tokens_for_raw_video[0])
+        upload_video(trimmed_filepath, tokens_for_raw_video[0])
         upload_video(output_filepath, tokens_for_processed_video[0])
         
         
@@ -68,7 +73,7 @@ def process_target(self, round_id):
             {"$set": {"target_status": "SUCCESS"}}
         )
         
-        return scoring_detail, input_filepath, output_filepath
+        return scoring_detail, input_filepath, output_filepath, trimmed_filepath
         
     except Exception as e:
         round_collection.update_one(
@@ -77,11 +82,13 @@ def process_target(self, round_id):
         )
 
 @shared_task(bind=True)
-def process_pose(self, round_id):
+def process_pose(self, round_id, video_timestamps):
     task_id = self.request.id
     
     input_filename = f"pose_video_raw_{round_id}"
     input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
+    trimmed_filename = f"pose_video_trimmed_{round_id}"
+    trimmed_filepath = f"/app/project/core/res/output/{trimmed_filename}.webm"
     output_filename = f"pose_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
     
@@ -91,7 +98,8 @@ def process_pose(self, round_id):
         )
     
     try:
-        process_pose_video_data(input_filepath, output_filepath)
+        check_and_trim_video("pose", video_timestamps, input_filepath, trimmed_filepath)
+        process_pose_video_data(trimmed_filepath, output_filepath)
         
         round_collection.update_one(
             {"pose_task_id": task_id},
@@ -111,7 +119,7 @@ def process_pose(self, round_id):
                 }}
         )
         
-        upload_video(input_filepath, tokens_for_raw_video[0])
+        upload_video(trimmed_filepath, tokens_for_raw_video[0])
         upload_video(output_filepath, tokens_for_processed_video[0])
         
         round_collection.update_one(
@@ -119,7 +127,7 @@ def process_pose(self, round_id):
             {"$set": {"pose_status": "SUCCESS"}}
         )
         
-        return input_filepath, output_filepath
+        return input_filepath, output_filepath, trimmed_filepath
         
     except Exception as e:
         round_collection.update_one(
@@ -132,9 +140,11 @@ def capture_pose_on_shot_detected(self, results, round_id):
     scoring_detail = results[0][0]
     raw_target_video_path = results[0][1]
     target_video_path = results[0][2]
+    trimmed_target_video_path = results[0][3]
     
     raw_pose_video_path = results[1][0]
     pose_video_path = results[1][1]
+    trimmed_pose_video_path = results[1][2]
     
     try:
         # Upload hit frames
@@ -152,6 +162,8 @@ def capture_pose_on_shot_detected(self, results, round_id):
         delete_video(pose_video_path)
         delete_video(raw_pose_video_path)
         delete_video(raw_target_video_path)
+        delete_video(trimmed_target_video_path)
+        delete_video(trimmed_pose_video_path)
         
     except Exception as e:
         round_collection.update_one(
@@ -207,3 +219,111 @@ def upload_frames(scoring_detail, target_video_path, pose_video_path):
             }
         scoring_detail_with_images.append(hit_with_image)
     return scoring_detail_with_images
+
+def save_recording_timestamp(round_id, video_type, timestamp):
+    try:
+        video_data = {
+            "round_id": ObjectId(round_id),
+            "type": video_type,
+            "recoring_timestamp": timestamp,
+        }
+        video_collection.insert_one(video_data)
+        
+    except Exception as e:
+        video_collection.insert_one(
+            {
+                "round_id": ObjectId(round_id),
+                "type": video_type,
+                "recoring_timestamp": 0,
+                "error": e
+            }
+        )
+        
+def get_recording_timestamp(round_id):
+    try:
+        video_timestamps = list(video_collection.find({"round_id": ObjectId(round_id)}))
+        
+        print("*************")
+        print(video_timestamps)
+                
+        timestamps = {
+            'pose': 0,
+            'target': 0,
+        }
+        
+        for video in video_timestamps:
+            video_type = video['type']
+            timestamp = video['recoring_timestamp']
+            timestamps[video_type] = timestamp
+
+        return timestamps
+    except Exception:
+        return {'pose': 0, 'target': 0}
+    
+def check_and_trim_video(type, video_timestamp, input_path, trimmed_path):
+    pose_timestamp = int(video_timestamp['pose'])
+    target_timestamp = int(video_timestamp['target'])
+    
+    print("&&&&&&&&&&&&&&&&&&")
+    print(video_timestamp)
+    print(pose_timestamp)
+    print(target_timestamp)
+    print("&&&&&&&&&&&&&&&&&&")
+    
+    video_to_trim_type = ""
+    
+    if pose_timestamp == 0 or target_timestamp == 0:
+        os.rename(input_path, trimmed_path)
+        return
+    
+    if type == 'pose' and pose_timestamp < target_timestamp:
+        video_to_trim_type = "pose"
+    
+    if type == 'target' and target_timestamp < pose_timestamp:
+        video_to_trim_type = "target"
+        
+    if not video_to_trim_type:
+        os.rename(input_path, trimmed_path)
+        return
+    
+    print("1 🤩")
+        
+    frame_rate = 30  # frames per second
+    time_diff = abs(pose_timestamp - target_timestamp) / 1000
+    frames_to_trim = int(time_diff * frame_rate)
+    
+    print("2 🤩")
+    
+    cap = cv2.VideoCapture(input_path)
+    if not cap.isOpened():
+        print(f"Error: Could not open video file {input_path}")
+        return None
+    print("3🤩")
+        
+    fourcc = cv2.VideoWriter_fourcc(*'VP80')  # WebM compatible codec
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    out = cv2.VideoWriter(trimmed_path, fourcc, frame_rate, (frame_width, frame_height))
+        
+    print("4🤩")
+    for _ in range(frames_to_trim):
+        ret = cap.grab()  # Grab frames without decoding to skip them
+        if not ret:
+            print("Error: Could not skip enough frames")
+            break
+
+    print("5🤩")
+    # Write the remaining frames to the output video
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        out.write(frame)
+
+    print("6🤩")
+    # Release resources
+    cap.release()
+    out.release()
+
+    print("7🤩")
+    
