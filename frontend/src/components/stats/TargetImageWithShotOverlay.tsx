@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Hit } from "@/types/session";
 import { MousePointer2, Move3d, Target } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 interface TargetImageWithShotOverlay {
   targetImage: string;
