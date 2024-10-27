@@ -21,22 +21,48 @@ import {
 
 import { get } from "lodash";
 import { DataTablePagination } from "./datatable-pagination";
-import React from "react";
+import React, { useMemo } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  loading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  loading,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
+  const tableData = useMemo(
+    () => (loading ? Array(10).fill({}) : data),
+    [loading, data]
+  );
+
+  const columnsMemo = useMemo(
+    () =>
+      loading
+        ? columns.map((column) => ({
+            ...column,
+            cell: () => {
+              return (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[150px]" />
+                  <Skeleton className="h-4 w-[90px]" />
+                </div>
+              );
+            },
+          }))
+        : columns,
+    [loading, columns]
+  );
+
   const table = useReactTable({
-    data,
-    columns,
+    data: tableData,
+    columns: columnsMemo,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,

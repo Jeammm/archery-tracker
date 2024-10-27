@@ -60,7 +60,7 @@ export const SignUp = () => {
             </Link>
           </div>
         </div>
-        <div className="w-1/2 p-8 border-y border-l rounded-l-lg">
+        <div className="w-1/2 p-8 border-y border-r rounded-r-lg">
           <h2 className="mb-6 text-3xl font-bold text-center">Sign up</h2>
           <p className="text-center text-muted-foreground mb-6">
             with your email password

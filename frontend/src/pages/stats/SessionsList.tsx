@@ -19,11 +19,7 @@ export const SessionsList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const {
-    data,
-    // isLoading,
-    error,
-  } = useFetch(`${BASE_BACKEND_URL}/sessions`, {
+  const { data, isLoading, error } = useFetch(`${BASE_BACKEND_URL}/sessions`, {
     headers: {
       Authorization: `Bearer ${user?.token || ""}`,
     },
@@ -96,7 +92,7 @@ export const SessionsList = () => {
     );
   }, [navigate, sessions]);
 
-  if (error || !sessions) {
+  if (error) {
     return (
       <div>
         <p>{JSON.stringify(error)}</p>
@@ -111,7 +107,11 @@ export const SessionsList = () => {
         Browse your recent training sessions
       </p>
       <div className="pt-6">
-        <DataTable columns={sessionColumns} data={sessionsWithActions} />
+        <DataTable
+          columns={sessionColumns}
+          data={sessionsWithActions}
+          loading={isLoading}
+        />
       </div>
     </div>
   );
