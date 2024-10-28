@@ -1,0 +1,24 @@
+language: travis
+
+services:
+  - docker
+
+after_success:
+  - docker build -t archery-tracker/frontend ./frontend
+  - docker build -t archery-tracker/backend ./backend
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_D" --password-stdin
+  - docker push archery-tracker/frontend
+  - docker push archery-tracker/backend
+
+deploy:
+  provider: elasticbeanstalk
+  region: ap-southeast-1
+  app: archery-tracker-web
+  env: Archery-tracker-web-env
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
+  bucket_name: "archery-tracker-app"
+  bucket_path: "docker"
+  on:
+    branch: archery-tracker-app
