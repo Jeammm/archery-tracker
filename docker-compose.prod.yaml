@@ -44,7 +44,7 @@ services:
     volumes:
       - ./frontend:/app
     command: 
-      pnpm start
+      pnpm run start
     env_file:
       - .env.prod
     networks:
