@@ -14,8 +14,8 @@ after_success:
 deploy:
   provider: elasticbeanstalk
   region: ap-southeast-1
-  app: archery-tracker-web
-  env: Archery-tracker-web-env
+  app: archery-tracker
+  env: Archery-tracker-env
   access_key_id: $AWS_ACCESS_KEY
   secret_access_key: $AWS_SECRET_KEY
   bucket_name: "archery-tracker-app"
