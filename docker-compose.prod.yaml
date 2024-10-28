@@ -44,7 +44,7 @@ services:
     volumes:
       - ./frontend:/app
     command: 
-      npm run start
+      npm start
     env_file:
       - .env.prod
     networks:
