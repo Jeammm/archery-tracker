@@ -1,4 +1,4 @@
-language: travis
+language: generic
 
 services:
   - docker
