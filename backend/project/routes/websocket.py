@@ -2,7 +2,7 @@ from flask_socketio import SocketIO
 from flask import request
 from project.controllers.session_socket_controller import SessionSocketController
 
-socketio = SocketIO()
+socketio = SocketIO(cors_allowed_origins="*")
 Sessions = SessionSocketController()
 
 def init_websocket(app):
