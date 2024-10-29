@@ -56,9 +56,8 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
-      - ./nginx/certbot:/etc/letsencrypt
-      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/app.conf
+      - ./nginx/certbot/www:/var/www/certbot/
       - frontend-dist:/usr/share/nginx/html
     depends_on:
       - web
@@ -70,8 +69,8 @@ services:
   certbot:
     image: certbot/certbot
     volumes:
-      - ./nginx/certbot:/etc/letsencrypt  # Persist certs
-      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/www:/var/www/certbot/
+      - ./nginx/certbot/conf:/etc/letsencrypt/  # Persist certs
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
     environment:
       CERTBOT_DOMAIN: archery-tracker.online
