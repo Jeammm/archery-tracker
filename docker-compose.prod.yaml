@@ -60,7 +60,7 @@ services:
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot/
       - frontend-dist:/usr/share/nginx/html
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    # command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     networks:
       - app-network
     restart: always
@@ -70,7 +70,7 @@ services:
     volumes:
       - ./nginx/certbot/conf:/etc/letsencrypt  # Persist certs
       - ./nginx/certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
+    # entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
     environment:
       CERTBOT_DOMAIN: archery-tracker.online
       CERTBOT_EMAIL: athicha.pha@ku.th
