@@ -2,13 +2,12 @@ from flask import Flask
 from flask_cors import CORS
 from .routes.websocket import init_websocket
 import cloudinary
-import eventlet
 
 from .celery_init import make_celery
 from .db import init_db  # Import the new db module
 
 def create_app():
-    eventlet.monkey_patch()
+
     app = Flask(__name__)
     CORS(app)
 
