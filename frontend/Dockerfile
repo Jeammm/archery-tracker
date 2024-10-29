@@ -4,13 +4,13 @@ FROM node:21-alpine
 WORKDIR /app
 
 # Increase memory limit to 2 GB
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 
 # Copy package.json and lock file to install dependencies
 COPY package*.json pnpm-lock.yaml ./
 
 # Install dependencies, including dev dependencies
-RUN npm install -g pnpm && pnpm install
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 # Copy all project files, including `tsconfig.json`
 COPY . .
