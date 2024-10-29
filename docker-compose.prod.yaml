@@ -47,7 +47,7 @@ services:
       - .env.prod
     networks:
       - app-network
-    restart: always
+    command: ["sh", "-c", "pnpm run build"]
   
   nginx:
     image: nginx:alpine
