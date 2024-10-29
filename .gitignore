@@ -1,3 +1,5 @@
 *.local
+*.prod
 *.DS_Store
 /certs/*
+certbot/

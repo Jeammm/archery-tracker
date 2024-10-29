@@ -1,0 +1,87 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    networks:
+      - app-network
+    restart: always
+
+  web:
+    build:
+      context: ./backend
+    environment:
+      FLASK_APP: run
+      FLASK_DEBUG: 0
+    volumes:
+      - ./backend/project/core/res:/app/project/core/res
+    command: gunicorn -w 1 -b 0.0.0.0:5000 --threads 4 run:app
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+    restart: always
+
+  celery:
+    build:
+        context: ./backend
+    environment:
+      FLASK_APP: run
+      FLASK_DEBUG: 0
+    volumes:
+      - ./backend/project/core/res:/app/project/core/res
+    command: celery -A run.celery worker --loglevel=info
+    depends_on:
+      - redis
+    env_file:
+      - .env.prod
+    networks:
+    - app-network
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - frontend-dist:/app/dist
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+    command: ["sh", "-c", "pnpm run build"]
+  
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot/
+      - frontend-dist:/usr/share/nginx/html
+    # command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+      - app-network
+    restart: always
+  
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt  # Persist certs
+      - ./nginx/certbot/www:/var/www/certbot
+    # entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email au.athicha.pha@gmail.com -d archery-tracker.online --agree-tos
+    environment:
+      CERTBOT_DOMAIN: archery-tracker.online
+      CERTBOT_EMAIL: athicha.pha@ku.th
+    networks:
+      - app-network
+    # restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+
+volumes:
+  frontend-dist: # Make sure this volume is defined if it's not already

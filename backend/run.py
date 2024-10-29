@@ -1,5 +1,4 @@
 from project import create_app
-
 app, celery, socketio = create_app()
 app.app_context().push()
 

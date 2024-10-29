@@ -7,6 +7,7 @@ from .celery_init import make_celery
 from .db import init_db  # Import the new db module
 
 def create_app():
+
     app = Flask(__name__)
     CORS(app)
 
