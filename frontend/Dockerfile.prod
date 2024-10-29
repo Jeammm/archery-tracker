@@ -6,19 +6,8 @@ WORKDIR /app
 # Increase memory limit to 2 GB
 ENV NODE_OPTIONS="--max-old-space-size=3072"
 
-# Copy package.json and lock file to install dependencies
-COPY package*.json pnpm-lock.yaml ./
-
-# Install dependencies, including dev dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
-RUN pnpm install serve
-
 # Copy all project files, including `tsconfig.json`
 COPY . .
 
 # Run the TypeScript and Vite builds
-RUN pnpm run build
-
-
-# Start the app
-CMD ["npx", "serve", "-s", "dist"]
+RUN npm run build
