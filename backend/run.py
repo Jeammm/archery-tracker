@@ -1,7 +1,7 @@
-from project import create_app
 import eventlet
-
 eventlet.monkey_patch()
+
+from project import create_app
 app, celery, socketio = create_app()
 app.app_context().push()
 
