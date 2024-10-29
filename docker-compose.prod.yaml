@@ -41,8 +41,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    command: 
-      pnpm run build && serve -s dist
+    volumes:
+      - frontend-dist:/app/dist
     env_file:
       - .env.prod
     networks:
@@ -57,7 +57,10 @@ services:
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
       - ./nginx/certbot:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+      - frontend-dist:/usr/share/nginx/html
     depends_on:
+      - certbot
       - web
       - frontend
     networks:
@@ -80,3 +83,7 @@ services:
 networks:
   app-network:
     driver: bridge
+
+
+volumes:
+  frontend-dist: # Make sure this volume is defined if it's not already
