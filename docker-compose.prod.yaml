@@ -43,6 +43,7 @@ services:
       dockerfile: Dockerfile.prod
     volumes:
       - frontend-dist:/app/dist
+    command: npx serve -s dist
     env_file:
       - .env.prod
     networks:
