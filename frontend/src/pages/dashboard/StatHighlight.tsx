@@ -147,7 +147,7 @@ const CompareIndicatorIcon = (props: CompareIndicatorIconProps) => {
         <MoveDownRight size={16} />
       </div>
       <p className="text-red-500 ml-1">
-        - {changeAmount} {name ? name : "%"}
+        {changeAmount} {name ? name : "%"}
       </p>
     </>
   );

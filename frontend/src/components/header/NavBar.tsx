@@ -18,7 +18,7 @@ export const NavBar = () => {
         <Link to="/">
           <h3 className="font-bold text-xl">Archery Tracker</h3>
         </Link>
-        <div className="flex gap-6 ml-16">
+        <div className="gap-6 ml-16 hidden md:flex">
           <Link to="/dashboard">
             <p className="text-foreground/80 text-sm">Dashbaord</p>
           </Link>
