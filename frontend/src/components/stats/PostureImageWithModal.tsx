@@ -43,7 +43,7 @@ export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
             <DialogTitle>Shot result (Posture image)</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <div className={cn(["w-full border object-fill cursor-pointer"])}>
               <img
                 src={hit.pose_image_url || DEFAULT_IMAGE}

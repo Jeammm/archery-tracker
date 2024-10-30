@@ -1,11 +1,4 @@
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
 
 import {
   Card,
@@ -73,7 +66,6 @@ export function GeneralShotDataChart(props: GeneralShotDataChartProps) {
             barGap={4}
           >
             <CartesianGrid vertical={false} />
-            <YAxis />
             <XAxis
               tickMargin={0}
               tickLine={true}

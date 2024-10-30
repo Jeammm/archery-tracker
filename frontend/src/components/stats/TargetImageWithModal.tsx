@@ -45,7 +45,7 @@ export const TargetImageWithModal = (props: TargetImageWithModalProps) => {
             <DialogTitle>Shot result (Target image)</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col md:flex-row ">
             <TargetImageWithShotOverlay
               targetImage={hit.target_image_url || DEFAULT_IMAGE}
               hits={[hit]}

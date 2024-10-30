@@ -59,8 +59,8 @@ export function LineChartLabel(props: LineChartLabelProps) {
             data={chartData}
             margin={{
               top: 20,
-              left: 50,
-              right: 30,
+              left: 10,
+              right: 10,
               bottom: 10,
             }}
           >

@@ -45,17 +45,17 @@ export const GeneralData = (props: GeneralDataProps) => {
   }, [round_result]);
 
   return (
-    <div className="mt-6">
+    <div className="mt-2 md:mt-6">
       <Table className="border">
         <TableHeader>
           <TableRow>
-            <TableHead>Round</TableHead>
-            <TableHead>Shot No.</TableHead>
-            <TableHead>TTS (ms)</TableHead>
-            <TableHead>Posture Score</TableHead>
-            <TableHead>Score</TableHead>
-            <TableHead>Total</TableHead>
-            <TableHead>Acc. Score</TableHead>
+            <TableHead className="text-center">Round</TableHead>
+            <TableHead className="text-center">Shot</TableHead>
+            <TableHead className="text-center">Time</TableHead>
+            {/* <TableHead>Hit</TableHead> */}
+            <TableHead className="text-center">Score</TableHead>
+            <TableHead className="text-center">Total</TableHead>
+            <TableHead className="text-center">Sum</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -67,7 +67,7 @@ export const GeneralData = (props: GeneralDataProps) => {
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
                   </TableCell>
-                  <TableCell className="border-x text-center" colSpan={4}>
+                  <TableCell className="border-x text-center" colSpan={3}>
                     {round.target_error_message}
                     {round.pose_error_message}
                   </TableCell>
@@ -103,7 +103,7 @@ export const GeneralData = (props: GeneralDataProps) => {
                     {roundNo + 1}
                   </TableCell>
                   <TableCell
-                    colSpan={4}
+                    colSpan={3}
                     className="text-muted-foreground italic text-center"
                   >
                     No hit detected
@@ -132,7 +132,10 @@ export const GeneralData = (props: GeneralDataProps) => {
                       </TableCell>
                       <TableCell>{hit.id}</TableCell>
                       <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
-                      <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
+                      {/* <TableCell>
+                        x: {hit.point[0]} <br /> y: {hit.point[1]}
+                      </TableCell> */}
+                      {/* <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell> */}
                       <TableCell>{hit.score}</TableCell>
                       <TableCell
                         rowSpan={round.score?.length}
@@ -150,7 +153,10 @@ export const GeneralData = (props: GeneralDataProps) => {
                   <TableRow key={`shot-row-${round._id}-${hit.id}-child`}>
                     <TableCell>{hit.id}</TableCell>
                     <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
-                    <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell>
+                    {/* <TableCell>
+                      x: {hit.point[0]} <br /> y: {hit.point[1]}
+                    </TableCell> */}
+                    {/* <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell> */}
                     <TableCell>{hit.score}</TableCell>
                   </TableRow>
                 );
@@ -160,13 +166,13 @@ export const GeneralData = (props: GeneralDataProps) => {
         })}
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={6}>Total Score</TableCell>
+            <TableCell colSpan={5}>Total Score</TableCell>
             <TableCell>{sessionData.total_score}</TableCell>
           </TableRow>
         </TableFooter>
       </Table>
 
-      <div className="mt-4 grid grid-cols-3 gap-4">
+      <div className="mt-2 md:mt-4 grid grid-cols-1 md:grid-cols-3 gap-y-2 md:gap-4">
         <div className="col-span-2">
           <GeneralShotDataChart round_result={round_result} />
         </div>

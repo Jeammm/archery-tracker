@@ -7,15 +7,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SetStateActionType } from "@/types/constant";
+import { Menu } from "lucide-react";
 
-export const NavBar = () => {
+interface NavBarProps {
+  setIsSideMenuOpen?: SetStateActionType<boolean>;
+}
+
+export const NavBar = (props: NavBarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const { setIsSideMenuOpen } = props;
+
   return (
-    <div className="z-50 w-screen bg-background/70 h-16 flex justify-center px-8 fixed backdrop-blur-md">
+    <div className="z-50 w-screen bg-background/70 h-16 flex justify-center px-6 fixed backdrop-blur-md">
       <div className="w-full max-w-[1344px] flex items-center">
-        <Link to="/">
+        {setIsSideMenuOpen && (
+          <Button
+            variant="clean"
+            size="no-space"
+            onClick={() => setIsSideMenuOpen((prev) => !prev)}
+            className="block lg:hidden mr-2"
+          >
+            <Menu />
+          </Button>
+        )}
+        <Link to={setIsSideMenuOpen ? "/dashboard" : "/"}>
           <h3 className="font-bold text-xl">Archery Tracker</h3>
         </Link>
         <div className="gap-6 ml-16 hidden md:flex">

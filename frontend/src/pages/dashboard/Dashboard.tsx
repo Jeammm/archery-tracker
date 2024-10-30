@@ -99,7 +99,7 @@ export const Dashboard = () => {
 
     const intervalId = setInterval(() => {
       fetchSessionsData();
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [fetchSessionsData]);
@@ -118,12 +118,12 @@ export const Dashboard = () => {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold">Dashboard Overview</h1>
+      <h1 className="text-4xl font-bold">Overview</h1>
       <p className="mt-2 text-muted-foreground">
         {format(new Date(), "hh:mm a 'at' do MMMM yyyy")}
       </p>
       <StatHighlight stats={stats} />
-      <div className="mt-4">
+      <div className="mt-2 md:mt-4">
         <LineChartLabel
           title="Performance"
           description="Your recent training"

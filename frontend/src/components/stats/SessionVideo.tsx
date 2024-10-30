@@ -276,15 +276,22 @@ export const SessionVideo = (props: SessionVideoProps) => {
       <div className="rounded-md mt-4 overflow-hidden border">
         <h2 className="p-3 bg-slate-900">Shots</h2>
         <Separator />
+        <div className="grid grid-cols-5 border-b items-center cursor-pointer bg-slate-800 px-4 py-1.5">
+          <p>No.</p>
+          <p>Frame</p>
+          <p>Score</p>
+          <p>Location</p>
+          <p className="text-end">Skip to frame</p>
+        </div>
         <div className="h-[200px] overflow-scroll" ref={containerRef}>
           {!isVideoNotReady ? (
             score?.map((hit) => (
               <div
                 ref={(el) => (itemRefs.current[hit.id] = el)}
                 className={cn([
-                  "grid grid-cols-5 border-b items-center cursor-pointer hover:bg-slate-900 px-4",
+                  "grid grid-cols-5 border-b items-center cursor-pointer hover:bg-slate-800 px-4",
                   currentShot === Number(hit.id) &&
-                    "bg-slate-700 hover:bg-slate-800",
+                    "bg-slate-700 hover:bg-slate-900",
                 ])}
                 key={`${hit.id}-${hit.frame}`}
               >

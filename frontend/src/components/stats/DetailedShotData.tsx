@@ -105,13 +105,21 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
                       </div>
                       <div className="flex gap-2 items-center">
                         <p className="font-semibold">{hit.score} Points</p>
-                        <p>|</p>
-                        <p>TTS {2003} ms</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 p-2">
-                      <SkeletonFeature features={hit.features} />
-
+                    {hit.hit_time && (
+                      <div className="flex bg-muted w-full justify-between px-3 py-1 text-muted-foreground md:hidden">
+                        <div className="flex gap-1 items-center ">
+                          <Clock size={10} />
+                          <p>{format(hit.hit_time, "hh:mm:ss")}</p>
+                        </div>
+                        <p>{timeAgo(hit.hit_time)}</p>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 p-2">
+                      <div className="col-span-1 md:col-span-2 xl:col-span-1">
+                        <SkeletonFeature features={hit.features} />
+                      </div>
                       <PostureImageWithModal hit={hit} />
                       <TargetImageWithModal hit={hit} />
                     </div>
@@ -209,7 +217,7 @@ const TimelineWrapper = (props: TimelineWrapperProps) => {
 
   return (
     <div className="flex">
-      <div className="w-[90px] shrink-0 relative">
+      <div className="w-[80px] shrink-0 relative hidden md:block">
         {timestamp && (
           <div className="text-xs text-muted-foreground absolute top-3">
             <div className="flex gap-1 items-center ">
@@ -220,7 +228,7 @@ const TimelineWrapper = (props: TimelineWrapperProps) => {
           </div>
         )}
       </div>
-      <div className="relative px-6">
+      <div className="relative px-4">
         <LeftLine />
         <LeftDot />
       </div>

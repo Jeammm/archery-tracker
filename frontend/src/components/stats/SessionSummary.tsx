@@ -57,7 +57,7 @@ export const SessionSummary = (props: SessionSummaryProps) => {
   }, [round_result]);
 
   return (
-    <div className="grid grid-cols-2 gap-4 mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
       <div className="rounded-lg p-2 border text-secondary-foreground flex flex-col items-center">
         <p className="w-full text-center font-bold text-lg mb-2">
           Average Posture

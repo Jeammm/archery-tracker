@@ -1,38 +1,63 @@
 import { NavBar } from "@/components/header/NavBar";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
+import { Sheet, SheetContent } from "./ui/sheet";
+import { useEffect, useState } from "react";
 
 export const PageLayout = (props: { children?: React.ReactElement }) => {
   const { children } = props;
   const location = useLocation();
 
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState<boolean>(false);
+
   const sideBarMenus = ["Dashboard", "Sessions", "Profile"];
+
+  useEffect(() => {
+    setIsSideMenuOpen(false);
+  }, [location]);
+
+  const SideMenues = () => {
+    return (
+      <>
+        <Link to="/trainingSession">
+          <Button className="w-full mb-4">Start Training</Button>
+        </Link>
+        {sideBarMenus.map((menu) => {
+          const path = `/${menu.toLowerCase()}`;
+          return (
+            <Link to={path} key={menu}>
+              <Button
+                variant="ghost"
+                className="w-full mb-2"
+                data-state={location.pathname === path ? "selected" : ""}
+              >
+                <p className="text-start w-full">{menu}</p>
+              </Button>
+            </Link>
+          );
+        })}
+      </>
+    );
+  };
 
   return (
     <>
-      <NavBar />
+      <NavBar setIsSideMenuOpen={setIsSideMenuOpen} />
       <div className="flex flex-col h-screen items-center">
         <div className="flex flex-1 overflow-hidden max-w-[1344px] w-full">
-          <aside className="w-60 flex-shrink-0 overflow-y-auto p-4 pt-24">
-            <Link to="/trainingSession">
-              <Button className="w-full mb-4">Start Training</Button>
-            </Link>
-            {sideBarMenus.map((menu) => {
-              const path = `/${menu.toLowerCase()}`;
-              return (
-                <Link to={path} key={menu}>
-                  <Button
-                    variant="ghost"
-                    className="w-full mb-2"
-                    data-state={location.pathname === path ? "selected" : ""}
-                  >
-                    <p className="text-start w-full">{menu}</p>
-                  </Button>
-                </Link>
-              );
-            })}
+          <Sheet open={isSideMenuOpen} onOpenChange={setIsSideMenuOpen}>
+            <SheetContent side="left" className="w-[300px]" disableDefaultClose>
+              <div>
+                <h3 className="font-bold text-xl mb-6">Archery Tracker</h3>
+                <SideMenues />
+              </div>
+            </SheetContent>
+          </Sheet>
+          <aside className="w-60 flex-shrink-0 overflow-y-auto p-4 pt-24 hidden lg:block">
+            <SideMenues />
           </aside>
-          <main className="overflow-y-auto p-4 pt-24 no-scrollbar flex-1">
+
+          <main className="overflow-y-auto p-4 pt-20 md:pt-24 no-scrollbar flex-1">
             {children}
           </main>
         </div>

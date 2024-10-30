@@ -130,58 +130,64 @@ export const SessionDetail = () => {
   return (
     <div>
       <div className="flex justify-between">
-        <div>
-          <h1 className="text-4xl font-bold">Session Detail</h1>
-          <p className="mt-2 text-muted-foreground">
-            {format(new Date(session.created_at), "hh:mm a 'at' do MMMM yyyy")}
-          </p>
-        </div>
-        {session.session_status === "STARTED" && (
-          <div className="flex flex-col gap-1.5 items-end">
-            <Link
-              to={`/trainingSession/live/${sessionId}`}
-              className={buttonVariants({
-                variant: "default",
-                className: "flex gap-1.5",
-              })}
-            >
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              Continue This Session
-            </Link>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="destructive" className="w-fit">
-                  End this session
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>End this session</DialogTitle>
-                  <DialogDescription>
-                    {isRoundExisted
-                      ? "This session will be marked as ended. You can rest now"
-                      : "This session does not contain any rounds. Ending the session now will result in its deletion."}
-                  </DialogDescription>
-                </DialogHeader>
-
-                <DialogFooter>
-                  <DialogClose>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <DialogClose>
-                    <Button
-                      variant="destructive"
-                      onClick={() => onClickEndSession(isRoundExisted)}
-                    >
-                      End session
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+        <div className="w-full">
+          <div className="flex justify-between">
+            <h1 className="text-4xl font-bold">Session Detail</h1>
+            {session.session_status === "STARTED" && (
+              <Link
+                to={`/trainingSession/live/${sessionId}`}
+                className={buttonVariants({
+                  variant: "default",
+                  className: "gap-1.5 hidden lg:flex",
+                })}
+              >
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                Continue This Session
+              </Link>
+            )}
           </div>
-        )}
+          <div className="flex justify-between items-center">
+            <p className="mt-2 text-muted-foreground">
+              {format(
+                new Date(session.created_at),
+                "hh:mm a 'at' do MMMM yyyy"
+              )}
+            </p>
+            {session.session_status === "STARTED" && (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" className="w-fit">
+                    End this session
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>End this session</DialogTitle>
+                    <DialogDescription>
+                      {isRoundExisted
+                        ? "This session will be marked as ended. You can rest now"
+                        : "This session does not contain any rounds. Ending the session now will result in its deletion."}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <DialogFooter>
+                    <DialogClose>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <DialogClose>
+                      <Button
+                        variant="destructive"
+                        onClick={() => onClickEndSession(isRoundExisted)}
+                      >
+                        End session
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        </div>
       </div>
 
       <Tabs
@@ -199,7 +205,7 @@ export const SessionDetail = () => {
 
           {tab === "video" && isRoundExisted && (
             <Select onValueChange={(value) => setSelectedRound(Number(value))}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] ml-0.5">
                 Round {selectedRound + 1}
               </SelectTrigger>
               <SelectContent>

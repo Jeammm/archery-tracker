@@ -8,11 +8,11 @@ from ..db import db
 collection = db[SESSION_COLLECTION]
 
 def calculate_sum_training_time(sessions):
-    return sum(
+    return round(sum(
         session.get('total_session_time')
         for session in sessions
         if 'total_session_time' in session
-    )
+    ), 2)
 
 def calculate_sum_round_count(sessions):
     return sum(len(session['round_result']) for session in sessions)
