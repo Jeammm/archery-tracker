@@ -60,8 +60,11 @@ export const PageLayout = (props: { children?: React.ReactElement }) => {
               </div>
             </SheetContent>
           </Sheet>
-          <aside className="w-60 flex-shrink-0 overflow-y-auto p-4 pt-24 hidden lg:block">
-            <SideMenues />
+          <aside className="relative w-60 flex-shrink-0 pt-24 hidden lg:block pl-4">
+            <div className="w-full h-1" />
+            <div className="fixed w-56">
+              <SideMenues />
+            </div>
           </aside>
 
           <main className="overflow-y-auto p-4 pt-20 md:pt-24 no-scrollbar flex-1">
