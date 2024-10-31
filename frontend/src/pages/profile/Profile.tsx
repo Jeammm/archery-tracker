@@ -86,8 +86,10 @@ export const Profile = () => {
             </div>
           </div>
           <div className="w-[150px] self-center md:self-start">
-            <div className="rounded-full border bg-slate-700 aspect-square w-full flex justify-center items-center">
-              <p>{user?.name?.[0].toUpperCase() || "A"}</p>
+            <div className="rounded-full border bg-primary aspect-square w-full flex justify-center items-center">
+              <p className="text-primary-foreground text-5xl">
+                {user?.name?.[0].toUpperCase() || "A"}
+              </p>
             </div>
           </div>
         </div>

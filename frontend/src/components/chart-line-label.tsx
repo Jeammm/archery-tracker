@@ -58,7 +58,7 @@ export function LineChartLabel(props: LineChartLabelProps) {
             accessibilityLayer
             data={chartData}
             margin={{
-              top: 20,
+              top: 25,
               left: 10,
               right: 10,
               bottom: 10,

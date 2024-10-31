@@ -1,7 +1,14 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stats, StatsValue } from "@/types/session";
 import { get } from "lodash";
-import { Monitor, MoveDownRight, MoveRight, MoveUpRight } from "lucide-react";
+import {
+  Monitor,
+  MoveDownRight,
+  MoveRight,
+  MoveUpRight,
+  Timer,
+  Trophy,
+} from "lucide-react";
 import { useMemo } from "react";
 
 interface StatHighlightProps {
@@ -134,12 +141,26 @@ const StatHighlightItem = ({
 
     return "";
   };
+  const getIcon = () => {
+    if (statKey === "total_round_count_campare") {
+      return <Monitor size={18} />;
+    }
+
+    if (statKey === "total_accuracy_compare") {
+      return <Trophy size={18} />;
+    }
+    if (statKey === "total_training_time_compare") {
+      return <Timer size={18} />;
+    }
+
+    return "";
+  };
 
   return (
     <div className="border rounded-lg p-3 md:px-4 md:py-6">
       <div className="items-center hidden md:flex">
         <div className="border rounded-md p-2.5 w-fit hidden md:block mr-4">
-          <Monitor size={18} />
+          {getIcon()}
         </div>
         <CompareIndicatorIcon
           statValue={statValue}

@@ -435,9 +435,9 @@ export const SessionInitiateVideoStream = (
         >
           <h4
             className={cn([
-              "w-full",
+              "w-full bg-primary text-primary-foreground",
               isCameraConnected
-                ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all py-1 px-2 bg-black/30 backdrop-blur-sm"
+                ? "absolute opacity-0 group-hover/posture-feed:opacity-100 transition-all py-1 px-2 backdrop-blur-sm"
                 : "text-center font-bold text-2xl tracking-widest",
             ])}
           >
@@ -472,9 +472,9 @@ export const SessionInitiateVideoStream = (
         <div className="flex-1 border rounded-md overflow-hidden group/target-feed relative">
           <h4
             className={cn([
-              "w-full",
+              "w-full bg-primary text-primary-foreground",
               isCameraConnected
-                ? "absolute opacity-0 group-hover/target-feed:opacity-100 transition-all z-10 py-1 px-2 bg-black/30 backdrop-blur-sm"
+                ? "absolute opacity-0 group-hover/target-feed:opacity-100 transition-all z-10 py-1 px-2 backdrop-blur-sm"
                 : "text-center font-bold text-2xl tracking-widest",
             ])}
           >
@@ -546,7 +546,7 @@ export const SessionInitiateVideoStream = (
               <p className="font-bold text-white">End</p>
             </Button>
 
-            <div className="flex gap-1 border p-1 rounded-md">
+            <div className="flex gap-1 border p-1 rounded-sm">
               <input
                 type="checkbox"
                 defaultChecked={isTestMode}

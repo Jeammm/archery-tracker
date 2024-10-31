@@ -274,9 +274,11 @@ export const SessionVideo = (props: SessionVideoProps) => {
         />
       </div>
       <div className="rounded-md mt-4 overflow-hidden border">
-        <h2 className="p-3 bg-slate-900">Shots</h2>
+        <h2 className="p-3 bg-primary text-primary-foreground font-semibold">
+          Shots
+        </h2>
         <Separator />
-        <div className="grid grid-cols-5 border-b items-center cursor-pointer bg-slate-800 px-4 py-1.5">
+        <div className="grid grid-cols-5 border-b items-center cursor-pointer bg-secondary text-secondary-foreground px-4 py-1.5">
           <p>No.</p>
           <p>Frame</p>
           <p>Score</p>
@@ -289,9 +291,9 @@ export const SessionVideo = (props: SessionVideoProps) => {
               <div
                 ref={(el) => (itemRefs.current[hit.id] = el)}
                 className={cn([
-                  "grid grid-cols-5 border-b items-center cursor-pointer hover:bg-slate-800 px-4",
+                  "grid grid-cols-5 border-b items-center cursor-pointer hover:bg-accent text-accent-foreground px-4",
                   currentShot === Number(hit.id) &&
-                    "bg-slate-700 hover:bg-slate-900",
+                    "bg-primary/70 hover:bg-primary/80 text-primary-foreground",
                 ])}
                 key={`${hit.id}-${hit.frame}`}
               >

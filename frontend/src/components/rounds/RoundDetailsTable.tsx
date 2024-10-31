@@ -40,7 +40,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
     <div
       className={cn(["rounded-md border flex flex-col", containerClassName])}
     >
-      <div className="border-b p-2">
+      <div className="border-b p-2 bg-primary text-primary-foreground rounded-t-md">
         <h3 className="font-bold">Rounds Detail</h3>
       </div>
 
@@ -84,7 +84,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             .map((round, index) => {
               return (
                 <div
-                  className="bg-slate-900 rounded-md p-2 border"
+                  className="bg-secondary text-secondary-foreground rounded-md p-2 border"
                   key={`uploading-round-${round}`}
                 >
                   <p className="font-extrabold">
@@ -101,33 +101,95 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             .map((round, index) => {
               return (
                 <div
-                  className="bg-slate-900 rounded-md p-2 border"
+                  className={cn([
+                    "bg-secondary text-secondary-foreground rounded-md p-2 border flex",
+                    isCameraConnected
+                      ? "flex-col"
+                      : "justify-between items-center",
+                  ])}
                   key={`uploaded-round-${round._id}`}
                 >
-                  <p className="font-extrabold">Round : {index + 1}</p>
-                  <div className="flex gap-1.5 items-center">
-                    <p>Poseture Video : </p>
-                    {round.pose_status === "FAILURE" ? (
-                      <p className="text-muted-foreground">Failed</p>
-                    ) : round.pose_status !== "SUCCESS" ? (
-                      <Loader containerClassName="w-fit" spinnerSize="sm">
-                        <p className="text-muted-foreground">Processing...</p>
-                      </Loader>
-                    ) : (
-                      <p className="text-muted-foreground">Success</p>
-                    )}
+                  <div>
+                    <p className="font-extrabold">Round : {index + 1}</p>
+                    <div className="flex gap-1.5 items-center">
+                      <p>Posture Video : </p>
+                      {round.pose_status === "FAILURE" ? (
+                        <p className="text-muted-foreground">Failed</p>
+                      ) : round.pose_status !== "SUCCESS" ? (
+                        <Loader containerClassName="w-fit" spinnerSize="sm">
+                          <p className="text-muted-foreground">Processing...</p>
+                        </Loader>
+                      ) : (
+                        <p className="text-muted-foreground">Success</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1.5 items-center">
+                      <p>Target Video : </p>
+                      {round.target_status === "FAILURE" ? (
+                        <p className="text-muted-foreground">Failed</p>
+                      ) : round.target_status !== "SUCCESS" ? (
+                        <Loader containerClassName="w-fit" spinnerSize="sm">
+                          <p className="text-muted-foreground">Processing...</p>
+                        </Loader>
+                      ) : (
+                        <p className="text-muted-foreground">Success</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-1.5 items-center">
-                    <p>Target Video : </p>
-                    {round.target_status === "FAILURE" ? (
-                      <p className="text-muted-foreground">Failed</p>
-                    ) : round.target_status !== "SUCCESS" ? (
-                      <Loader containerClassName="w-fit" spinnerSize="sm">
-                        <p className="text-muted-foreground">Processing...</p>
-                      </Loader>
-                    ) : (
-                      <p className="text-muted-foreground">Success</p>
+                  <div
+                    className={cn([
+                      "flex gap-2",
+                      isCameraConnected ? "flex-col" : "",
+                    ])}
+                  >
+                    {round.score && (
+                      <div
+                        className={cn([
+                          isCameraConnected
+                            ? "border-t pt-1 mt-1"
+                            : "border-l px-2",
+                        ])}
+                      >
+                        <p>
+                          Shot :{" "}
+                          <span className="text-muted-foreground">
+                            {round.score.length || 0}
+                          </span>
+                        </p>
+                        <p>
+                          Total Score :{" "}
+                          <span className="text-muted-foreground">
+                            {round.total_score}
+                          </span>
+                        </p>
+                        <p>
+                          Accuracy :{" "}
+                          <span className="text-muted-foreground">
+                            {round.accuracy}
+                          </span>
+                        </p>
+                      </div>
                     )}
+                    <div className="flex gap-1">
+                      {round?.score?.[0]?.pose_image_url && (
+                        <div className="h-[80px] w-auto rounded-sm border aspect-square overflow-hidden">
+                          <img
+                            src={round.score[0].pose_image_url}
+                            alt="posture"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      )}
+                      {round?.score?.[0]?.target_image_url && (
+                        <div className="h-[80px] w-auto rounded-sm border aspect-square overflow-hidden">
+                          <img
+                            src={round.score[0].target_image_url}
+                            alt="target"
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

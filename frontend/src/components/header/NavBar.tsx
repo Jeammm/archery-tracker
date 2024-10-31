@@ -5,10 +5,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SetStateActionType } from "@/types/constant";
-import { Menu } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
+import { Theme, useTheme } from "../theme-provider";
 
 interface NavBarProps {
   setIsSideMenuOpen?: SetStateActionType<boolean>;
@@ -17,6 +20,12 @@ interface NavBarProps {
 export const NavBar = (props: NavBarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const { theme, setTheme } = useTheme();
+
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 
   const { setIsSideMenuOpen } = props;
 
@@ -44,14 +53,47 @@ export const NavBar = (props: NavBarProps) => {
             <p className="text-foreground/80 text-sm">Start Training</p>
           </Link>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="border rounded-sm aspect-square w-10 h-10 flex justify-center items-center">
+              {theme === "system" ? (
+                systemTheme === "light" ? (
+                  <Sun />
+                ) : (
+                  <Moon />
+                )
+              ) : theme === "light" ? (
+                <Sun />
+              ) : theme === "dark" ? (
+                <Moon />
+              ) : (
+                <Moon />
+              )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuRadioGroup
+                value={theme}
+                onValueChange={(value) => setTheme(value as Theme)}
+              >
+                <DropdownMenuRadioItem value="light">
+                  Light
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system">
+                  System
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {user && user.id ? (
             <div className="flex gap-2 items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <div className="flex gap-1.5 items-center">
-                    <div className="rounded-full border bg-slate-700 aspect-square w-10 h-10 flex justify-center items-center">
-                      <p>{user?.name?.[0].toUpperCase() || "A"}</p>
+                    <div className="rounded-full border bg-primary aspect-square w-10 h-10 flex justify-center items-center">
+                      <p className="text-primary-foreground">
+                        {user?.name?.[0].toUpperCase() || "A"}
+                      </p>
                     </div>
                     <p>{user.name || "A"}</p>
                   </div>

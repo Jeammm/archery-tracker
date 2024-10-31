@@ -41,7 +41,7 @@ export const TargetModelSelect = () => {
           return (
             <div
               className={cn([
-                "flex border p-4 gap-4 rounded-lg cursor-pointer hover:bg-slate-900 relative",
+                "flex border p-4 gap-4 rounded-lg cursor-pointer hover:bg-secondary relative",
               ])}
               onClick={() => onClickModel(model)}
               key={model.model}

@@ -35,7 +35,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               <ProcessingFailed
                 round={round}
                 key={round._id}
-                containerClassName="mb-4 mt-0 w-full"
+                containerClassName="mb-4 mt-0 w-full bg-background drop-shadow-md"
               />
             </TimelineWrapper>
           );
@@ -53,7 +53,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               timestamp={round.created_at}
             >
               <div
-                className="rounded-lg w-full p-3 border mb-4"
+                className="rounded-lg w-full p-3 border mb-4 bg-background drop-shadow-md"
                 key={round._id}
               >
                 <Loader>Round {roundNo + 1} Processing...</Loader>
@@ -71,7 +71,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               timestamp={round.created_at}
             >
               <div
-                className="rounded-lg w-full p-3 border border-l-amber-600 border-l-4 mb-4"
+                className="rounded-lg w-full p-3 border border-l-amber-600 border-l-4 mb-4 bg-background drop-shadow-md"
                 key={round._id}
               >
                 <p className="italic font-bold text-muted-foreground text-lg">
@@ -95,27 +95,29 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
                   key={hit.hit_time}
                   timestamp={hit.hit_time}
                 >
-                  <div className="border rounded-lg justify-between overflow-hidden mb-4">
-                    <div className="flex bg-muted w-full justify-between px-3 py-1 text-muted-foreground">
-                      <div className="flex gap-2 items-center">
-                        <Target size={18} />
-                        <p className="text-lg font-semibold">
-                          Round No. {roundNo + 1} | Shot No. {shotNo + 1}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 items-center">
-                        <p className="font-semibold">{hit.score} Points</p>
-                      </div>
-                    </div>
-                    {hit.hit_time && (
-                      <div className="flex bg-muted w-full justify-between px-3 py-1 text-muted-foreground md:hidden">
-                        <div className="flex gap-1 items-center ">
-                          <Clock size={10} />
-                          <p>{format(hit.hit_time, "hh:mm:ss")}</p>
+                  <div className="border rounded-lg justify-between overflow-hidden mb-4 drop-shadow-md bg-background">
+                    <div className="bg-primary w-full text-primary-foreground">
+                      <div className="flex justify-between px-3 py-1 ">
+                        <div className="flex gap-2 items-center">
+                          <Target size={18} />
+                          <p className="text-lg font-semibold">
+                            Round No. {roundNo + 1} | Shot No. {shotNo + 1}
+                          </p>
                         </div>
-                        <p>{timeAgo(hit.hit_time)}</p>
+                        <div className="flex gap-2 items-center font-semibold">
+                          <p>{hit.score} Points</p>
+                        </div>
                       </div>
-                    )}
+                      {hit.hit_time && (
+                        <div className="flex w-full justify-between px-3 py-1 md:hidden">
+                          <div className="flex gap-1 items-center ">
+                            <Clock size={10} />
+                            <p>{format(hit.hit_time, "hh:mm:ss")}</p>
+                          </div>
+                          <p>{timeAgo(hit.hit_time)}</p>
+                        </div>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 p-2">
                       <div className="col-span-1 md:col-span-2 xl:col-span-1">
                         <SkeletonFeature features={hit.features} />
@@ -217,7 +219,7 @@ const TimelineWrapper = (props: TimelineWrapperProps) => {
 
   return (
     <div className="flex">
-      <div className="w-[80px] shrink-0 relative hidden md:block">
+      <div className="w-[90px] shrink-0 relative hidden md:block">
         {timestamp && (
           <div className="text-xs text-muted-foreground absolute top-3">
             <div className="flex gap-1 items-center ">
