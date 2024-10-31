@@ -98,17 +98,17 @@ export const GeneralData = (props: GeneralDataProps) => {
           if (round.score.length === 0) {
             return (
               <TableBody key={`empty-${round._id}`}>
-                <TableRow>
+                <TableRow className="text-center">
                   <TableCell className="border-x text-center">
                     {roundNo + 1}
                   </TableCell>
                   <TableCell
                     colSpan={3}
-                    className="text-muted-foreground italic text-center"
+                    className="text-muted-foreground italic"
                   >
                     No hit detected
                   </TableCell>
-                  <TableCell className="border-x text-center">0</TableCell>
+                  <TableCell className="border-x">0</TableCell>
                   <TableCell>{accumulatedScore[roundNo]}</TableCell>
                 </TableRow>
               </TableBody>
@@ -123,7 +123,10 @@ export const GeneralData = (props: GeneralDataProps) => {
               {round.score.map((hit, shotNo) => {
                 if (shotNo === 0) {
                   return (
-                    <TableRow key={`shot-row-${round._id}-${hit.id}-origin`}>
+                    <TableRow
+                      key={`shot-row-${round._id}-${hit.id}-origin`}
+                      className="text-center"
+                    >
                       <TableCell
                         rowSpan={round.score?.length}
                         className="border-x text-center"
@@ -131,11 +134,9 @@ export const GeneralData = (props: GeneralDataProps) => {
                         {roundNo + 1}
                       </TableCell>
                       <TableCell>{hit.id}</TableCell>
-                      <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
-                      {/* <TableCell>
-                        x: {hit.point[0]} <br /> y: {hit.point[1]}
-                      </TableCell> */}
-                      {/* <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell> */}
+                      <TableCell>
+                        {format(hit.hit_time, "hh:mm:ss a")}
+                      </TableCell>
                       <TableCell>{hit.score}</TableCell>
                       <TableCell
                         rowSpan={round.score?.length}
@@ -150,13 +151,12 @@ export const GeneralData = (props: GeneralDataProps) => {
                   );
                 }
                 return (
-                  <TableRow key={`shot-row-${round._id}-${hit.id}-child`}>
+                  <TableRow
+                    key={`shot-row-${round._id}-${hit.id}-child`}
+                    className="text-center"
+                  >
                     <TableCell>{hit.id}</TableCell>
-                    <TableCell>{format(hit.hit_time, "hh:mm:ss")}</TableCell>
-                    {/* <TableCell>
-                      x: {hit.point[0]} <br /> y: {hit.point[1]}
-                    </TableCell> */}
-                    {/* <TableCell>{`[x: ${hit.point[0]}, y: ${hit.point[1]}]`}</TableCell> */}
+                    <TableCell>{format(hit.hit_time, "hh:mm:ss a")}</TableCell>
                     <TableCell>{hit.score}</TableCell>
                   </TableRow>
                 );
