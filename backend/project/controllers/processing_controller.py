@@ -2,7 +2,7 @@ import os
 from celery import shared_task
 from project.core.pose_estimation.PoseEstimator import PoseEstimator
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, VIDEO_COLLECTION
-from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
+from project.controllers.video_uploader import get_short_playback_url, get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
 import cv2
@@ -59,8 +59,8 @@ def process_target(self, round_id, video_timestamps):
             {"target_task_id": task_id},
             {"$set": {
                 "target_status": "UPLOADING",
-                "target_video": tokens_for_processed_video,
-                "target_video_raw": tokens_for_raw_video
+                "target_video": get_short_playback_url(tokens_for_processed_video),
+                "target_video_raw": get_short_playback_url(tokens_for_raw_video)
                 }}
         )
         
@@ -114,8 +114,8 @@ def process_pose(self, round_id, video_timestamps):
             {"pose_task_id": task_id},
             {"$set": {
                 "pose_status": "UPLOADING",
-                "pose_video": tokens_for_processed_video,
-                "pose_video_raw": tokens_for_raw_video,
+                "pose_video": get_short_playback_url(tokens_for_processed_video),
+                "pose_video_raw": get_short_playback_url(tokens_for_raw_video),
                 }}
         )
         

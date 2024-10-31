@@ -1,17 +1,18 @@
 from celery import shared_task
 from project.controllers.processing_controller import upload_frames
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION
-from project.controllers.video_uploader import get_upload_token, upload_video, delete_video
+from project.controllers.video_uploader import get_short_playback_url, get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
 from bson.objectid import ObjectId
+from celery import current_app
 from ..db import db
 
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
 
-pose_video_demo = "https://arch-dev-03urrcc2d.stream-playlist.byteark.com/streams/URrCmyPygfA8/playlist.m3u8"
-target_video_demo = "https://arch-dev-03urrcc2d.stream-playlist.byteark.com/streams/URrCmxlAxj3Z/playlist.m3u8"
+pose_video_demo = current_app.conf['POSE_VIDEO_DEMO_URL']
+target_video_demo = current_app.conf['TARGET_VIDEO_DEMO_URL']
 
 class MissingTargetModelError(Exception):
     pass
@@ -55,8 +56,8 @@ def process_target_test(self, round_id):
             {"target_task_id": task_id},
             {"$set": {
                 "target_status": "UPLOADING",
-                "target_video": tokens_for_processed_video,
-                "target_video_raw": tokens_for_raw_video
+                "target_video": get_short_playback_url(tokens_for_processed_video),
+                "target_video_raw": get_short_playback_url(tokens_for_raw_video)
                 }}
         )
         
@@ -108,8 +109,8 @@ def process_pose_test(self, round_id):
             {"pose_task_id": task_id},
             {"$set": {
                 "pose_status": "UPLOADING",
-                "pose_video": tokens_for_processed_video,
-                "pose_video_raw": tokens_for_raw_video,
+                "pose_video": get_short_playback_url(tokens_for_processed_video),
+                "pose_video_raw": get_short_playback_url(tokens_for_raw_video),
                 }}
         )
         
