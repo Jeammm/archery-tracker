@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Hit } from "@/types/session";
 import { MousePointer2, Move3d, Target } from "lucide-react";
+import React from "react";
 import { useState } from "react";
 
 interface TargetImageWithShotOverlay {
@@ -13,7 +14,7 @@ export const TargetImageWithShotOverlay = (
 ) => {
   const { targetImage, hits } = props;
 
-  const [activeHitId, setActiveHitId] = useState<number | null>(null);
+  const [activeHitIndex, setActiveHitIndex] = useState<number | null>(null);
 
   const getPositionInPercent = (point: number[]) => {
     const x = (point[0] / 1920) * 100;
@@ -25,12 +26,14 @@ export const TargetImageWithShotOverlay = (
   return (
     <div className="relative inline-block">
       <img src={targetImage} alt="target1" className="w-full h-auto" />
-      {hits?.map((hit) => {
+      {hits?.map((hit, index) => {
         const [x, y] = getPositionInPercent(hit.point);
+        if (x === 0 || y === 0) {
+          return <React.Fragment key={`hit-${index}`}></React.Fragment>;
+        }
         return (
-          <>
+          <React.Fragment key={`hit-${index}`}>
             <div
-              key={hit.id}
               style={{
                 position: "absolute",
                 left: `${x}%`,
@@ -40,13 +43,15 @@ export const TargetImageWithShotOverlay = (
               className={cn([
                 "w-3 h-3 border-4 border-green-500 bg-transparent rounded-full cursor-pointer",
                 "hover:border-red-500",
-                activeHitId && activeHitId !== hit.id && "border-green-700/60",
-                activeHitId === hit.id && "border-red-500",
+                activeHitIndex &&
+                  activeHitIndex !== index &&
+                  "border-green-700/60",
+                activeHitIndex === index && "border-red-500",
               ])}
-              onMouseEnter={() => setActiveHitId(hit.id)}
-              onMouseLeave={() => setActiveHitId(null)}
+              onMouseEnter={() => setActiveHitIndex(index)}
+              onMouseLeave={() => setActiveHitIndex(null)}
             ></div>
-            {activeHitId === hit.id && (
+            {activeHitIndex === index && (
               <div
                 className={cn([
                   "absolute p-2 bg-muted rounded-md z-10 w-[220px]",
@@ -57,8 +62,8 @@ export const TargetImageWithShotOverlay = (
                   top: `${y}%`,
                   transform: "translate(-100%, 0)",
                 }}
-                onMouseEnter={() => setActiveHitId(hit.id)}
-                onMouseLeave={() => setActiveHitId(null)}
+                onMouseEnter={() => setActiveHitIndex(index)}
+                onMouseLeave={() => setActiveHitIndex(null)}
               >
                 <div className="flex gap-2 items-center">
                   <Target size={16} strokeWidth={1} />
@@ -76,7 +81,7 @@ export const TargetImageWithShotOverlay = (
                 </div>
               </div>
             )}
-          </>
+          </React.Fragment>
         );
       })}
     </div>

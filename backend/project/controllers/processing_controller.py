@@ -1,5 +1,6 @@
 import os
 from celery import shared_task
+from flask import jsonify, request
 from project.core.pose_estimation.PoseEstimator import PoseEstimator
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, VIDEO_COLLECTION
 from project.controllers.video_uploader import get_short_playback_url, get_upload_token, upload_video, delete_video
@@ -327,3 +328,35 @@ def check_and_trim_video(type, video_timestamp, input_path, trimmed_path):
 
     print("7🤩")
     
+def add_manual_shot_by_id(round_id):
+    try:
+        data = request.json
+
+        existing_round = round_collection.find_one({'_id': ObjectId(round_id)})
+        round_score = existing_round.get('score')
+
+        if existing_round and round_score:
+            return insert_new_shot_to_existed_round(data, round_score, round_id)
+        else:
+            return jsonify({'error': 'Session not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def insert_new_shot_to_existed_round(data, round_score, round_id):
+    new_frame = int(data['frame'])
+    insert_index = next((i for i, d in enumerate(round_score) if d['frame'] > new_frame), len(round_score))
+
+    new_score = data['score']
+    new_point_x = data['pointX']
+    new_point_y = data['pointY']
+    round_score.insert(insert_index, {'id': insert_index + 1, 'frame': new_frame, 'point': [new_point_x, new_point_y], 'score': new_score})
+
+    # Update the `id`s for all dictionaries after the inserted one
+    for i in range(insert_index + 1, len(round_score)):
+        round_score[i]['id'] = i + 1
+
+    round_collection.update_one(
+        {"_id": ObjectId(round_id)},
+        {"$set": {"score": round_score}}
+    )
+    return jsonify(round_score)

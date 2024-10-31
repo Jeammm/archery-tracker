@@ -18,11 +18,11 @@ export interface Session {
 
 export interface Hit {
   frame: number;
-  hit_time: string;
+  hit_time?: string;
   id: number;
   point: number[];
   score: number;
-  bullseye_relation: number[];
+  bullseye_relation?: number[];
   target_image_url?: string;
   target_clean_image_url?: string;
   pose_image_url?: string;

@@ -135,7 +135,9 @@ export const GeneralData = (props: GeneralDataProps) => {
                       </TableCell>
                       <TableCell>{hit.id}</TableCell>
                       <TableCell>
-                        {format(hit.hit_time, "hh:mm:ss a")}
+                        {hit.hit_time
+                          ? format(hit.hit_time, "hh:mm:ss a")
+                          : "-"}
                       </TableCell>
                       <TableCell>{hit.score}</TableCell>
                       <TableCell
@@ -156,7 +158,9 @@ export const GeneralData = (props: GeneralDataProps) => {
                     className="text-center"
                   >
                     <TableCell>{hit.id}</TableCell>
-                    <TableCell>{format(hit.hit_time, "hh:mm:ss a")}</TableCell>
+                    <TableCell>
+                      {hit.hit_time ? format(hit.hit_time, "hh:mm:ss a") : "-"}
+                    </TableCell>
                     <TableCell>{hit.score}</TableCell>
                   </TableRow>
                 );

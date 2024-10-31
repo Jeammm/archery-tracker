@@ -246,6 +246,7 @@ export const SessionDetail = () => {
             <SessionVideo
               sessionData={session}
               selectedRound={selectedRound}
+              fetchSessionData={() => fetchSessionData()}
               key={`round-${selectedRound}`}
             />
           ) : (

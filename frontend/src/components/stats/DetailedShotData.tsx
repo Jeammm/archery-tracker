@@ -220,13 +220,15 @@ const TimelineWrapper = (props: TimelineWrapperProps) => {
   return (
     <div className="flex">
       <div className="w-[90px] shrink-0 relative hidden md:block">
-        {timestamp && (
+        {type === "success" && (
           <div className="text-xs text-muted-foreground absolute top-3">
             <div className="flex gap-1 items-center ">
               <Clock size={10} />
-              <p>{format(timestamp, "hh:mm:ss")}</p>
+              <p>
+                {timestamp ? format(timestamp, "hh:mm:ss") : "No time data"}
+              </p>
             </div>
-            <p>{timeAgo(timestamp)}</p>
+            <p>{timestamp ? timeAgo(timestamp) : "Manual shot"}</p>
           </div>
         )}
       </div>
