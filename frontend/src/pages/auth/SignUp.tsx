@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Input } from "../../components/ui/input";
-import { Button, buttonVariants } from "../../components/ui/button";
+import { Button } from "../../components/ui/button";
 import { RegisterData } from "@/types/auth";
 import { useAuth } from "@/context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import StatBanner from "@/assets/stat_banner.png";
 
 export const SignUp = () => {
   const { user, signup } = useAuth();
@@ -42,71 +44,84 @@ export const SignUp = () => {
   }, [location.state, navigate, user]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-grid-pattern">
-      <div className="flex w-full max-w-4xl overflow-hidden bg-background rounded-lg shadow-lg">
-        <div className="flex items-center justify-center w-1/2 bg-white">
-          <div className="text-center">
-            <h2 className="mb-4 text-3xl font-bold text-primary-foreground">
-              Already have and account?
-            </h2>
-            <p className="mb-6 text-primary-foreground">
-              Login with your registered email and password
-            </p>
-            <Link
-              to="/login"
-              className={buttonVariants({ variant: "secondary" })}
-            >
-              LOGIN
-            </Link>
+    <div className="flex items-center justify-center min-h-screen bg-grid-pattern px-4 flex-col">
+      <Link to="/">
+        <h3 className="font-bold text-4xl mb-2">Archery Tracker</h3>
+      </Link>
+      <h2 className="mb-8 text-lg text-center font-light">
+        Create new account with your email address
+      </h2>
+      <div className="flex w-full max-w-[80%] md:max-w-4xl overflow-hidden bg-background rounded-lg drop-shadow-lg">
+        <div className="hidden md:block w-1/2 p-4 ">
+          <div className="w-full h-[450px]">
+            <img
+              src={StatBanner}
+              alt="Sign up"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
-        <div className="w-1/2 p-8 border-y border-r rounded-r-lg">
-          <h2 className="mb-6 text-3xl font-bold text-center">Sign up</h2>
-          <p className="text-center text-muted-foreground mb-6">
-            with your email password
-          </p>
+        <div className="w-full md:w-1/2 p-8 border rounded-lg md:rounded-l-none flex flex-col justify-center">
           <div className="space-y-4">
-            <Input
-              placeholder="Email"
-              value={userData.email}
-              onChange={(event) =>
-                setUserData({ ...userData, email: event.target.value })
-              }
-            />
-            <Input
-              placeholder="Name"
-              value={userData.name}
-              onChange={(event) =>
-                setUserData({ ...userData, name: event.target.value })
-              }
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={userData.password}
-              onChange={(event) =>
-                setUserData({
-                  ...userData,
-                  password: event.target.value,
-                })
-              }
-            />
-            <Input
-              type="password"
-              placeholder="Re-enter Password"
-              value={userData.confirmPassword}
-              onChange={(event) =>
-                setUserData({
-                  ...userData,
-                  confirmPassword: event.target.value,
-                })
-              }
-            />
+            <div>
+              <p className="mb-2">Email address</p>
+              <Input
+                value={userData.email}
+                onChange={(event) =>
+                  setUserData({ ...userData, email: event.target.value })
+                }
+                required
+              />
+            </div>
+            <div>
+              <p className="mb-2">Name</p>
+              <Input
+                value={userData.name}
+                onChange={(event) =>
+                  setUserData({ ...userData, name: event.target.value })
+                }
+                required
+              />
+            </div>
+            <div>
+              <p className="mb-2">Password</p>
+              <Input
+                type="password"
+                value={userData.password}
+                onChange={(event) =>
+                  setUserData({
+                    ...userData,
+                    password: event.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+            <div>
+              <p className="mb-2">Confirm Password</p>
+              <Input
+                type="password"
+                value={userData.confirmPassword}
+                onChange={(event) =>
+                  setUserData({
+                    ...userData,
+                    confirmPassword: event.target.value,
+                  })
+                }
+                required
+              />
+            </div>
           </div>
           <Button className="w-full mt-6" onClick={onClickSignUp}>
             SIGN UP
           </Button>
         </div>
+      </div>
+      <div className="w-full max-w-[80%] md:max-w-4xl bg-background flex border rounded-lg p-4 justify-center gap-1.5 mt-4">
+        <p>Already have an account?</p>
+        <Link to="/login" className="text-[#4493f8]">
+          SIGN IN
+        </Link>
       </div>
     </div>
   );

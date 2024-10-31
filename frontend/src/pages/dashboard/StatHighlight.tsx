@@ -13,7 +13,7 @@ export const StatHighlight = (props: StatHighlightProps) => {
 
   if (!stats) {
     return (
-      <div className="flex overflow-x-auto sm:grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mt-6 pb-1.5 sm:pb-0">
+      <div className="flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mt-6 pb-1.5 sm:pb-0">
         <Skeleton className="md:min-w-full min-w-[272px] h-[118px] md:h-[174px]" />
         <Skeleton className="md:min-w-full min-w-[272px] h-[118px] md:h-[174px]" />
         <Skeleton className="md:min-w-full min-w-[272px] h-[118px] md:h-[174px]" />
@@ -22,7 +22,7 @@ export const StatHighlight = (props: StatHighlightProps) => {
   }
 
   return (
-    <div className="flex overflow-x-auto sm:grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mt-6 pb-1.5 sm:pb-0">
+    <div className="flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mt-6 pb-1.5 sm:pb-0">
       {Object.keys(stats).map((key) => {
         return <StatHighlightItem statValue={get(stats, key)} statKey={key} />;
       })}

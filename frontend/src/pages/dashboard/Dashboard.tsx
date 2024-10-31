@@ -139,7 +139,7 @@ export const Dashboard = () => {
             <ArrowRight />
           </Link>
         </div>
-        <div className="w-full flex gap-4 overflow-scroll py-3">
+        <div className="w-full flex gap-4 overflow-scroll no-scrollbar py-3">
           {isLoading
             ? [1, 2, 3, 4, 5, 6].map((i) => {
                 return <CardSkeleton key={`card-skeleton-${i}`} />;

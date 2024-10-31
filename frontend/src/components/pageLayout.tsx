@@ -3,6 +3,8 @@ import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Sheet, SheetContent } from "./ui/sheet";
 import { useEffect, useState } from "react";
+import { Icon } from "lucide-react";
+import { targetArrow } from "@lucide/lab";
 
 export const PageLayout = (props: { children?: React.ReactElement }) => {
   const { children } = props;
@@ -20,7 +22,12 @@ export const PageLayout = (props: { children?: React.ReactElement }) => {
     return (
       <>
         <Link to="/trainingSession">
-          <Button className="w-full mb-4">Start Training</Button>
+          <Button className="w-full mb-4 py-6 text-base">
+            <div className="flex gap-2 items-center">
+              <Icon iconNode={targetArrow} />
+              <p>Start Training</p>
+            </div>
+          </Button>
         </Link>
         {sideBarMenus.map((menu) => {
           const path = `/${menu.toLowerCase()}`;
@@ -43,7 +50,7 @@ export const PageLayout = (props: { children?: React.ReactElement }) => {
   return (
     <>
       <NavBar setIsSideMenuOpen={setIsSideMenuOpen} />
-      <div className="flex flex-col h-screen items-center">
+      <div className="flex flex-col items-center">
         <div className="flex flex-1 overflow-hidden max-w-[1344px] w-full">
           <Sheet open={isSideMenuOpen} onOpenChange={setIsSideMenuOpen}>
             <SheetContent side="left" className="w-[300px]" disableDefaultClose>

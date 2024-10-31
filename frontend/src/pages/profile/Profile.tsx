@@ -43,7 +43,7 @@ export const Profile = () => {
       <h1 className="text-4xl font-bold">Profile</h1>
       <p className="mt-2 text-muted-foreground">Manage you profile here</p>
       <div className="mt-6 border rounded-lg p-6 flex flex-col">
-        <div className="flex gap-4">
+        <div className="flex gap-4 md:flex-row flex-col-reverse">
           <div className="flex flex-col gap-6 flex-1">
             <div className="flex flex-col gap-1.5">
               <p className="font-bold">Name</p>
@@ -85,7 +85,7 @@ export const Profile = () => {
               </Link>
             </div>
           </div>
-          <div className="flex-1 max-w-[200px]">
+          <div className="w-[150px] self-center md:self-start">
             <div className="rounded-full border bg-slate-700 aspect-square w-full flex justify-center items-center">
               <p>{user?.name?.[0].toUpperCase() || "A"}</p>
             </div>

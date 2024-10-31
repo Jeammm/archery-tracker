@@ -75,6 +75,7 @@ export const PasswordReset = (props: PasswordResetProps) => {
           }
         );
         alert("Reset Password Successfully!");
+        navigate("/profile");
       } catch (error) {
         alert("Reset Password Failed!");
       } finally {
@@ -101,32 +102,29 @@ export const PasswordReset = (props: PasswordResetProps) => {
           <div className="space-y-4">
             {!isOldPasswordForgot && (
               <div>
-                <p className="font-semibold">Old Password</p>
+                <p className="font-semibold mb-1.5">Old Password</p>
                 <Input
                   value={oldPassword}
                   onChange={(event) => setOldPassword(event.target.value)}
                   type="password"
-                  placeholder="Old Password"
                 />
               </div>
             )}
 
             <div>
-              <p className="font-semibold">New Password</p>
+              <p className="font-semibold mb-1.5">New Password</p>
               <Input
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 type="password"
-                placeholder="New Password"
               />
             </div>
             <div>
-              <p className="font-semibold">Confirm New Password</p>
+              <p className="font-semibold mb-1.5">Confirm New Password</p>
               <Input
                 value={confirmNewPassword}
                 onChange={(event) => setConfirmNewPassword(event.target.value)}
                 type="password"
-                placeholder="Confirm New Password"
               />
             </div>
           </div>

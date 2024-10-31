@@ -30,6 +30,7 @@ export const SessionsList = () => {
   const sessionColumns: ColumnDef<SessionsWithActions>[] = [
     {
       accessorKey: "created_at",
+      size: 300,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={"Date"} />
       ),
@@ -37,7 +38,7 @@ export const SessionsList = () => {
         const created_at: string = row.getValue("created_at");
         return (
           <div>
-            <p>{formatDateTime(created_at)}</p>
+            <p className="whitespace-nowrap">{formatDateTime(created_at)}</p>
             <p className="text-sm text-muted-foreground">
               {timeAgo(created_at)}
             </p>
@@ -48,6 +49,7 @@ export const SessionsList = () => {
     {
       accessorKey: "session_status",
       header: "Session Status",
+      size: 100,
       cell: ({ row }) => {
         const session_status: string = row.getValue("session_status");
         if (session_status === "STARTED") {
@@ -68,13 +70,19 @@ export const SessionsList = () => {
     },
     {
       accessorKey: "processing_status",
-      header: "Processing Status",
+      header: () => <p className="whitespace-nowrap">Processing Status</p>,
+      size: 100,
     },
     {
       id: "actions",
       header: "",
+      size: 100,
       cell: () => {
-        return <p className="text-muted-foreground">View Results</p>;
+        return (
+          <p className="text-muted-foreground whitespace-nowrap">
+            View Results
+          </p>
+        );
       },
     },
   ];

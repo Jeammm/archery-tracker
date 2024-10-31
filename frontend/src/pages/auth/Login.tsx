@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Credentials } from "@/types/auth";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { jwtDecode } from "jwt-decode";
 import { Loader } from "@/components/ui/loader";
+
+import StatBanner from "@/assets/stat_banner.png";
 
 interface JwtPayload {
   exp: number;
@@ -70,62 +72,74 @@ const Login = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-grid-pattern">
-      <div className="flex w-full max-w-4xl overflow-hidden bg-background rounded-lg shadow-lg">
-        <div className="w-1/2 p-8 border-y border-l rounded-l-lg">
-          <h2 className="mb-6 text-3xl font-bold text-center">Sign in</h2>
-          <p className="text-center text-muted-foreground mb-6">
-            with your email password
-          </p>
-          <div className="space-y-4">
-            <form onSubmit={handleSubmit}></form>
-            <Input
-              placeholder="Email"
-              value={credentials.email}
-              onChange={(event) =>
-                setCredentials({ ...credentials, email: event.target.value })
-              }
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={credentials.password}
-              onChange={(event) =>
-                setCredentials({
-                  ...credentials,
-                  password: event.target.value,
-                })
-              }
-            />
-          </div>
-          <div className="mt-4 text-right">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-muted-foreground"
-            >
-              Forgot your password?
+    <div className="flex items-center justify-center min-h-screen bg-grid-pattern px-4 flex-col">
+      <div className="flex w-full max-w-[80%] md:max-w-4xl overflow-hidden bg-background rounded-lg drop-shadow-lg">
+        <div className="w-full md:w-1/2 p-6 flex items-center border rounded-lg md:rounded-r-none">
+          <div className="w-full">
+            <Link to="/">
+              <h3 className="font-bold text-3xl mb-2 text-center">
+                Archery Tracker
+              </h3>
             </Link>
-          </div>
-          <Button className="w-full mt-6" onClick={handleSubmit}>
-            SIGN IN
-          </Button>
-        </div>
-        <div className="flex items-center justify-center w-1/2 bg-white">
-          <div className="text-center">
-            <h2 className="mb-4 text-3xl font-bold text-primary-foreground">
-              Hello, Friend!
+            <h2 className="mb-10 text-lg text-center font-light">
+              Sign in with your email address
             </h2>
-            <p className="mb-6 text-primary-foreground">
-              Register your personal details and start journey with us
-            </p>
-            <Link
-              to="/register"
-              className={buttonVariants({ variant: "secondary" })}
-            >
-              SIGN UP
-            </Link>
+            <div className="space-y-4">
+              <form onSubmit={handleSubmit}></form>
+              <div>
+                <p className="mb-2">Email address</p>
+                <Input
+                  value={credentials.email}
+                  onChange={(event) =>
+                    setCredentials({
+                      ...credentials,
+                      email: event.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <div className="flex justify-between mb-2">
+                  <p>Password</p>
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-muted-foreground"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input
+                  type="password"
+                  value={credentials.password}
+                  onChange={(event) =>
+                    setCredentials({
+                      ...credentials,
+                      password: event.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <Button className="w-full mt-6" onClick={handleSubmit}>
+              SIGN IN
+            </Button>
           </div>
         </div>
+        <div className="hidden md:block w-1/2 p-4 bg-background">
+          <div className="w-full h-[450px]">
+            <img
+              src={StatBanner}
+              alt="Sign up"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="w-full max-w-[80%] md:max-w-4xl bg-background flex border rounded-lg p-4 justify-center gap-1.5 mt-4">
+        <p>New to Archery Tracker?</p>
+        <Link to="/register" className="text-[#4493f8]">
+          SIGN UP
+        </Link>
       </div>
     </div>
   );
