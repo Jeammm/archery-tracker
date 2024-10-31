@@ -24,7 +24,13 @@ export const StatHighlight = (props: StatHighlightProps) => {
   return (
     <div className="flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mt-6 pb-1.5 sm:pb-0">
       {Object.keys(stats).map((key) => {
-        return <StatHighlightItem statValue={get(stats, key)} statKey={key} />;
+        return (
+          <StatHighlightItem
+            statValue={get(stats, key)}
+            statKey={key}
+            key={key}
+          />
+        );
       })}
     </div>
   );

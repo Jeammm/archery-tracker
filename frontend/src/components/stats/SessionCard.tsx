@@ -1,4 +1,10 @@
-import { CalendarIcon, TargetIcon, TriangleAlert, ZapIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  Icon,
+  TargetIcon,
+  TriangleAlert,
+  ZapIcon,
+} from "lucide-react";
 import { Session } from "@/types/session";
 import { formatDateTime } from "@/utils/dateTime";
 import { Link } from "react-router-dom";
@@ -15,6 +21,7 @@ import {
 } from "../ui/card";
 import { useTimeElapsed } from "@/hooks/useTimeElapsed";
 import { Skeleton } from "../ui/skeleton";
+import { targetArrow } from "@lucide/lab";
 
 interface SessionCardProps {
   sessionData: Session;
@@ -135,12 +142,8 @@ export const CardSkeleton = () => {
   return (
     <Card className={CARD_SIZE}>
       <CardHeader className="space-y-0 pb-2">
-        <CardTitle className="font-bold text-2xl">
-          <Skeleton className="w-[162px] h-[32px]" />
-        </CardTitle>
-        <CardDescription>
-          <Skeleton className="w-[85px] h-[20px] mt-1.5" />
-        </CardDescription>
+        <Skeleton className="w-[162px] h-[32px] mb-3" />
+        <Skeleton className="w-[85px] h-[20px]" />
       </CardHeader>
       <CardContent>
         <Skeleton className="w-[100px] h-[32px]" />
@@ -152,5 +155,26 @@ export const CardSkeleton = () => {
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+export const CardEmpty = () => {
+  return (
+    <div className="w-full border rounded-lg flex flex-col justify-center items-center gap-4 p-8">
+      <h3 className="text-xl text-muted-foreground font-semibold">
+        Welcome to archery tracker!
+      </h3>
+      <p className="text-muted-foreground text-sm">
+        Start your first session now
+      </p>
+      <Link to="/trainingSession">
+        <Button>
+          <div className="flex gap-2 items-center">
+            <Icon iconNode={targetArrow} />
+            <p>Start Training</p>
+          </div>
+        </Button>
+      </Link>
+    </div>
   );
 };

@@ -1,4 +1,8 @@
-import { CardSkeleton, SessionCard } from "@/components/stats/SessionCard";
+import {
+  CardEmpty,
+  CardSkeleton,
+  SessionCard,
+} from "@/components/stats/SessionCard";
 import { Session, Stats } from "@/types/session";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { useAuth } from "@/context/AuthContext";
@@ -140,19 +144,23 @@ export const Dashboard = () => {
           </Link>
         </div>
         <div className="w-full flex gap-4 overflow-scroll no-scrollbar py-3">
-          {isLoading
-            ? [1, 2, 3, 4, 5, 6].map((i) => {
-                return <CardSkeleton key={`card-skeleton-${i}`} />;
-              })
-            : sessions?.slice(0, 10).map((session) => {
-                return (
-                  <SessionCard
-                    sessionData={session}
-                    fetchSessionsData={fetchSessionsData}
-                    key={session._id}
-                  />
-                );
-              })}
+          {isLoading ? (
+            [1, 2, 3, 4, 5, 6].map((i) => {
+              return <CardSkeleton key={`card-skeleton-${i}`} />;
+            })
+          ) : sessions.length === 0 ? (
+            <CardEmpty />
+          ) : (
+            sessions?.slice(0, 10).map((session) => {
+              return (
+                <SessionCard
+                  sessionData={session}
+                  fetchSessionsData={fetchSessionsData}
+                  key={session._id}
+                />
+              );
+            })
+          )}
         </div>
       </div>
     </div>
