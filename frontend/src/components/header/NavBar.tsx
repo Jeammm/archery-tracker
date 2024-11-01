@@ -21,11 +21,7 @@ export const NavBar = (props: NavBarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const { theme, setTheme } = useTheme();
-
-  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  const { theme, setTheme, lightOrDark } = useTheme();
 
   const { setIsSideMenuOpen } = props;
 
@@ -56,19 +52,7 @@ export const NavBar = (props: NavBarProps) => {
         <div className="ml-auto flex gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger className="border rounded-sm aspect-square w-10 h-10 flex justify-center items-center">
-              {theme === "system" ? (
-                systemTheme === "light" ? (
-                  <Sun />
-                ) : (
-                  <Moon />
-                )
-              ) : theme === "light" ? (
-                <Sun />
-              ) : theme === "dark" ? (
-                <Moon />
-              ) : (
-                <Moon />
-              )}
+              {lightOrDark === "dark" ? <Moon /> : <Sun />}
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuRadioGroup

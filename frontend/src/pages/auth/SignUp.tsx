@@ -6,8 +6,12 @@ import { useAuth } from "@/context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import StatBanner from "@/assets/stat_banner.png";
+import StatBannerLight from "@/assets/stat_banner_light.png";
+import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 
 export const SignUp = () => {
+  const { lightOrDark } = useTheme();
   const { user, signup } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,11 +57,22 @@ export const SignUp = () => {
       </h2>
       <div className="flex w-full max-w-[80%] md:max-w-4xl overflow-hidden bg-background rounded-lg drop-shadow-lg">
         <div className="hidden md:block w-1/2 p-4 ">
-          <div className="w-full h-[450px]">
+          <div className="w-full h-full">
             <img
               src={StatBanner}
               alt="Sign up"
-              className="w-full h-full object-cover"
+              className={cn([
+                "w-full h-full object-cover",
+                lightOrDark === "light" && "hidden",
+              ])}
+            />
+            <img
+              src={StatBannerLight}
+              alt="Sign up"
+              className={cn([
+                "w-full h-full object-cover",
+                lightOrDark === "dark" && "hidden",
+              ])}
             />
           </div>
         </div>

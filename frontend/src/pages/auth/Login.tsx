@@ -8,12 +8,16 @@ import { jwtDecode } from "jwt-decode";
 import { Loader } from "@/components/ui/loader";
 
 import StatBanner from "@/assets/stat_banner.png";
+import StatBannerLight from "@/assets/stat_banner_light.png";
+import { useTheme } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
 interface JwtPayload {
   exp: number;
 }
 
 const Login = () => {
+  const { lightOrDark } = useTheme();
   const [credentials, setCredentials] = useState<Credentials>({
     email: "",
     password: "",
@@ -22,6 +26,8 @@ const Login = () => {
   const [loading, setLoading] = useState(true); // Add loading state
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [isLoginFailed, setIsLoginFailed] = useState<boolean>(false);
 
   const isTokenExpired = (token: string): boolean => {
     try {
@@ -43,7 +49,7 @@ const Login = () => {
         "/dashboard";
       navigate(origin);
     } else {
-      alert("Login failed");
+      setIsLoginFailed(true);
     }
   };
 
@@ -84,53 +90,81 @@ const Login = () => {
             <h2 className="mb-10 text-lg text-center font-light">
               Sign in with your email address
             </h2>
-            <div className="space-y-4">
-              <form onSubmit={handleSubmit}></form>
-              <div>
-                <p className="mb-2">Email address</p>
-                <Input
-                  value={credentials.email}
-                  onChange={(event) =>
-                    setCredentials({
-                      ...credentials,
-                      email: event.target.value,
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <p>Password</p>
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-muted-foreground"
-                  >
-                    Forgot your password?
-                  </Link>
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <p className="mb-2">Email address</p>
+                  <Input
+                    value={credentials.email}
+                    onChange={(event) => {
+                      setIsLoginFailed(false);
+                      setCredentials({
+                        ...credentials,
+                        email: event.target.value,
+                      });
+                    }}
+                    className={cn([
+                      isLoginFailed && "border-red-500 text-red-500",
+                    ])}
+                    tabIndex={1}
+                  />
                 </div>
-                <Input
-                  type="password"
-                  value={credentials.password}
-                  onChange={(event) =>
-                    setCredentials({
-                      ...credentials,
-                      password: event.target.value,
-                    })
-                  }
-                />
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <p>Password</p>
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-muted-foreground"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
+                  <Input
+                    type="password"
+                    value={credentials.password}
+                    onChange={(event) => {
+                      setIsLoginFailed(false);
+                      setCredentials({
+                        ...credentials,
+                        password: event.target.value,
+                      });
+                    }}
+                    tabIndex={2}
+                    className={cn([
+                      isLoginFailed && "border-red-500 text-red-500",
+                    ])}
+                  />
+                </div>
               </div>
-            </div>
-            <Button className="w-full mt-6" onClick={handleSubmit}>
-              SIGN IN
-            </Button>
+              {isLoginFailed && (
+                <p className="text-red-500">
+                  Incorrect email address or password, please try again
+                </p>
+              )}
+
+              <Button className="w-full mt-6" onClick={handleSubmit}>
+                SIGN IN
+              </Button>
+            </form>
           </div>
         </div>
         <div className="hidden md:block w-1/2 p-4 bg-background">
-          <div className="w-full h-[450px]">
+          <div className="w-full h-[420px]">
             <img
               src={StatBanner}
               alt="Sign up"
-              className="w-full h-full object-cover"
+              className={cn([
+                "w-full h-full object-cover",
+                lightOrDark === "light" && "hidden",
+              ])}
+            />
+            <img
+              src={StatBannerLight}
+              alt="Sign up"
+              className={cn([
+                "w-full h-full object-cover",
+                lightOrDark === "dark" && "hidden",
+              ])}
             />
           </div>
         </div>

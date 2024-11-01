@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { User, AuthContextType, Credentials, RegisterData } from "@/types/auth";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
+import { toast } from "@/hooks/use-toast";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -34,10 +35,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const userData: User = await response.json();
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        toast({
+          title: `Welcome ${userData.name}!`,
+          description: "Glad to have you here. Ready to dive in?",
+          variant: "success",
+        });
         return true;
       }
       return false;
     } catch (error) {
+      toast({
+        title: "Sign in Failed",
+        description: `Error: ${error}`,
+        variant: "destructive",
+      });
       console.error("Login error:", error);
       return false;
     }

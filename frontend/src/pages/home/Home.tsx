@@ -2,16 +2,27 @@ import { Button } from "@/components/ui/button";
 import { FlipWords } from "@/components/ui/flip-words";
 import { Link } from "react-router-dom";
 
+import KU from "@/assets/ku-logo.png";
 import Byteark from "@/assets/byteark-logo.png";
 import OpenCV from "@/assets/opencv-logo.png";
 import TargetScoring from "@/assets/scoring_banner.png";
 import PostureTracking from "@/assets/posture_banner.png";
 import Stat from "@/assets/stat_banner.png";
+import StatLight from "@/assets/stat_banner_light.png";
+import { useTheme } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
 
 export const Home = () => {
+  const { lightOrDark } = useTheme();
+
   return (
-    <div className="w-screen min-h-screen bg-grid-pattern flex justify-center p-8 pt-36">
-      <div className="grid grid-cols-1 xl:grid-cols-2 max-w-[1344px]">
+    <div
+      className={cn([
+        "w-screen min-h-screen flex justify-center p-8 pt-36",
+        lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+      ])}
+    >
+      <div className="grid grid-cols-1 xl:grid-cols-2 max-w-[1344px] gap-6">
         <div className="flex flex-col">
           <h1 className="font-semibold mb-6 md:text-7xl text-5xl">
             Precision Training <br />
@@ -21,9 +32,10 @@ export const Home = () => {
               className="px-0"
             />
           </h1>
-          <h2 className="mb-6">
+          <h2 className="mb-6 font-serif">
             Access detailed performance data, improve your technique, and track
-            your progress like never before.
+            your progress{" "}
+            <span className="inline-block">like never before.</span>
           </h2>
           <div className="flex gap-4 mb-6 flex-col sm:flex-row">
             <Link to="/trainingSession" className="flex-1 sm:flex-grow-0">
@@ -61,22 +73,41 @@ export const Home = () => {
               />
               <p className="text-xs text-zinc-500">OpenCV</p>
             </div>
+            <div className="flex gap-2 items-center">
+              <img
+                src={KU}
+                alt="kasetsart"
+                className="w-10 h-10 object-contain filter brightness-150 contrast-50"
+              />
+              <p className="text-xs text-zinc-500">Kasetsart</p>
+            </div>
           </div>
         </div>
         <div>
-          <div className="border rounded-xl p-2 bg-zinc-800">
+          <div className="border rounded-xl p-2 bg-secondary text-secondary-foreground">
             <p className="text-lg font-semibold">Track Your Progress</p>
             <div className="h-[300px] w-full border rounded-lg mt-2 overflow-hidden bg-background">
               <img
                 src={Stat}
-                className="w-full h-full object-cover"
+                className={cn([
+                  "w-full h-full object-cover",
+                  lightOrDark === "light" && "hidden",
+                ])}
+                alt="stat"
+              />
+              <img
+                src={StatLight}
+                className={cn([
+                  "w-full h-full object-cover",
+                  lightOrDark === "dark" && "hidden",
+                ])}
                 alt="stat"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 mt-2 gap-2">
-            <div className="border rounded-xl p-2 bg-zinc-800">
-              <p className="text-lg font-semibold">Automatic Target Scoring</p>
+            <div className="border rounded-xl p-2 bg-secondary text-secondary-foreground">
+              <p className="text-lg font-semibold">Automated Target Scoring</p>
               <div className="h-[220px] w-full border rounded-lg mt-2 overflow-hidden">
                 <img
                   src={TargetScoring}
@@ -85,7 +116,7 @@ export const Home = () => {
                 />
               </div>
             </div>
-            <div className="border rounded-xl p-2 bg-zinc-800">
+            <div className="border rounded-xl p-2 bg-secondary text-secondary-foreground">
               <p className="text-lg font-semibold">Posture Tracking</p>
               <div className="h-[220px] w-full border rounded-lg mt-2 overflow-hidden bg-white">
                 <img
