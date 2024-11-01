@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 from datetime import datetime
 from project.constants.constants import ROUND_COLLECTION
 from project.controllers.decorators import token_required
-from ..controllers.processing_controller import capture_pose_on_shot_detected, get_recording_timestamp, process_pose, process_target, save_recording_timestamp, add_manual_shot_by_id
+from ..controllers.processing_controller import capture_pose_on_shot_detected, get_recording_timestamp, process_pose, process_target, save_recording_timestamp, add_manual_shot_by_id, edit_manual_shot_by_id
 from ..controllers.processing_controller_dev import capture_pose_on_shot_detected_test, process_pose_test, process_target_test
 from ..db import db
 import os
@@ -153,3 +153,8 @@ def process_target_route_test(_, round_id):
 @token_required
 def add_manual_shot(_, round_id):
     return add_manual_shot_by_id(round_id)
+
+@processing_bp.route('/edit-manual-shot/<round_id>/<hit_id>', methods=['POST'])
+@token_required
+def edit_manual_shot(_, round_id, hit_id):
+    return edit_manual_shot_by_id(round_id, hit_id)

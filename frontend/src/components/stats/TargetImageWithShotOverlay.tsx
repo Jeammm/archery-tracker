@@ -25,7 +25,7 @@ export const TargetImageWithShotOverlay = (
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block w-full">
       <img
         src={targetImage}
         alt="target1"

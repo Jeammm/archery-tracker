@@ -23,7 +23,7 @@ export const SkeletonFeature = (props: SkeletonFeatureProps) => {
   const { features } = props;
 
   return (
-    <Table className="border [&>*>*>td]:border">
+    <Table className="border [&>*>*>td]:border leading-tight">
       <TableHeader className="text-center hover:bg-muted/50 group/multirow font-bold">
         <TableRow>
           <TableCell rowSpan={2}>Joint</TableCell>

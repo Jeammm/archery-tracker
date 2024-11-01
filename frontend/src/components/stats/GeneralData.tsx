@@ -45,7 +45,7 @@ export const GeneralData = (props: GeneralDataProps) => {
   }, [round_result]);
 
   return (
-    <div className="mt-2 md:mt-6">
+    <div className="mt-1 md:mt-6">
       <Table className="border">
         <TableHeader>
           <TableRow>

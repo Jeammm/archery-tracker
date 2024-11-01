@@ -38,7 +38,10 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
 
   return (
     <div
-      className={cn(["rounded-md border flex flex-col", containerClassName])}
+      className={cn([
+        "rounded-md border flex flex-col flex-1",
+        containerClassName,
+      ])}
     >
       <div className="border-b p-2 bg-primary text-primary-foreground rounded-t-md">
         <h3 className="font-bold">Rounds Detail</h3>

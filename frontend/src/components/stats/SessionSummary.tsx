@@ -57,12 +57,12 @@ export const SessionSummary = (props: SessionSummaryProps) => {
   }, [round_result]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1 md:mt-6">
       <div className="rounded-lg p-2 border text-secondary-foreground flex flex-col items-center">
         <p className="w-full text-center font-bold text-lg mb-2">
           Average Posture
         </p>
-        <div>
+        <div className="w-full">
           <img src={poseImageDemo} alt="" className="w-full h-auto" />
         </div>
         <div className="w-full mt-3">

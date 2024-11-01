@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from celery import shared_task
 from flask import jsonify, request
@@ -334,23 +335,26 @@ def add_manual_shot_by_id(round_id):
         round_score = existing_round.get('score')
         target_video_path = existing_round['target_video'][0]['playbackUrls'][0]['hls'][0]['url']
         pose_video_path = existing_round['pose_video'][0]['playbackUrls'][0]['hls'][0]['url']
+        round_start_time = existing_round['created_at']
 
         if existing_round and round_score:
-            return insert_new_shot_to_existed_round(data, round_score, round_id, target_video_path, pose_video_path)
+            return insert_new_shot_to_existed_round(data, round_score, round_id, target_video_path, pose_video_path, round_start_time)
         elif existing_round:
-            return insert_new_shot_to_existed_round(data, [], round_id, target_video_path, pose_video_path)
+            return insert_new_shot_to_existed_round(data, [], round_id, target_video_path, pose_video_path, round_start_time)
         else:
             return jsonify({'error': 'Round not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def insert_new_shot_to_existed_round(data, round_score, round_id, target_video_path, pose_video_path):
+def insert_new_shot_to_existed_round(data, round_score, round_id, target_video_path, pose_video_path, round_start_time):
     new_frame = int(data['frame'])
     insert_index = next((i for i, d in enumerate(round_score) if d['frame'] > new_frame), len(round_score))
 
     new_score = data['score']
     new_point_x = data['pointX']
     new_point_y = data['pointY']
+    new_hit_time = round_start_time + timedelta(seconds=new_frame * (1/30))
+    
     round_score.insert(
         insert_index,
         {
@@ -358,6 +362,7 @@ def insert_new_shot_to_existed_round(data, round_score, round_id, target_video_p
             'frame': new_frame,
             'point': [new_point_x, new_point_y],
             'score': new_score,
+            'hit_time': new_hit_time,
             **capture_frame_pair(new_frame, target_video_path, pose_video_path)
             }
         )
@@ -366,6 +371,50 @@ def insert_new_shot_to_existed_round(data, round_score, round_id, target_video_p
     for i in range(insert_index + 1, len(round_score)):
         round_score[i]['id'] = i + 1
 
+    round_collection.update_one(
+        {"_id": ObjectId(round_id)},
+        {"$set": {"score": round_score}}
+    )
+    return jsonify(round_score)
+
+def edit_manual_shot_by_id(round_id, hit_id):
+    try:
+        data = request.json
+
+        existing_round = round_collection.find_one({'_id': ObjectId(round_id)})
+        target_video_path = existing_round['target_video'][0]['playbackUrls'][0]['hls'][0]['url']
+        pose_video_path = existing_round['pose_video'][0]['playbackUrls'][0]['hls'][0]['url']
+        round_score = existing_round.get('score')
+
+        if existing_round and round_score and int(hit_id) in [hit['id'] for hit in round_score]:  
+            round_start_time = existing_round['created_at']
+            return edit_shot_to_existed_round(data, round_score, round_id, hit_id, round_start_time, target_video_path, pose_video_path)
+        else:
+            return jsonify({'error': 'Hit not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+def edit_shot_to_existed_round(new_shot_data, round_score, round_id, hit_id, round_start_time, target_video_path, pose_video_path):
+    
+    new_frame = int(new_shot_data['frame'])
+    new_score = new_shot_data['score']
+    new_point_x = new_shot_data['pointX']
+    new_point_y = new_shot_data['pointY']
+    new_hit_time = round_start_time + timedelta(seconds=new_frame * (1/30))
+    
+    for shot in round_score:
+        if shot['id'] == int(hit_id):
+            if new_frame == shot['frame']:
+                shot['point'] = [new_point_x, new_point_y]
+                shot['score'] = new_score
+            else:
+                shot['frame'] = new_frame
+                shot['point'] = [new_point_x, new_point_y]
+                shot['score'] = new_score
+                shot['hit_time'] = new_hit_time
+                shot.update(capture_frame_pair(new_frame, target_video_path, pose_video_path))
+                
+    
     round_collection.update_one(
         {"_id": ObjectId(round_id)},
         {"$set": {"score": round_score}}

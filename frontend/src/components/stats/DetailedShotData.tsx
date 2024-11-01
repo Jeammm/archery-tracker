@@ -22,7 +22,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
   const totalLength = round_result.length;
 
   return (
-    <div className="mt-6 flex flex-col">
+    <div className="mt-1 md:mt-6 flex flex-col">
       {round_result.map((round, roundNo) => {
         if (round.target_status === "FAILURE") {
           return (

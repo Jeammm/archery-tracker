@@ -128,7 +128,7 @@ export const SessionDetail = () => {
   }
 
   return (
-    <div>
+    <div className="flex-1 flex flex-col">
       <div className="flex justify-between">
         <div className="w-full">
           <div className="flex justify-between">
@@ -193,7 +193,7 @@ export const SessionDetail = () => {
       <Tabs
         value={tab || "general"}
         onValueChange={onChangeTab}
-        className="mt-6"
+        className="mt-6 flex-1 flex flex-col"
       >
         <div className="flex justify-between">
           <TabsList>
@@ -241,7 +241,10 @@ export const SessionDetail = () => {
             </div>
           )}
         </TabsContent>
-        <TabsContent value="video">
+        <TabsContent
+          value="video"
+          className="flex-1 data-[state=active]:flex flex-col"
+        >
           {isRoundExisted ? (
             <SessionVideo
               sessionData={session}

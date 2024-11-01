@@ -67,7 +67,7 @@ export const PageLayout = (props: { children?: React.ReactElement }) => {
             </div>
           </aside>
 
-          <main className="overflow-y-auto p-4 pt-20 md:pt-24 no-scrollbar flex-1">
+          <main className="overflow-y-auto p-2.5 md:p-4 pt-20 md:pt-24 no-scrollbar flex-1 min-h-screen flex flex-col">
             {children}
           </main>
         </div>

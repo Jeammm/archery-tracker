@@ -139,7 +139,7 @@ export const SessionInitiate = () => {
   }
 
   return (
-    <div>
+    <div className="flex flex-col flex-1">
       <SessionInitiateHeader
         session={session}
         targetVideoUploadingStatus={targetVideoUploadingStatus}
@@ -168,8 +168,8 @@ export const SessionInitiate = () => {
       <div className="mt-6">
         <ParticipantsList participantDevices={participantDevices} />
       </div>
-      <div className="mt-6">
-        {!isCameraConnected && (
+      {!isCameraConnected && (
+        <div className="mt-6 flex flex-col flex-1">
           <RoundDetailsTable
             targetVideoUploadingStatus={targetVideoUploadingStatus}
             session={session}
@@ -177,8 +177,8 @@ export const SessionInitiate = () => {
             containerClassName="min-h-[150px]"
             recording={recording}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
