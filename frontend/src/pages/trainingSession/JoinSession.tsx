@@ -19,9 +19,11 @@ import { Round } from "@/types/session";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { ParticipantsList } from "@/components/participants/ParticipantsList";
+import { useTheme } from "@/components/theme-provider";
 
 export const JoinSession = () => {
   const navigate = useNavigate();
+  const { lightOrDark } = useTheme();
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -249,7 +251,12 @@ export const JoinSession = () => {
 
   if (!sessionReady) {
     return (
-      <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
+      <div
+        className={cn([
+          "flex flex-col justify-center items-center w-full h-[100svh]",
+          lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+        ])}
+      >
         <div className="border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
           <h3 className="font-bold text-xl">Archery Tracker</h3>
           <QuestionMarkCircledIcon />
@@ -266,7 +273,12 @@ export const JoinSession = () => {
 
   if (sessionReady && isSessionNotFound) {
     return (
-      <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
+      <div
+        className={cn([
+          "flex flex-col justify-center items-center w-full h-[100svh]",
+          lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+        ])}
+      >
         <div className="fixed top-0 border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
           <Link to="/">
             <h3 className="font-bold text-xl">Archery Tracker</h3>
@@ -315,7 +327,12 @@ export const JoinSession = () => {
 
   if (isSessionEnded) {
     return (
-      <div className="flex flex-col justify-center items-center w-full h-[100svh] bg-grid-pattern">
+      <div
+        className={cn([
+          "flex flex-col justify-center items-center w-full h-[100svh]",
+          lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+        ])}
+      >
         <div className="fixed top-0 border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
           <Link to="/">
             <h3 className="font-bold text-xl">Archery Tracker</h3>
@@ -365,7 +382,12 @@ export const JoinSession = () => {
   }
 
   return (
-    <div className="flex justify-center items-center md:flex-row flex-col h-[100svh] gap-2 bg-grid-pattern">
+    <div
+      className={cn([
+        "flex justify-center items-center md:flex-row flex-col h-[100svh] gap-2",
+        lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+      ])}
+    >
       <div className="md:hidden border-b w-full p-2 justify-between flex items-center backdrop-blur-sm">
         <h3 className="font-bold text-xl">Archery Tracker</h3>
         <QuestionMarkCircledIcon />

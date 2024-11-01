@@ -78,7 +78,12 @@ const Login = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-grid-pattern px-4 flex-col">
+    <div
+      className={cn([
+        "flex items-center justify-center min-h-screen px-4 flex-col",
+        lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+      ])}
+    >
       <div className="flex w-full max-w-[80%] md:max-w-4xl overflow-hidden bg-background rounded-lg drop-shadow-lg">
         <div className="w-full md:w-1/2 p-6 flex items-center border rounded-lg md:rounded-r-none">
           <div className="w-full">

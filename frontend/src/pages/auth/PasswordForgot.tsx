@@ -1,12 +1,15 @@
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
 export const PasswordForgot = () => {
   const { user } = useAuth();
+  const { lightOrDark } = useTheme();
   const [userEmail, setUserEmail] = useState<string>("");
 
   const onClickResetPassword = async () => {
@@ -25,7 +28,12 @@ export const PasswordForgot = () => {
   }, [user]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-grid-pattern">
+    <div
+      className={cn([
+        "flex items-center justify-center min-h-screen",
+        lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
+      ])}
+    >
       <div className="flex w-full max-w-lg overflow-hidden bg-background rounded-lg shadow-lg">
         <div className="p-8 border rounded-lg">
           <h2 className="mb-6 text-3xl font-bold text-center">

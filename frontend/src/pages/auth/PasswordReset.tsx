@@ -1,3 +1,4 @@
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
@@ -14,6 +15,7 @@ interface PasswordResetProps {
 
 export const PasswordReset = (props: PasswordResetProps) => {
   const { user } = useAuth();
+  const { lightOrDark } = useTheme();
   const { isOldPasswordForgot } = props;
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -88,7 +90,11 @@ export const PasswordReset = (props: PasswordResetProps) => {
     <div
       className={cn([
         "flex items-center justify-center",
-        isOldPasswordForgot && "min-h-screen bg-grid-pattern",
+        isOldPasswordForgot && "min-h-screen",
+        isOldPasswordForgot && lightOrDark === "dark" && "bg-grid-pattern",
+        isOldPasswordForgot &&
+          lightOrDark === "light" &&
+          "bg-grid-pattern-light",
       ])}
     >
       <div className="flex w-full max-w-xl overflow-hidden bg-background rounded-lg shadow-lg">

@@ -10,7 +10,7 @@ export interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   login: (credentials: Credentials) => Promise<boolean>;
   logout: () => void;
-  signup: (registerData: RegisterData) => Promise<boolean>
+  signup: (registerData: RegisterData) => Promise<boolean>;
 }
 
 export interface Credentials {
@@ -24,3 +24,10 @@ export interface RegisterData {
   password: string;
   confirmPassword: string;
 }
+
+export const initialRegisterData = {
+  email: "",
+  name: "",
+  password: "",
+  confirmPassword: "",
+};
