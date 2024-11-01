@@ -81,9 +81,6 @@ def login():
         collection = db[ACCOUNT_COLLECTION]
 
         user = collection.find_one({'email': data['email']})
-
-        if user and not user['is_verified']:
-            return jsonify({'error': 'Account not verified, Please check your email'}), 401
         
         if user and bcrypt.check_password_hash(user['password'], data['password']):
             token = generate_token(user['_id'])

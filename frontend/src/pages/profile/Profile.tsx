@@ -2,8 +2,10 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader } from "@/components/ui/loader";
 import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import axios from "axios";
+import { AlertTriangle, Verified } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -60,16 +62,41 @@ export const Profile = () => {
 
             <div className="flex flex-col gap-1.5">
               <p className="font-bold">Email</p>
-              <Input
-                value={userData.email}
-                onChange={(event) =>
-                  setUserData((prev) => ({
-                    ...prev,
-                    email: event.target.value,
-                  }))
-                }
-                readOnly
-              />
+              <div className="flex gap-2">
+                <Input
+                  value={userData.email}
+                  onChange={(event) =>
+                    setUserData((prev) => ({
+                      ...prev,
+                      email: event.target.value,
+                    }))
+                  }
+                  readOnly
+                />
+                <div
+                  className={cn([
+                    "flex gap-2 w-fit justify-center border-2 font-semibold rounded-md h-full px-4 items-center",
+                    user?.isVerified
+                      ? "bg-[#42A5F5]/30 border-[#42A5F5] text-[#42A5F5]"
+                      : "bg-amber-100 border-amber-500 text-amber-500",
+                  ])}
+                >
+                  {user?.isVerified ? (
+                    <>
+                      <Verified className="text-[#42A5F5]" strokeWidth={2.5} />
+                      <p>Verified</p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle
+                        className="text-amber-500"
+                        strokeWidth={2.5}
+                      />
+                      <p className="whitespace-nowrap">Not Verify</p>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
