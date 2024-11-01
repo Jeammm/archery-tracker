@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   token: string;
-  isVerified: boolean;
+  is_verified: boolean;
 }
 
 export interface AuthContextType {

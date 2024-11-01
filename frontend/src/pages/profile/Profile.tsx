@@ -76,12 +76,12 @@ export const Profile = () => {
                 <div
                   className={cn([
                     "flex gap-2 w-fit justify-center border-2 font-semibold rounded-md h-full px-4 items-center",
-                    user?.isVerified
+                    user?.is_verified
                       ? "bg-[#42A5F5]/30 border-[#42A5F5] text-[#42A5F5]"
                       : "bg-amber-100 border-amber-500 text-amber-500",
                   ])}
                 >
-                  {user?.isVerified ? (
+                  {user?.is_verified ? (
                     <>
                       <Verified className="text-[#42A5F5]" strokeWidth={2.5} />
                       <p>Verified</p>
