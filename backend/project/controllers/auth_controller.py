@@ -43,7 +43,7 @@ def send_verification_email(email, token):
     try:
         subject = 'Verify Your Email Address'
         verify_url = f"{current_app.config.get('FRONTEND_BASE_URL')}/verify-email?token={token}"
-        body = f"<strong>Please verify your email by clicking the following link: {verify_url}</strong>"
+        body = f"<div><p>Please verify your email by clicking the following link: <a href={verify_url}><strong>{verify_url}</strong></p></div>"
         sendEmail(email, subject, body)
     except Exception as e:
         return jsonify({'error': f'Failed to send email: {str(e)}'}), 500
