@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Hit } from "@/types/session";
+import { onImageError } from "@/utils/canvasHelper";
 import { MousePointer2, Move3d, Target } from "lucide-react";
 import React from "react";
 import { useState } from "react";
@@ -25,7 +26,12 @@ export const TargetImageWithShotOverlay = (
 
   return (
     <div className="relative inline-block">
-      <img src={targetImage} alt="target1" className="w-full h-auto" />
+      <img
+        src={targetImage}
+        alt="target1"
+        className="w-full h-auto"
+        onError={onImageError}
+      />
       {hits?.map((hit, index) => {
         const [x, y] = getPositionInPercent(hit.point);
         if (x === 0 || y === 0) {

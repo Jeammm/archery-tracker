@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import DEFAULT_IMAGE from "/placeholder-image.jpg";
 import { SkeletonFeature } from "./SkeletonFeature";
+import { onImageError } from "@/utils/canvasHelper";
 
 interface PostureImageWithModalProps {
   className?: string;
@@ -31,6 +32,7 @@ export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
         <img
           src={hit.pose_image_url || DEFAULT_IMAGE}
           className="object-cover w-full h-full"
+          onError={onImageError}
         />
       </div>
       <Dialog
@@ -48,6 +50,7 @@ export const PostureImageWithModal = (props: PostureImageWithModalProps) => {
               <img
                 src={hit.pose_image_url || DEFAULT_IMAGE}
                 className="object-cover w-full h-full"
+                onError={onImageError}
               />
             </div>
             <SkeletonFeature features={hit.features} />

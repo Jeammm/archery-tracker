@@ -12,6 +12,7 @@ import DEFAULT_IMAGE from "/placeholder-image.jpg";
 import { Table, TableBody, TableCell, TableRow } from "../ui/table";
 import { format } from "date-fns";
 import { TargetImageWithShotOverlay } from "./TargetImageWithShotOverlay";
+import { onImageError } from "@/utils/canvasHelper";
 
 interface TargetImageWithModalProps {
   className?: string;
@@ -33,6 +34,7 @@ export const TargetImageWithModal = (props: TargetImageWithModalProps) => {
         <img
           src={hit.target_image_url || DEFAULT_IMAGE}
           className="object-cover w-full h-full"
+          onError={onImageError}
         />
       </div>
       <Dialog

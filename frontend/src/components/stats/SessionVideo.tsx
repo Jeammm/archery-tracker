@@ -444,7 +444,7 @@ const AddMissingShotModal = ({
           Add Missing Shot
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[80%]">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Add missing shot</DialogTitle>
           <DialogDescription>
@@ -453,10 +453,18 @@ const AddMissingShotModal = ({
         </DialogHeader>
         <div className="flex gap-2">
           <div className="flex-1 rounded-md border overflow-hidden">
-            <img src={poseImage || DEFAULT_IMAGE} alt="current pose" />
+            <img
+              src={poseImage || DEFAULT_IMAGE}
+              alt="current pose"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="flex-1 rounded-md border overflow-hidden">
-            <img src={targetImage || DEFAULT_IMAGE} alt="current target" />
+            <img
+              src={targetImage || DEFAULT_IMAGE}
+              alt="current target"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
         <div>

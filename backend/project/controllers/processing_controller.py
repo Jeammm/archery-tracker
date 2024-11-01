@@ -179,47 +179,55 @@ def capture_pose_on_shot_detected(self, results, round_id):
 
 def upload_frames(scoring_detail, target_video_path, pose_video_path):
     scoring_detail_with_images = []
-    target_cap = cv2.VideoCapture(target_video_path)
-    pose_cap = cv2.VideoCapture(pose_video_path)
     
     for hit in scoring_detail:
         frame = hit['frame']
-        target_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
-        target_ret, target_frame = target_cap.read()
-        
-        pose_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
-        pose_ret, pose_frame = pose_cap.read()
-        
-        # default value
-        target_upload_result = {'secure_url': ""}
-        pose_upload_result = {'secure_url': ""}
-        skeleton_data = {}
-        features = {}
-        phase = "No Pose Detected"
-        
-        if target_ret:
-            _, target_buffer = cv2.imencode('.jpg', target_frame)
-            target_image_stream = io.BytesIO(target_buffer)
-            target_upload_result = cloudinary.uploader.upload(target_image_stream, resource_type='image')
-        
-        if pose_ret:
-            _, pose_buffer = cv2.imencode('.jpg', pose_frame)
-            pose_image_stream = io.BytesIO(pose_buffer)
-            pose_upload_result = cloudinary.uploader.upload(pose_image_stream, resource_type='image')
-            pose_estimator = PoseEstimator()
-            skeleton_data, features, phase = pose_estimator.process_pose_frame(pose_frame)
-            skeleton_data = PoseEstimator().convert_keys_to_strings(skeleton_data)
+        frame_pair_result = capture_frame_pair(frame, target_video_path, pose_video_path)
         
         hit_with_image = {
             **hit,
-            'target_image_url': target_upload_result['secure_url'],
-            'pose_image_url': pose_upload_result['secure_url'],
-            'skeleton_data': skeleton_data,
-            'features': features,
-            'phase': phase
+            **frame_pair_result,
             }
         scoring_detail_with_images.append(hit_with_image)
     return scoring_detail_with_images
+
+def capture_frame_pair(frame, target_video_path, pose_video_path):
+    target_cap = cv2.VideoCapture(target_video_path)
+    pose_cap = cv2.VideoCapture(pose_video_path)
+
+    target_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+    target_ret, target_frame = target_cap.read()
+
+    pose_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
+    pose_ret, pose_frame = pose_cap.read()
+    
+    # default value
+    target_upload_result = {'secure_url': ""}
+    pose_upload_result = {'secure_url': ""}
+    skeleton_data = {}
+    features = {}
+    phase = "No Pose Detected"
+
+    if target_ret:
+        target_upload_result = read_frame_buffer_and_upload(target_frame)
+    if pose_ret:
+        pose_upload_result = read_frame_buffer_and_upload(pose_frame)
+        pose_estimator = PoseEstimator()
+        skeleton_data, features, phase = pose_estimator.process_pose_frame(pose_frame)
+        skeleton_data = PoseEstimator().convert_keys_to_strings(skeleton_data)
+
+    return {
+        'target_image_url': target_upload_result['secure_url'],
+        'pose_image_url': pose_upload_result['secure_url'],
+        'skeleton_data': skeleton_data,
+        'features': features,
+        'phase': phase
+    }
+
+def read_frame_buffer_and_upload(frame):
+    _, target_buffer = cv2.imencode('.jpg', frame)
+    target_image_stream = io.BytesIO(target_buffer)
+    return cloudinary.uploader.upload(target_image_stream, resource_type='image')
 
 def save_recording_timestamp(round_id, video_type, timestamp):
     try:
@@ -286,47 +294,37 @@ def check_and_trim_video(type, video_timestamp, input_path, trimmed_path):
     if not video_to_trim_type:
         os.rename(input_path, trimmed_path)
         return
-    
-    print("1 🤩")
-        
-    frame_rate = 30  # frames per second
+            
+    frame_rate = 30
     time_diff = abs(pose_timestamp - target_timestamp) / 1000
     frames_to_trim = int(time_diff * frame_rate)
-    
-    print("2 🤩")
-    
+        
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
         print(f"Error: Could not open video file {input_path}")
         return None
-    print("3🤩")
         
-    fourcc = cv2.VideoWriter_fourcc(*'VP80')  # WebM compatible codec
+    fourcc = cv2.VideoWriter_fourcc(*'VP80')
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     out = cv2.VideoWriter(trimmed_path, fourcc, frame_rate, (frame_width, frame_height))
         
-    print("4🤩")
     for _ in range(frames_to_trim):
-        ret = cap.grab()  # Grab frames without decoding to skip them
+        ret = cap.grab()
         if not ret:
             print("Error: Could not skip enough frames")
             break
 
-    print("5🤩")
-    # Write the remaining frames to the output video
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
         out.write(frame)
 
-    print("6🤩")
-    # Release resources
     cap.release()
     out.release()
 
-    print("7🤩")
+    print("video trimmed 🤩")
     
 def add_manual_shot_by_id(round_id):
     try:
@@ -334,22 +332,35 @@ def add_manual_shot_by_id(round_id):
 
         existing_round = round_collection.find_one({'_id': ObjectId(round_id)})
         round_score = existing_round.get('score')
+        target_video_path = existing_round['target_video'][0]['playbackUrls'][0]['hls'][0]['url']
+        pose_video_path = existing_round['pose_video'][0]['playbackUrls'][0]['hls'][0]['url']
 
         if existing_round and round_score:
-            return insert_new_shot_to_existed_round(data, round_score, round_id)
+            return insert_new_shot_to_existed_round(data, round_score, round_id, target_video_path, pose_video_path)
+        elif existing_round:
+            return insert_new_shot_to_existed_round(data, [], round_id, target_video_path, pose_video_path)
         else:
-            return jsonify({'error': 'Session not found'}), 404
+            return jsonify({'error': 'Round not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def insert_new_shot_to_existed_round(data, round_score, round_id):
+def insert_new_shot_to_existed_round(data, round_score, round_id, target_video_path, pose_video_path):
     new_frame = int(data['frame'])
     insert_index = next((i for i, d in enumerate(round_score) if d['frame'] > new_frame), len(round_score))
 
     new_score = data['score']
     new_point_x = data['pointX']
     new_point_y = data['pointY']
-    round_score.insert(insert_index, {'id': insert_index + 1, 'frame': new_frame, 'point': [new_point_x, new_point_y], 'score': new_score})
+    round_score.insert(
+        insert_index,
+        {
+            'id': insert_index + 1,
+            'frame': new_frame,
+            'point': [new_point_x, new_point_y],
+            'score': new_score,
+            **capture_frame_pair(new_frame, target_video_path, pose_video_path)
+            }
+        )
 
     # Update the `id`s for all dictionaries after the inserted one
     for i in range(insert_index + 1, len(round_score)):

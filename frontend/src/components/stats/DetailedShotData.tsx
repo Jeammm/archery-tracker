@@ -95,7 +95,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
                   key={hit.hit_time}
                   timestamp={hit.hit_time}
                 >
-                  <div className="border rounded-lg justify-between overflow-hidden mb-4 drop-shadow-md bg-background">
+                  <div className="border rounded-lg justify-between overflow-hidden mb-4 drop-shadow-md bg-background w-full">
                     <div className="bg-primary w-full text-primary-foreground">
                       <div className="flex justify-between px-3 py-1 ">
                         <div className="flex gap-2 items-center">

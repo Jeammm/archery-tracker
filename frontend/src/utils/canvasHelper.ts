@@ -1,5 +1,6 @@
 import * as LANDMARK from "../types/constant";
 import { Point, Skeleton } from "../types/skeleton";
+import DEFAULT_IMAGE from "/placeholder-image.jpg";
 
 export const getArcFromPosition = (
   canvas: CanvasRenderingContext2D,
@@ -94,4 +95,13 @@ export const drawStickFigure = (
       ctx.closePath();
     }
   });
+};
+
+export const onImageError = ({
+  currentTarget,
+}: {
+  currentTarget: EventTarget & HTMLImageElement;
+}) => {
+  currentTarget.onerror = null;
+  currentTarget.src = DEFAULT_IMAGE;
 };
