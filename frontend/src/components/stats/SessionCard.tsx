@@ -102,8 +102,10 @@ export const SessionCard = (props: SessionCardProps) => {
       >
         <CardHeader className="space-y-0 pb-2">
           <CardTitle className="font-bold text-2xl">COMPLETED</CardTitle>
-          <CardDescription className="flex gap-1.5 items-center">
-            <p className="text-sm font-medium">Session Data</p>
+          <div className="flex gap-1.5 items-center">
+            <CardDescription className="text-sm font-mediumr">
+              Session Data
+            </CardDescription>
             {processing_status === "FAILURE" && (
               <TriangleAlert
                 className="text-amber-500"
@@ -111,7 +113,7 @@ export const SessionCard = (props: SessionCardProps) => {
                 strokeWidth={2.5}
               />
             )}
-          </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">

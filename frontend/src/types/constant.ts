@@ -32,6 +32,8 @@ export const RIGHT_HEEL = 30;
 export const LEFT_FOOT_INDEX = 31;
 export const RIGHT_FOOT_INDEX = 32;
 
+export const FPS = 30;
+
 export const INTEREST_POINT = [
   LEFT_EYE,
   RIGHT_EYE,
@@ -82,7 +84,7 @@ export const modelChoices: TargetModel[] = [
     model_name: "Olympic Standard Target",
     frame_size: [1080, 1920, 3],
     model_size: [652, 613],
-    model_path: "/olympic_standard_target.jpg"
+    model_path: "/olympic_standard_target.jpg",
   },
 ];
 

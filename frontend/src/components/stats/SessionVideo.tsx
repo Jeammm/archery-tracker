@@ -14,31 +14,14 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
 import { Loader } from "../ui/loader";
 import { ProcessingFailed } from "./RetryButton";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
-import DEFAULT_IMAGE from "/placeholder-image.jpg";
-import axios from "axios";
-import { BASE_BACKEND_URL } from "@/services/baseUrl";
-import { useAuth } from "@/context/AuthContext";
-import { isNil } from "lodash";
-import { onImageError } from "@/utils/canvasHelper";
-import { toast } from "@/hooks/use-toast";
-import { SetStateActionType } from "@/types/constant";
+import { AddMissingShotModal } from "../modal/AddMissingShotModal";
+import { EditShotModal } from "../modal/EditShotModal";
+import { FPS } from "@/types/constant";
 interface SessionVideoProps {
   sessionData: Session;
   selectedRound: number;
   fetchSessionData: () => void;
 }
-
-const FPS = 30;
 
 export const SessionVideo = (props: SessionVideoProps) => {
   const { sessionData, selectedRound, fetchSessionData } = props;
@@ -62,14 +45,19 @@ export const SessionVideo = (props: SessionVideoProps) => {
   const [isVideoPlaying, setIsVideoPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [currentShot, setCurrentShot] = useState<number>(0);
-  const [targetImage, setTargetImage] = useState<string | null>(null);
-  const [poseImage, setPoseImage] = useState<string | null>(null);
+
+  const poseCanvasEditModal = useRef<HTMLCanvasElement>(null);
+  const targetCanvasEditModal = useRef<HTMLCanvasElement>(null);
+  const poseCanvasAddModal = useRef<HTMLCanvasElement>(null);
+  const targetCanvasAddModal = useRef<HTMLCanvasElement>(null);
 
   const [isEditShotModalOpen, setIsEditShotModalOpen] =
     useState<boolean>(false);
   const [currentEditableShot, setCurrentEditableShot] = useState<Hit | null>(
     null
   );
+
+  const [isAddShotModalOpen, setIsAddShotModalOpen] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -189,11 +177,6 @@ export const SessionVideo = (props: SessionVideoProps) => {
     targetPlayerInstance?.currentTime(newTime);
     posePlayerInstance?.currentTime(newTime);
     setCurrentTime(newTime);
-
-    if (isVideoPlaying) {
-      targetPlayerInstance?.play();
-      posePlayerInstance?.play();
-    }
   };
 
   const updateCurrentShot = (frame: number) => {
@@ -202,6 +185,20 @@ export const SessionVideo = (props: SessionVideoProps) => {
       return shot.frame <= frame && (!nextShot || nextShot.frame > frame);
     });
     setCurrentShot(currentShot ? Number(currentShot.id) : 0);
+  };
+
+  const drawOnCanvas = (
+    canvas: React.RefObject<HTMLCanvasElement>,
+    player: HTMLVideoElement
+  ) => {
+    if (!canvas.current) {
+      return;
+    }
+
+    canvas.current.width = player.videoWidth;
+    canvas.current.height = player.videoHeight;
+    const canvasContext = canvas.current.getContext("2d");
+    canvasContext?.drawImage(player, 0, 0);
   };
 
   const captureVideos = () => {
@@ -219,30 +216,23 @@ export const SessionVideo = (props: SessionVideoProps) => {
       return;
     }
 
-    const poseCanvas = document.createElement("canvas");
-    const targetCanvas = document.createElement("canvas");
-
-    poseCanvas.width = posePlayerInstance.videoWidth();
-    poseCanvas.height = posePlayerInstance.videoHeight();
-
-    targetCanvas.width = targetPlayerInstance.videoWidth();
-    targetCanvas.height = targetPlayerInstance.videoHeight();
-
-    const poseCanvasContext = poseCanvas.getContext("2d");
-    poseCanvasContext?.drawImage(poseVideoPlayer, 0, 0);
-    setPoseImage(poseCanvas.toDataURL("image/png"));
-
-    const targetCanvasContext = targetCanvas.getContext("2d");
-    targetCanvasContext?.drawImage(targetVideoPlayer, 0, 0);
-    setTargetImage(targetCanvas.toDataURL("image/png"));
+    drawOnCanvas(poseCanvasAddModal, poseVideoPlayer);
+    drawOnCanvas(targetCanvasAddModal, targetVideoPlayer);
+    drawOnCanvas(poseCanvasEditModal, poseVideoPlayer);
+    drawOnCanvas(targetCanvasEditModal, targetVideoPlayer);
   };
 
   const onClickEditShotModal = (hit: Hit) => {
+    onClickPause();
     setCurrentEditableShot(hit);
-    console.log(hit.frame);
     seekToFrame(hit.frame);
     setCurrentTime(hit.frame / 30);
     setIsEditShotModalOpen(true);
+  };
+
+  const onClickAddShotModal = () => {
+    onClickPause();
+    setIsAddShotModalOpen(true);
   };
 
   const isVideoNotReady =
@@ -260,11 +250,21 @@ export const SessionVideo = (props: SessionVideoProps) => {
         captureVideos={captureVideos}
         hit={currentEditableShot}
         roundId={roundId}
-        poseImage={poseImage}
-        targetImage={targetImage}
+        poseCanvasRef={poseCanvasEditModal}
+        targetCanvasRef={targetCanvasEditModal}
         fetchSessionData={fetchSessionData}
         currentTime={currentTime}
         seekToFrame={seekToFrame}
+      />
+      <AddMissingShotModal
+        currentTime={currentTime}
+        isAddShotModalOpen={isAddShotModalOpen}
+        setIsAddShotModalOpen={setIsAddShotModalOpen}
+        captureVideos={captureVideos}
+        poseCanvasRef={poseCanvasAddModal}
+        targetCanvasRef={targetCanvasAddModal}
+        roundId={roundId}
+        fetchSessionData={fetchSessionData}
       />
       <div
         className="flex flex-col sm:flex-row"
@@ -358,38 +358,28 @@ export const SessionVideo = (props: SessionVideoProps) => {
         <Slider
           value={[currentTime]}
           max={targetPlayerInstance?.duration()}
-          step={1}
+          step={0.1}
           onValueChange={(value) => handleSliderChange(value)}
           disabled={isVideoNotReady}
         />
-        <AddMissingShotModal
-          currentTime={currentTime}
-          onClick={() => {
-            onClickPause();
-            captureVideos();
-          }}
-          targetImage={targetImage}
-          poseImage={poseImage}
-          roundId={roundId}
-          fetchSessionData={fetchSessionData}
+        <Button
+          variant="outline"
+          onClick={onClickAddShotModal}
           className="hidden md:block"
-        />
+        >
+          Add Missing Shot
+        </Button>
       </div>
       <div className="rounded-md mt-4 overflow-hidden border flex-1 flex flex-col">
         <div className="flex items-center justify-between px-3 py-1 md:p-3 bg-primary ">
           <h2 className="text-primary-foreground font-semibold">Shots</h2>
-          <AddMissingShotModal
-            currentTime={currentTime}
-            onClick={() => {
-              onClickPause();
-              captureVideos();
-            }}
-            targetImage={targetImage}
-            poseImage={poseImage}
-            roundId={roundId}
-            fetchSessionData={fetchSessionData}
+          <Button
+            variant="outline"
+            onClick={onClickAddShotModal}
             className="block md:hidden"
-          />
+          >
+            Add Missing Shot
+          </Button>
         </div>
         <Separator />
         <div className="grid grid-cols-5 border-b items-center cursor-pointer bg-secondary text-secondary-foreground px-4 py-1.5">
@@ -450,360 +440,5 @@ export const SessionVideo = (props: SessionVideoProps) => {
         </div>
       </div>
     </div>
-  );
-};
-
-const AddMissingShotModal = ({
-  currentTime,
-  onClick,
-  targetImage,
-  poseImage,
-  roundId,
-  fetchSessionData,
-  className,
-}: {
-  currentTime: number;
-  onClick: () => void;
-  targetImage: string | null;
-  poseImage: string | null;
-  roundId: string;
-  fetchSessionData: () => void;
-  className?: string;
-}) => {
-  const [scoreInput, setScoreInput] = useState<number | null>(null);
-  const [hitLocation, setHitLocation] = useState<{
-    x: number | null;
-    y: number | null;
-  }>({ x: null, y: null });
-
-  const { user } = useAuth();
-
-  const submitManualShot = async () => {
-    try {
-      await axios.post(
-        `${BASE_BACKEND_URL}/add-manual-shot/${roundId}`,
-        {
-          frame: (currentTime * FPS).toFixed(0),
-          score: scoreInput || 0,
-          pointX: hitLocation.x && hitLocation.y ? hitLocation.x : 0,
-          pointY: hitLocation.x && hitLocation.y ? hitLocation.y : 0,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token || ""}`,
-          },
-        }
-      );
-      toast({
-        title: "Add new shot successfully!",
-        description: `Your new shot with score of ${scoreInput} has been added @${currentTime}.`,
-        variant: "success",
-      });
-      setScoreInput(null);
-      fetchSessionData();
-      setHitLocation({ x: null, y: null });
-    } catch (error) {
-      toast({
-        title: "Add new shot Failed",
-        description: `Error: ${error}`,
-        variant: "destructive",
-      });
-    }
-  };
-
-  return (
-    <Dialog>
-      <DialogTrigger>
-        <Button variant="outline" onClick={onClick} className={className}>
-          Add Missing Shot
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Add missing shot</DialogTitle>
-          <DialogDescription>
-            Shot Missing? Don't worry, you can add a new shot manually.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex gap-2">
-          <div className="flex-1 rounded-md border overflow-hidden">
-            <img
-              src={poseImage || DEFAULT_IMAGE}
-              alt="current pose"
-              className="w-full h-full object-cover"
-              onError={onImageError}
-            />
-          </div>
-          <div className="flex-1 rounded-md border overflow-hidden">
-            <img
-              src={targetImage || DEFAULT_IMAGE}
-              alt="current target"
-              className="w-full h-full object-cover"
-              onError={onImageError}
-            />
-          </div>
-        </div>
-        <div>
-          <div className="flex gap-2 w-full mb-4">
-            <div className="flex-1">
-              <p className="mb-1.5">Score</p>
-              <Input
-                value={String(!isNil(scoreInput) ? scoreInput : "")}
-                onChange={(event) => {
-                  const score = Number(event.target.value);
-                  if (!isNaN(score)) {
-                    setScoreInput(score);
-                  }
-                }}
-              />
-            </div>
-            <div className="flex-1">
-              <p className="mb-1.5">Time</p>
-              <Input value={currentTime.toFixed(2)} readOnly />
-            </div>
-          </div>
-          <div className="flex gap-4 items-center">
-            <p>Location</p>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>x : </p>
-              <Input
-                value={String(!isNil(hitLocation.x) ? hitLocation.x : "")}
-                onChange={(event) => {
-                  const xCoor = Number(event.target.value);
-                  if (!isNaN(xCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      x: xCoor,
-                    }));
-                  }
-                }}
-              />
-            </div>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>y : </p>
-              <Input
-                value={String(!isNil(hitLocation.y) ? hitLocation.y : "")}
-                onChange={(event) => {
-                  const yCoor = Number(event.target.value);
-                  if (!isNaN(yCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      y: yCoor,
-                    }));
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <DialogClose className="w-full mt-4">
-            <Button className="w-full" onClick={submitManualShot}>
-              Submit
-            </Button>
-          </DialogClose>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const EditShotModal = ({
-  hit,
-  setIsEditShotModalOpen,
-  isEditShotModalOpen,
-  roundId,
-  poseImage,
-  targetImage,
-  seekToFrame,
-  fetchSessionData,
-  captureVideos,
-}: {
-  isEditShotModalOpen: boolean;
-  setIsEditShotModalOpen: SetStateActionType<boolean>;
-  hit: Hit | null;
-  roundId: string;
-  poseImage: string | null;
-  targetImage: string | null;
-  fetchSessionData: () => void;
-  currentTime: number;
-  seekToFrame: (frameNumber: number) => void;
-  captureVideos: () => void;
-}) => {
-  const { user } = useAuth();
-
-  const [isNewFrameLoading, setIsNewFrameLoading] = useState<boolean>(false);
-
-  const [currentShotScore, setCurrentShotScore] = useState<number | null>(null);
-  const [currentFrame, setCurrentFrame] = useState<number | null>(null);
-  const [hitLocation, setHitLocation] = useState<{
-    x: number | null;
-    y: number | null;
-  }>({ x: null, y: null });
-
-  const submitShotDataChange = async () => {
-    if (!currentFrame || !hit) {
-      return;
-    }
-    try {
-      await axios.post(
-        `${BASE_BACKEND_URL}/edit-manual-shot/${roundId}/${hit.id}`,
-        {
-          frame: currentFrame,
-          score: currentShotScore || 0,
-          pointX: hitLocation.x && hitLocation.y ? hitLocation.x : 0,
-          pointY: hitLocation.x && hitLocation.y ? hitLocation.y : 0,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${user?.token || ""}`,
-          },
-        }
-      );
-      toast({
-        title: "Edit shot data successfully!",
-        description: "Your shot detail has been updated.",
-        variant: "success",
-      });
-      setCurrentShotScore(null);
-      setHitLocation({ x: null, y: null });
-      fetchSessionData();
-    } catch (error) {
-      toast({
-        title: "Edit shot data Failed",
-        description: `Error: ${error}`,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const onClickPreviousFrame = () => {
-    const newFrame = (currentFrame || 0) - 1;
-    seekToFrame(newFrame);
-    setCurrentFrame(newFrame);
-  };
-
-  const onClickNextFrame = () => {
-    const newFrame = (currentFrame || 0) + 1;
-    seekToFrame(newFrame);
-    setCurrentFrame(newFrame);
-  };
-
-  useEffect(() => {
-    if (isNil(hit)) {
-      return;
-    }
-    setCurrentShotScore(hit.score);
-    setCurrentFrame(hit.frame);
-    setHitLocation({ x: hit.point[0], y: hit.point[1] });
-  }, [hit]);
-
-  useEffect(() => {
-    setIsNewFrameLoading(true);
-    captureVideos();
-    setIsNewFrameLoading(false);
-  }, [captureVideos, currentFrame]);
-
-  return (
-    <Dialog
-      modal
-      open={isEditShotModalOpen}
-      onOpenChange={setIsEditShotModalOpen}
-    >
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Edit Shot Detail</DialogTitle>
-          <DialogDescription>
-            Wrong Shot Detail? Don't worry, you can edit this shot manually.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex gap-2">
-          <div className="flex-1 rounded-md border overflow-hidden">
-            {!isNewFrameLoading ? (
-              <img
-                src={poseImage || DEFAULT_IMAGE}
-                alt="current pose"
-                className="w-full h-full object-cover"
-                onError={onImageError}
-              />
-            ) : (
-              <Loader />
-            )}
-          </div>
-          <div className="flex-1 rounded-md border overflow-hidden">
-            {!isNewFrameLoading ? (
-              <img
-                src={targetImage || DEFAULT_IMAGE}
-                alt="current target"
-                className="w-full h-full object-cover"
-                onError={onImageError}
-              />
-            ) : (
-              <Loader />
-            )}
-          </div>
-        </div>
-        <div>
-          <div className="flex gap-2 w-full mb-4">
-            <div className="flex-1">
-              <p className="mb-1.5">Score</p>
-              <Input
-                value={String(currentShotScore)}
-                onChange={(event) => {
-                  const score = Number(event.target.value);
-                  if (!isNaN(score)) {
-                    setCurrentShotScore(score);
-                  }
-                }}
-              />
-            </div>
-            <div className="flex-1">
-              <p className="mb-1.5">Time</p>
-              <div className="flex items-center">
-                <ArrowBigLeft onClick={onClickPreviousFrame} />
-                <Input value={String(currentFrame?.toFixed(2))} readOnly />
-                <ArrowBigRight onClick={onClickNextFrame} />
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-4 items-center">
-            <p>Location</p>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>x : </p>
-              <Input
-                value={String(!isNil(hitLocation.x) ? hitLocation.x : "")}
-                onChange={(event) => {
-                  const xCoor = Number(event.target.value);
-                  if (!isNaN(xCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      x: xCoor,
-                    }));
-                  }
-                }}
-              />
-            </div>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>y : </p>
-              <Input
-                value={String(!isNil(hitLocation.y) ? hitLocation.y : "")}
-                onChange={(event) => {
-                  const yCoor = Number(event.target.value);
-                  if (!isNaN(yCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      y: yCoor,
-                    }));
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <DialogClose className="w-full mt-4">
-            <Button className="w-full" onClick={submitShotDataChange}>
-              Submit
-            </Button>
-          </DialogClose>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };
