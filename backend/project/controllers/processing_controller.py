@@ -325,7 +325,7 @@ def check_and_trim_video(type, video_timestamp, input_path, trimmed_path):
     cap.release()
     out.release()
 
-    print("video trimmed 🤩")
+    print(f"{video_to_trim_type} video trimmed 🤩")
     
 def add_manual_shot_by_id(round_id):
     try:

@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { isTokenExpired } from "@/utils/auth";
 import { Loader } from "./ui/loader";
@@ -9,7 +9,6 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const navigate = useNavigate();
   const { user, refreshUserToken } = useAuth();
   const location = useLocation();
 
@@ -22,15 +21,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       if (tokenLife < 0) {
         setLoading(false);
         setUserTokenExpired(true);
-      } else {
-        const origin =
-          (location.state as { from: { pathname: string } })?.from?.pathname ||
-          "/dashboard";
-        const searchParams = location.search;
-
-        navigate(`${origin}${searchParams}`);
-      }
-      if (tokenLife < 259200) {
+      } else if (tokenLife < 259200) {
         // if expiring in 3 days
         refreshUserToken(user.token);
       }

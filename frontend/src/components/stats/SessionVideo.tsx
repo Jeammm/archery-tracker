@@ -59,6 +59,8 @@ export const SessionVideo = (props: SessionVideoProps) => {
 
   const [isAddShotModalOpen, setIsAddShotModalOpen] = useState<boolean>(false);
 
+  const [isVideoEnded, setIsVideoEnded] = useState<boolean>(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -99,6 +101,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
       const newFrame = Math.floor(newTime * FPS);
       setCurrentTime(newTime);
       updateCurrentShot(newFrame);
+      setIsVideoEnded(false);
     });
   };
 
@@ -116,6 +119,12 @@ export const SessionVideo = (props: SessionVideoProps) => {
         setIsVideoPlaying(false);
         posePlayerInstance.pause();
       });
+      targetPlayerInstance.on("ended", () => {
+        setIsVideoEnded(true);
+      });
+      posePlayerInstance.on("ended", () => {
+        setIsVideoEnded(true);
+      });
     }
   }, [targetPlayerInstance, posePlayerInstance]);
 
@@ -132,16 +141,6 @@ export const SessionVideo = (props: SessionVideoProps) => {
     return score?.find((hit) => hit.id === shotNo)?.frame || 0;
   };
 
-  const onClickPause = () => {
-    targetPlayerInstance?.pause();
-    posePlayerInstance?.pause();
-  };
-
-  const onClickPlay = () => {
-    targetPlayerInstance?.play();
-    posePlayerInstance?.play();
-  };
-
   const onClickPrevious = () => {
     seekToFrame(getFrameFromShotNumber(currentShot - 1));
   };
@@ -154,6 +153,10 @@ export const SessionVideo = (props: SessionVideoProps) => {
     if (isVideoPlaying) {
       targetPlayerInstance?.pause();
       posePlayerInstance?.pause();
+    } else if (!isVideoPlaying && isVideoEnded) {
+      seekToFrame(0);
+      targetPlayerInstance?.play();
+      posePlayerInstance?.play();
     } else {
       targetPlayerInstance?.play();
       posePlayerInstance?.play();
@@ -173,7 +176,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const seekToFrame = (frameNumber: number) => {
-    const newTime = frameNumber / FPS + 1;
+    const newTime = frameNumber / FPS;
     targetPlayerInstance?.currentTime(newTime);
     posePlayerInstance?.currentTime(newTime);
     setCurrentTime(newTime);
@@ -223,7 +226,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const onClickEditShotModal = (hit: Hit) => {
-    onClickPause();
+    onPlayerClick();
     setCurrentEditableShot(hit);
     seekToFrame(hit.frame);
     setCurrentTime(hit.frame / 30);
@@ -231,7 +234,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const onClickAddShotModal = () => {
-    onClickPause();
+    onPlayerClick();
     setIsAddShotModalOpen(true);
   };
 
@@ -314,7 +317,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
           </Button>
           {isVideoPlaying ? (
             <Button
-              onClick={onClickPause}
+              onClick={onPlayerClick}
               variant="clean"
               size="no-space"
               disabled={isVideoNotReady}
@@ -323,7 +326,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
             </Button>
           ) : (
             <Button
-              onClick={onClickPlay}
+              onClick={onPlayerClick}
               variant="clean"
               size="no-space"
               disabled={isVideoNotReady}

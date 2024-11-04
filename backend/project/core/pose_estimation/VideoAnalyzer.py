@@ -2,7 +2,6 @@ from project.core.pose_estimation.PoseEstimator import PoseEstimator
 from project.core.pose_estimation.Sketcher import Sketcher
 import cv2
 
-HOMOGRAPHY_LIFE_SPAN = 24
 
 class VideoAnalyzer:
     def __init__(self, videoPath):
@@ -20,7 +19,7 @@ class VideoAnalyzer:
         # set output configurations
         frame_size = (self.frame_w, self.frame_h)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(outputName, fourcc, 24.0, frame_size)
+        out = cv2.VideoWriter(outputName, fourcc, 30, frame_size)
 
         while True:
             ret, frame = self.cap.read()
