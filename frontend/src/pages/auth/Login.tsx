@@ -4,7 +4,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Credentials } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { jwtDecode } from "jwt-decode";
 import { Loader } from "@/components/ui/loader";
 
 import StatBanner from "@/assets/stat_banner.png";
@@ -12,10 +11,6 @@ import StatBannerLight from "@/assets/stat_banner_light.png";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { isTokenExpired } from "@/utils/auth";
-
-interface JwtPayload {
-  exp: number;
-}
 
 const Login = () => {
   const { lightOrDark } = useTheme();
