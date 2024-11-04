@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshUserToken } = useAuth();
   const location = useLocation();
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -18,7 +18,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     if (user && user.token) {
-      if (isTokenExpired(user.token)) {
+      const tokenLife = isTokenExpired(user.token);
+      if (tokenLife < 0) {
         setLoading(false);
         setUserTokenExpired(true);
       } else {
@@ -26,11 +27,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           (location.state as { from: { pathname: string } })?.from?.pathname ||
           "/dashboard";
         const searchParams = location.search;
+
         navigate(`${origin}${searchParams}`);
       }
     }
     setLoading(false);
   }, [location.search, location.state, navigate, user]);
+
+  useEffect(() => {
+    if (user && user.token) {
+      const tokenLife = isTokenExpired(user.token);
+      if (tokenLife < 259200) {
+        // if expiring in 3 days
+        refreshUserToken(user.token);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   if (loading) {
     return <Loader />;

@@ -15,12 +15,12 @@ export const isValidPassword = (password: string) => {
   return password.length >= 8;
 };
 
-export const isTokenExpired = (token: string): boolean => {
+export const isTokenExpired = (token: string): number => {
   try {
     const decoded: JwtPayload = jwtDecode(token);
     const currentTime = Math.floor(Date.now() / 1000);
-    return decoded.exp < currentTime;
+    return decoded.exp - currentTime;
   } catch (error) {
-    return true;
+    return 999;
   }
 };

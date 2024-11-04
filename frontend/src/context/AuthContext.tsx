@@ -99,6 +99,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const refreshUserToken = async (oldToken: string) => {
+    try {
+      const response = await fetch(`${BASE_BACKEND_URL}/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: oldToken }),
+      });
+
+      if (response.ok) {
+        const userData: User = await response.json();
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -109,6 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         signup,
         doNotShowTutorialModal,
         onClickDoNotShowTutorialModal,
+        refreshUserToken,
       }}
     >
       {children}

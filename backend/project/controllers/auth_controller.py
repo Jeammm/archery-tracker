@@ -89,6 +89,42 @@ def login():
             return jsonify({'error': 'Invalid email or password'}), 401
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+def refresh():
+    try:
+        data = request.json
+        token = data.get('token')
+        
+        if not token:
+            return jsonify({'error': 'Token is required'}), 400
+
+        # Decode the token to verify it
+        
+        user_id = decode_token(f"Bearer {token}")
+        if isinstance(user_id, str) and 'Invalid' in user_id:
+            return jsonify({'error': 'Invalid or expired token.'}), 400
+
+        # Fetch user data from the database
+        collection = db[ACCOUNT_COLLECTION]
+        user = collection.find_one({'_id': ObjectId(user_id)})
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Generate a new token
+        new_token = generate_token(user['_id'])
+        
+        # Return user data along with the new token
+        return jsonify({
+            'id': str(user['_id']),
+            'name': user['name'],
+            'email': user['email'],
+            'token': new_token,
+            'is_verified': user['is_verified']
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 def edit_profile(user_id):
     try:

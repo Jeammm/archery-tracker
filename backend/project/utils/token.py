@@ -6,7 +6,7 @@ import datetime
 def generate_token(user_id):
     try:
         payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7),
             'iat': datetime.datetime.utcnow(),
             'sub': str(user_id)
         }

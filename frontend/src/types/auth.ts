@@ -14,6 +14,7 @@ export interface AuthContextType {
   signup: (registerData: RegisterData) => Promise<boolean>;
   doNotShowTutorialModal: boolean;
   onClickDoNotShowTutorialModal: (doNotShow: boolean) => void;
+  refreshUserToken: (oldToken: string) => void;
 }
 
 export interface Credentials {
