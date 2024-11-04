@@ -13,17 +13,25 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useMemo } from "react";
+import { SetStateActionType } from "@/types/constant";
+import { HelpCircle } from "lucide-react";
 
 interface SessionInitiateHeaderProps {
   session: Session;
   targetVideoUploadingStatus: Record<string, number>;
   roundData: Round | null;
   onClickEndSession: (isRoundExist: boolean) => void;
+  setIsTutorialManualOpen: SetStateActionType<boolean>;
 }
 
 export const SessionInitiateHeader = (props: SessionInitiateHeaderProps) => {
-  const { session, targetVideoUploadingStatus, roundData, onClickEndSession } =
-    props;
+  const {
+    session,
+    targetVideoUploadingStatus,
+    roundData,
+    onClickEndSession,
+    setIsTutorialManualOpen,
+  } = props;
 
   const isRoundExisted = useMemo(() => {
     return !(
@@ -36,7 +44,14 @@ export const SessionInitiateHeader = (props: SessionInitiateHeaderProps) => {
   return (
     <div className="flex justify-between">
       <div>
-        <h1 className="text-4xl font-bold">Start Training!</h1>
+        <div className="flex gap-3 items-center">
+          <h1 className="text-4xl font-bold">Start Training!</h1>
+          <HelpCircle
+            size={20}
+            onClick={() => setIsTutorialManualOpen(true)}
+            className="cursor-pointer"
+          />
+        </div>
 
         <p className="mt-2 text-muted-foreground">
           Start time: {format(session.created_at, "hh:mm a 'at' do MMMM yyyy")}

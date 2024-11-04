@@ -8,6 +8,7 @@ import React, {
 import { User, AuthContextType, Credentials, RegisterData } from "@/types/auth";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { toast } from "@/hooks/use-toast";
+import { isNil } from "lodash";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -15,13 +16,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [doNotShowTutorialModal, setDoNotShowTutorialModal] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+    const storedDoNotShowTutorialModal = localStorage.getItem(
+      "doNotShowTutorialModal"
+    );
+    if (storedDoNotShowTutorialModal) {
+      const { doNotShow } = JSON.parse(storedDoNotShowTutorialModal);
+      if (isNil(doNotShow)) {
+        return;
+      }
+      setDoNotShowTutorialModal(doNotShow);
+    }
   }, []);
+
+  const onClickDoNotShowTutorialModal = async (doNotShow: boolean) => {
+    setDoNotShowTutorialModal(doNotShow);
+    localStorage.setItem(
+      "doNotShowTutorialModal",
+      JSON.stringify({ doNotShow })
+    );
+  };
 
   const login = async (credentials: Credentials): Promise<boolean> => {
     try {
@@ -57,6 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("doNotShowTutorialModal");
   };
 
   const signup = async (registerData: RegisterData): Promise<boolean> => {
@@ -78,7 +100,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, setUser, signup }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        setUser,
+        signup,
+        doNotShowTutorialModal,
+        onClickDoNotShowTutorialModal,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

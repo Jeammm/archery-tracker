@@ -10,6 +10,7 @@ import { ParticipantsList } from "@/components/participants/ParticipantsList";
 import { SessionInitiateHeader } from "@/components/canvas/SessionInitiateHeader";
 import { SessionInitiateVideoStream } from "@/components/canvas/SessionInitiateVideoStream";
 import { RoundDetailsTable } from "../../components/rounds/RoundDetailsTable";
+import { RoundTutorialModal } from "./RoundTutorialModal";
 
 export const SessionInitiate = () => {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export const SessionInitiate = () => {
   const [roundData, setRoundData] = useState<Round | null>(null);
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
   const [isCameraConnected, setIsCameraConnected] = useState<boolean>(false);
+  const [isTutorialManualOpen, setIsTutorialManualOpen] =
+    useState<boolean>(false);
   const [participantDevices, setParticipantDevices] = useState<{
     users: Record<string, string>;
   }>({ users: {} });
@@ -140,11 +143,17 @@ export const SessionInitiate = () => {
 
   return (
     <div className="flex flex-col flex-1">
+      <RoundTutorialModal
+        isTutorialManualOpen={isTutorialManualOpen}
+        setIsTutorialManualOpen={setIsTutorialManualOpen}
+      />
+
       <SessionInitiateHeader
         session={session}
         targetVideoUploadingStatus={targetVideoUploadingStatus}
         roundData={roundData}
         onClickEndSession={onClickEndSession}
+        setIsTutorialManualOpen={setIsTutorialManualOpen}
       />
 
       <SessionInitiateVideoStream
