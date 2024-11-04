@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Credentials } from "@/types/auth";
@@ -10,7 +10,6 @@ import StatBanner from "@/assets/stat_banner.png";
 import StatBannerLight from "@/assets/stat_banner_light.png";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
-import { isTokenExpired } from "@/utils/auth";
 
 const Login = () => {
   const { lightOrDark } = useTheme();
@@ -18,17 +17,17 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const { login, user } = useAuth();
-  const [loading, setLoading] = useState(true); // Add loading state
+  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const [isLoginFailed, setIsLoginFailed] = useState<boolean>(false);
 
   const handleSubmit = async () => {
-    setLoading(true); // Set loading state while processing login
+    setLoading(true);
     const success = await login(credentials);
-    setLoading(false); // Stop loading after login is processed
+    setLoading(false);
     if (success) {
       const origin =
         (location.state as { from: { pathname: string } })?.from?.pathname ||
@@ -38,22 +37,6 @@ const Login = () => {
       setIsLoginFailed(true);
     }
   };
-
-  useEffect(() => {
-    if (user && user.token) {
-      if (isTokenExpired(user.token)) {
-        alert("Session expired. Please log in again.");
-        setLoading(false); // Stop loading if session is expired
-      } else {
-        const origin =
-          (location.state as { from: { pathname: string } })?.from?.pathname ||
-          "/dashboard";
-        const searchParams = location.search;
-        navigate(`${origin}${searchParams}`);
-      }
-    }
-    setLoading(false); // Stop loading if no user token is found
-  }, [location.search, location.state, navigate, user]);
 
   if (loading) {
     return (
@@ -70,6 +53,11 @@ const Login = () => {
         lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
       ])}
     >
+      {location.state?.tokenExpired && (
+        <div className="w-full mb-4 max-w-[80%] md:max-w-4xl p-2 border rounded-lg text-center text-amber-600 border-amber-600">
+          Your login credential is expired, please login again 🥺
+        </div>
+      )}
       <div className="flex w-full max-w-[80%] md:max-w-4xl overflow-hidden bg-background rounded-lg drop-shadow-lg">
         <div className="w-full md:w-1/2 p-6 flex items-center border rounded-lg md:rounded-r-none">
           <div className="w-full">
