@@ -260,7 +260,12 @@ export const SessionInitiateVideoStream = (
     }
     // Set up local video
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { frameRate: { ideal: 30 } },
+      video: {
+        facingMode: "environment",
+        width: { ideal: 960 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 },
+      },
       audio: false,
     });
 
@@ -494,9 +499,13 @@ export const SessionInitiateVideoStream = (
                 </div>
                 <div className="absolute z-30 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
                   <div className="bg-white p-1 border relative">
-                    <QRCodeSVG
-                      value={`${BASE_FRONTEND_URL}/join?session=${session._id}`}
-                    />
+                    {peerConnection ? (
+                      <QRCodeSVG
+                        value={`${BASE_FRONTEND_URL}/join?session=${session._id}`}
+                      />
+                    ) : (
+                      <Loader />
+                    )}
                   </div>
                   <p className="text-lg mt-3 text-center w-full font-semibold">
                     Scan with mobile phone <br />
