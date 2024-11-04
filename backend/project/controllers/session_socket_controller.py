@@ -82,8 +82,8 @@ class SessionSocketController:
         
         if 'round_data' in self.active_sessions[session_id]:
             self.discard_current_round(session_id)
-            self.active_sessions.pop(session_id, None)
-        
+            
+        self.active_sessions.pop(session_id, None)
         leave_room(session_id)
         emit('session_ended', {'message': 'The room has ended.'}, to=session_id)
     
