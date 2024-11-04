@@ -11,6 +11,7 @@ import StatBanner from "@/assets/stat_banner.png";
 import StatBannerLight from "@/assets/stat_banner_light.png";
 import { useTheme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
+import { isTokenExpired } from "@/utils/auth";
 
 interface JwtPayload {
   exp: number;
@@ -28,16 +29,6 @@ const Login = () => {
   const location = useLocation();
 
   const [isLoginFailed, setIsLoginFailed] = useState<boolean>(false);
-
-  const isTokenExpired = (token: string): boolean => {
-    try {
-      const decoded: JwtPayload = jwtDecode(token);
-      const currentTime = Math.floor(Date.now() / 1000);
-      return decoded.exp < currentTime;
-    } catch (error) {
-      return true;
-    }
-  };
 
   const handleSubmit = async () => {
     setLoading(true); // Set loading state while processing login
