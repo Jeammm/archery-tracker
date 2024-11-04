@@ -30,18 +30,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
         navigate(`${origin}${searchParams}`);
       }
-    }
-    setLoading(false);
-  }, [location.search, location.state, navigate, user]);
-
-  useEffect(() => {
-    if (user && user.token) {
-      const tokenLife = isTokenExpired(user.token);
       if (tokenLife < 259200) {
         // if expiring in 3 days
         refreshUserToken(user.token);
       }
     }
+    setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
