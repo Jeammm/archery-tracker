@@ -86,6 +86,10 @@ export const SessionInitiateVideoStream = (
     null
   );
 
+  const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+  const [disconnectDetectedSignal, setDisconnectDetectedSignal] =
+    useState<number>(0);
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const poseDetectorRef = useRef<PoseDetector | null>(null);
@@ -254,11 +258,7 @@ export const SessionInitiateVideoStream = (
     });
   };
 
-  const init = async () => {
-    if (!session._id) {
-      return;
-    }
-    // Set up local video
+  const initVideoStream = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: "environment",
@@ -269,8 +269,20 @@ export const SessionInitiateVideoStream = (
       audio: false,
     });
 
+    // Set up local video
+
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
+    }
+
+    setVideoStream(stream);
+
+    return stream;
+  };
+
+  const initWebRTC = async () => {
+    if (!session._id || !videoStream) {
+      return;
     }
 
     // Set up WebRTC
@@ -279,7 +291,7 @@ export const SessionInitiateVideoStream = (
     });
     setPeerConnection(pc);
 
-    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+    videoStream.getTracks().forEach((track) => pc.addTrack(track, videoStream));
 
     pc.ontrack = (event) => {
       if (remoteVideoRef.current) {
@@ -293,8 +305,12 @@ export const SessionInitiateVideoStream = (
       const data = snapshot.data();
       if (!pc.currentRemoteDescription && data && data.answer) {
         const remoteDesc = new RTCSessionDescription(data.answer);
-        await pc.setRemoteDescription(remoteDesc);
-        setIsCameraConnected(true);
+        try {
+          await pc.setRemoteDescription(remoteDesc);
+          setIsCameraConnected(true);
+        } catch {
+          return;
+        }
       }
     });
 
@@ -325,14 +341,13 @@ export const SessionInitiateVideoStream = (
       collection(db, "sessions", session._id, "calleeCandidates"),
       (snapshot) => {
         snapshot.docChanges().forEach(async (change) => {
-          if (change.type === "added") {
+          if (change.type === "added" && pc.connectionState !== "closed") {
             const data = change.doc.data();
             await pc.addIceCandidate(new RTCIceCandidate(data));
           }
         });
       }
     );
-    return stream;
   };
 
   useEffect(() => {
@@ -354,7 +369,7 @@ export const SessionInitiateVideoStream = (
         setIsCameraConnected(false);
         mediaRecorder?.stop();
         setRecording(false);
-        // init()
+        setDisconnectDetectedSignal((prev) => prev + 1);
       }
     );
     socket.on(
@@ -366,14 +381,11 @@ export const SessionInitiateVideoStream = (
     socket.on("targetVideoUploadDone", (data: { round_id: string }) => {
       setUploadedTargetVideos((prev) => [...prev, data.round_id]);
     });
-    const stream = init();
+    const stream = initVideoStream();
     detectPose();
 
     // Cleanup function
     return () => {
-      if (peerConnection) {
-        peerConnection.close();
-      }
       if (stream) {
         stream.then((streamTrack) =>
           streamTrack?.getTracks().forEach((track) => {
@@ -387,6 +399,16 @@ export const SessionInitiateVideoStream = (
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session._id]);
+
+  useEffect(() => {
+    initWebRTC();
+    return () => {
+      if (peerConnection) {
+        peerConnection.close();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session._id, disconnectDetectedSignal, videoStream]);
 
   useEffect(() => {
     if (isRecordingTriggered && !isCameraConnected) {
@@ -500,32 +522,34 @@ export const SessionInitiateVideoStream = (
                 <div className="absolute z-30 top-0 left-0 w-full h-full flex justify-center items-center flex-col">
                   <div className="bg-white p-1 border relative">
                     {peerConnection ? (
-                      <QRCodeSVG
-                        value={`${BASE_FRONTEND_URL}/join?session=${session._id}`}
-                      />
+                      <div
+                        className="cursor-pointer"
+                        onClick={() => {
+                          window.open(
+                            `${BASE_FRONTEND_URL}/join?session=${session._id}`,
+                            "newwindow",
+                            "width=800,height=400"
+                          );
+                          return false;
+                        }}
+                      >
+                        <QRCodeSVG
+                          value={`${BASE_FRONTEND_URL}/join?session=${session._id}`}
+                        />
+                      </div>
                     ) : (
-                      <Loader />
+                      <Loader
+                        containerClassName="w-[138px] h-[138px] flex justify-center items-center"
+                        spinnerSize="md"
+                      >
+                        <></>
+                      </Loader>
                     )}
                   </div>
                   <p className="text-lg mt-3 text-center w-full font-semibold">
                     Scan with mobile phone <br />
                     to use as target camera
                   </p>
-
-                  <Button
-                    variant="outline"
-                    className="mt-2"
-                    onClick={() => {
-                      window.open(
-                        `${BASE_FRONTEND_URL}/join?session=${session._id}`,
-                        "newwindow",
-                        "width=800,height=400"
-                      );
-                      return false;
-                    }}
-                  >
-                    JOIN
-                  </Button>
                 </div>
               </>
             )}
