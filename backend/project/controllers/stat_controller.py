@@ -17,8 +17,8 @@ def calculate_sum_training_time(sessions):
 def calculate_sum_round_count(sessions):
     return sum(len(session['round_result']) for session in sessions)
 
-def calculate_average_accuracy(sessions):    
-    if sum_accuracy := [session['accuracy'] for session in sessions]:
+def calculate_average_accuracy(sessions):
+    if sum_accuracy:= [session['accuracy'] for session in sessions if session['accuracy'] != 0]:
         return round(sum(sum_accuracy) / len(sum_accuracy) * 10, 2)
     else:
         return 0
