@@ -9,13 +9,12 @@ import {
 } from "@/components/ui/card";
 import {
   ChartContainer,
-  // ChartLegend,
-  // ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
 import { Round } from "@/types/session";
+import { useMemo } from "react";
 
 interface GeneralShotDataChartProps {
   round_result: Round[];
@@ -31,10 +30,10 @@ export function GeneralShotDataChart(props: GeneralShotDataChartProps) {
     },
   };
 
-  const getRoundData = (rounds: Round[]) => {
+  const roundData = useMemo(() => {
     const roundsData: { shotNo: number; score: number }[] = [];
 
-    rounds.map((round) => {
+    round_result.map((round) => {
       round.score?.map((hit) => {
         roundsData.push({
           shotNo: hit.id,
@@ -42,9 +41,17 @@ export function GeneralShotDataChart(props: GeneralShotDataChartProps) {
         });
       });
     });
-
     return roundsData;
-  };
+  }, [round_result]);
+
+  const mockRoundData = useMemo(() => {
+    return new Array(15).fill(null).map((_, index) => {
+      return {
+        shotNo: index,
+        score: Math.floor(Math.random() * 10),
+      };
+    });
+  }, []);
 
   return (
     <Card>
@@ -52,14 +59,21 @@ export function GeneralShotDataChart(props: GeneralShotDataChartProps) {
         <CardTitle>Shot Statistic</CardTitle>
         <CardDescription>Your Shot Statistic</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
+        {roundData.length === 0 && (
+          <div className="w-full h-full absolute top-0 left-0 bg-background/50 backdrop-blur-md z-20 flex justify-center items-center rounded-lg">
+            <p className="text-2xl italic tracking-wider -mt-20">
+              No shot data detected
+            </p>
+          </div>
+        )}
         <ChartContainer
           config={chartConfig}
           className={cn(["h-[250px] aspect-auto"])}
         >
           <BarChart
             accessibilityLayer
-            data={getRoundData(round_result)}
+            data={roundData.length > 0 ? roundData : mockRoundData}
             margin={{
               top: 20,
             }}
@@ -76,7 +90,6 @@ export function GeneralShotDataChart(props: GeneralShotDataChartProps) {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            {/* <ChartLegend content={<ChartLegendContent />} /> */}
             <Bar
               dataKey="score"
               fill={`var(--color-score)`}
@@ -92,9 +105,6 @@ export function GeneralShotDataChart(props: GeneralShotDataChartProps) {
           </BarChart>
         </ChartContainer>
       </CardContent>
-      {/* <CardFooter className="flex-col items-start gap-2 text-sm">
-        {footer}
-      </CardFooter> */}
     </Card>
   );
 }

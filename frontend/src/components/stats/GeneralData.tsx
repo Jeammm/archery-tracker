@@ -12,8 +12,6 @@ import { Loader } from "../ui/loader";
 import { calculateAccumulatedScore } from "@/utils/formatScore";
 import { format } from "date-fns";
 import { ChartPie } from "../chart-pie";
-import { useMemo } from "react";
-import { set } from "lodash";
 import { GeneralShotDataChart } from "../charts/GeneralShotDataChart";
 
 interface GeneralDataProps {
@@ -30,19 +28,6 @@ export const GeneralData = (props: GeneralDataProps) => {
   const getTotalScore = (round: Round) => {
     return round.score?.reduce((sum, obj) => sum + obj.score, 0) || 1;
   };
-
-  const pieChartConfig = useMemo(() => {
-    const config = {};
-
-    round_result.map((round, index) => {
-      set(config, round._id, {
-        label: `Round ${index + 1}`,
-        color: `hsl(var(--chart-${(index % 5) + 1}))`,
-      });
-    });
-
-    return config;
-  }, [round_result]);
 
   return (
     <div className="mt-1 md:mt-6">
@@ -181,14 +166,9 @@ export const GeneralData = (props: GeneralDataProps) => {
           <GeneralShotDataChart round_result={round_result} />
         </div>
         <ChartPie
-          chartData={round_result.map((round) => ({
-            round: round._id,
-            score: round.total_score,
-            fill: `var(--color-${round._id})`,
-          }))}
+          round_result={round_result}
           title="Totle Shot Score"
           description="All your shots"
-          chartConfig={pieChartConfig}
           nameKey="round"
           dataKey="score"
           totalLable="Points"

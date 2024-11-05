@@ -29,7 +29,7 @@ export const TargetImageWithShotOverlay = (
       <img
         src={targetImage}
         alt="target1"
-        className="w-full h-auto"
+        className="w-full h-auto aspect-[4/3] object-cover"
         onError={onImageError}
       />
       {hits?.map((hit, index) => {
