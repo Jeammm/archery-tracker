@@ -149,17 +149,23 @@ export const SessionVideo = (props: SessionVideoProps) => {
     seekToFrame(getFrameFromShotNumber(currentShot + 1));
   };
 
+  const pauseVideo = () => {
+    targetPlayerInstance?.pause();
+    posePlayerInstance?.pause();
+  };
+
+  const resumeVideo = () => {
+    targetPlayerInstance?.play();
+    posePlayerInstance?.play();
+  };
+
   const onPlayerClick = () => {
     if (isVideoPlaying) {
-      targetPlayerInstance?.pause();
-      posePlayerInstance?.pause();
+      pauseVideo();
     } else if (!isVideoPlaying && isVideoEnded) {
       seekToFrame(0);
-      targetPlayerInstance?.play();
-      posePlayerInstance?.play();
     } else {
-      targetPlayerInstance?.play();
-      posePlayerInstance?.play();
+      resumeVideo();
     }
   };
 
@@ -226,7 +232,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const onClickEditShotModal = (hit: Hit) => {
-    onPlayerClick();
+    pauseVideo();
     setCurrentEditableShot(hit);
     seekToFrame(hit.frame);
     setCurrentTime(hit.frame / 30);
@@ -234,7 +240,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   };
 
   const onClickAddShotModal = () => {
-    onPlayerClick();
+    pauseVideo();
     setIsAddShotModalOpen(true);
   };
 
