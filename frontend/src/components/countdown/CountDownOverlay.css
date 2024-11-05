@@ -20,3 +20,11 @@
   content: counter(number);
   font-size: 200px;
 }
+
+.timer-small:after {
+  display:block;
+  counter-reset: number calc(0 + var(--number));
+  animation: count 5s linear;
+  content: counter(number);
+  font-size: 100px;
+}

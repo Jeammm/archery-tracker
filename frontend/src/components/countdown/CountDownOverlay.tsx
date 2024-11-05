@@ -17,7 +17,7 @@ export const CountDownComponent = ({ className }: { className?: string }) => {
         className,
       ])}
     >
-      <div className="timer"></div>
+      <div className="timer-small"></div>
     </div>
   );
 };

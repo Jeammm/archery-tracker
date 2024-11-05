@@ -59,7 +59,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
               <p className="tracking-wider font-bold text-lg h-fit">
                 {isCameraConnected
                   ? "START YOUR FIRST ROUND!"
-                  : "CONNECT THE CAMERA FIRST"}
+                  : "CONNECT THE CAMERA BEFORE START"}
               </p>
             </div>
           )}
