@@ -10,6 +10,8 @@ interface TargetImageWithShotOverlay {
   hits: Hit[];
 }
 
+const imageXOffset = 240;
+
 export const TargetImageWithShotOverlay = (
   props: TargetImageWithShotOverlay
 ) => {
@@ -18,7 +20,8 @@ export const TargetImageWithShotOverlay = (
   const [activeHitIndex, setActiveHitIndex] = useState<number | null>(null);
 
   const getPositionInPercent = (point: number[]) => {
-    const x = (point[0] / 1920) * 100;
+    // imageXOffset used here for transforming 16:9 image to 4:3 image before percentage calculation
+    const x = ((point[0] - imageXOffset) / (1920 - 2 * imageXOffset)) * 100;
     const y = (point[1] / 1080) * 100;
 
     return [x, y];

@@ -120,18 +120,18 @@ export const SessionSummary = (props: SessionSummaryProps) => {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-semibold">Average TTS</TableCell>
-                <TableCell>{2012} ms</TableCell>
-              </TableRow>
-              <TableRow>
                 <TableCell className="font-semibold">Accuracy</TableCell>
                 <TableCell>
                   {sessionData.accuracy ? sessionData.accuracy * 100 : 0} %
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-semibold">Time</TableCell>
-                <TableCell>{35} min</TableCell>
+                <TableCell className="font-semibold">
+                  Total Training Time
+                </TableCell>
+                <TableCell>
+                  {(sessionData.total_session_time / 60).toFixed(2)} minutes
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>

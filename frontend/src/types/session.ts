@@ -14,6 +14,7 @@ export interface Session {
   maximum_score?: number;
   accuracy?: number;
   features?: BodyFeatures;
+  total_session_time: number;
 }
 
 export interface Hit {

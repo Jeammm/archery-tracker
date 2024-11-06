@@ -15,6 +15,7 @@ import {
 import { Input } from "../ui/input";
 import { toast } from "@/hooks/use-toast";
 import { FPS, SetStateActionType } from "@/types/constant";
+import { ShotLocationCanvasOverlay } from "./ShotLocationCanvasOverlay";
 
 interface AddMissingShotModalProps {
   isAddShotModalOpen: boolean;
@@ -26,6 +27,13 @@ interface AddMissingShotModalProps {
   fetchSessionData: () => void;
   captureVideos: () => void;
 }
+
+export interface HitLocation {
+  x: number;
+  y: number;
+}
+
+const initialHitLocation = { x: 960, y: 540 };
 
 export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
   const { user } = useAuth();
@@ -42,10 +50,7 @@ export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
   } = props;
 
   const [scoreInput, setScoreInput] = useState<number | null>(null);
-  const [hitLocation, setHitLocation] = useState<{
-    x: number | null;
-    y: number | null;
-  }>({ x: null, y: null });
+  const [hitLocation, setHitLocation] = useState<HitLocation>({ x: 0, y: 0 });
 
   const submitManualShot = async () => {
     try {
@@ -70,7 +75,7 @@ export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
       });
       setScoreInput(null);
       fetchSessionData();
-      setHitLocation({ x: null, y: null });
+      setHitLocation(initialHitLocation);
     } catch (error) {
       toast({
         title: "Add new shot Failed",
@@ -84,7 +89,10 @@ export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
     if (isAddShotModalOpen) {
       setTimeout(() => {
         captureVideos();
+        setHitLocation(initialHitLocation);
       }, 0);
+    } else {
+      setHitLocation({ x: 0, y: 0 });
     }
   }, [captureVideos, isAddShotModalOpen]);
 
@@ -97,19 +105,26 @@ export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
             Shot Missing? Don't worry, you can add a new shot manually.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-2">
-          <div className="flex-1 rounded-md border overflow-hidden">
-            <canvas ref={poseCanvasRef} className="w-full h-full bg-red-500" />
-          </div>
+        <div className="flex gap-2 flex-col xs:flex-row">
           <div className="flex-1 rounded-md border overflow-hidden">
             <canvas
+              ref={poseCanvasRef}
+              className="w-full h-full aspect-video"
+            />
+          </div>
+          <div className="flex-1 rounded-md border overflow-hidden relative">
+            <canvas
               ref={targetCanvasRef}
-              className="w-full h-full bg-red-500"
+              className="w-full h-full aspect-video"
+            />
+            <ShotLocationCanvasOverlay
+              hitLocation={hitLocation}
+              setHitLocation={setHitLocation}
             />
           </div>
         </div>
-        <div>
-          <div className="flex gap-2 w-full mb-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2 flex-col sm:flex-row">
             <div className="flex-1">
               <p className="mb-1.5">Score</p>
               <Input
@@ -123,41 +138,45 @@ export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
               />
             </div>
             <div className="flex-1">
-              <p className="mb-1.5">Time</p>
+              <p className="mb-1.5">Hit Time</p>
               <Input value={currentTime.toFixed(2)} readOnly />
             </div>
           </div>
-          <div className="flex gap-4 items-center">
+          <div>
             <p>Location</p>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>x : </p>
-              <Input
-                value={String(!isNil(hitLocation.x) ? hitLocation.x : "")}
-                onChange={(event) => {
-                  const xCoor = Number(event.target.value);
-                  if (!isNaN(xCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      x: xCoor,
-                    }));
-                  }
-                }}
-              />
-            </div>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>y : </p>
-              <Input
-                value={String(!isNil(hitLocation.y) ? hitLocation.y : "")}
-                onChange={(event) => {
-                  const yCoor = Number(event.target.value);
-                  if (!isNaN(yCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      y: yCoor,
-                    }));
-                  }
-                }}
-              />
+            <div className="flex w-full gap-2 mt-2">
+              <div className="flex gap-1 whitespace-nowrap items-center flex-1">
+                <p>x : </p>
+                <Input
+                  className="flex-1"
+                  value={String(!isNil(hitLocation.x) ? hitLocation.x : "")}
+                  onChange={(event) => {
+                    const xCoor = Number(event.target.value);
+                    if (!isNaN(xCoor)) {
+                      setHitLocation((prev) => ({
+                        ...prev,
+                        x: xCoor,
+                      }));
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-1 whitespace-nowrap items-center flex-1">
+                <p>y : </p>
+                <Input
+                  className="flex-1"
+                  value={String(!isNil(hitLocation.y) ? hitLocation.y : "")}
+                  onChange={(event) => {
+                    const yCoor = Number(event.target.value);
+                    if (!isNaN(yCoor)) {
+                      setHitLocation((prev) => ({
+                        ...prev,
+                        y: yCoor,
+                      }));
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
           <DialogClose className="w-full mt-4" asChild>

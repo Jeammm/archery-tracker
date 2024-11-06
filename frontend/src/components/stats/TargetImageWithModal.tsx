@@ -59,10 +59,6 @@ export const TargetImageWithModal = (props: TargetImageWithModalProps) => {
                   <TableCell>{hit.score}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-semibold">TTS</TableCell>
-                  <TableCell>{2012} ms</TableCell>
-                </TableRow>
-                <TableRow>
                   <TableCell className="font-semibold">Timestamp</TableCell>
                   <TableCell>
                     {hit.hit_time ? format(hit.hit_time, "hh : mm : ss") : "-"}

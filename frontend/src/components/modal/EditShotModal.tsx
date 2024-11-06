@@ -17,6 +17,10 @@ import {
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { ShotLocationCanvasOverlay } from "./ShotLocationCanvasOverlay";
+import { HitLocation } from "./AddMissingShotModal";
+
+const initialHitLocation = { x: 960, y: 540 };
 
 interface EditShotModalProps {
   isEditShotModalOpen: boolean;
@@ -48,10 +52,7 @@ export const EditShotModal = (props: EditShotModalProps) => {
 
   const [currentShotScore, setCurrentShotScore] = useState<number | null>(null);
   const [currentFrame, setCurrentFrame] = useState<number | null>(null);
-  const [hitLocation, setHitLocation] = useState<{
-    x: number | null;
-    y: number | null;
-  }>({ x: null, y: null });
+  const [hitLocation, setHitLocation] = useState<HitLocation>({ x: 0, y: 0 });
 
   const submitShotDataChange = async () => {
     if (!currentFrame || !hit) {
@@ -78,7 +79,7 @@ export const EditShotModal = (props: EditShotModalProps) => {
         variant: "success",
       });
       setCurrentShotScore(null);
-      setHitLocation({ x: null, y: null });
+      setHitLocation(initialHitLocation);
       fetchSessionData();
     } catch (error) {
       toast({
@@ -115,6 +116,8 @@ export const EditShotModal = (props: EditShotModalProps) => {
       setTimeout(() => {
         captureVideos();
       }, 0);
+    } else {
+      setHitLocation(initialHitLocation);
     }
   }, [captureVideos, isEditShotModalOpen]);
 
@@ -131,16 +134,26 @@ export const EditShotModal = (props: EditShotModalProps) => {
             Wrong Shot Detail? Don't worry, you can edit this shot manually.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-col xs:flex-row">
           <div className="flex-1 rounded-md border overflow-hidden">
-            <canvas ref={poseCanvasRef} className="w-full h-full" />
+            <canvas
+              ref={poseCanvasRef}
+              className="w-full h-full aspect-video"
+            />
           </div>
-          <div className="flex-1 rounded-md border overflow-hidden">
-            <canvas ref={targetCanvasRef} className="w-full h-full" />
+          <div className="flex-1 rounded-md border overflow-hidden relative">
+            <canvas
+              ref={targetCanvasRef}
+              className="w-full h-full aspect-video"
+            />
+            <ShotLocationCanvasOverlay
+              hitLocation={hitLocation}
+              setHitLocation={setHitLocation}
+            />
           </div>
         </div>
         <div>
-          <div className="flex gap-2 w-full mb-4">
+          <div className="flex gap-2 w-full mb-4 flex-col sm:flex-row">
             <div className="flex-1">
               <p className="mb-1.5">Score</p>
               <Input
@@ -155,44 +168,50 @@ export const EditShotModal = (props: EditShotModalProps) => {
             </div>
             <div className="flex-1">
               <p className="mb-1.5">Time</p>
-              <div className="flex items-center">
-                <ArrowBigLeft onClick={onClickPreviousFrame} />
+              <div className="flex items-center gap-2">
+                <Button onClick={onClickPreviousFrame} variant="outline">
+                  <ArrowBigLeft />
+                </Button>
                 <Input value={String(currentFrame?.toFixed(2))} readOnly />
-                <ArrowBigRight onClick={onClickNextFrame} />
+                <Button onClick={onClickNextFrame} variant="outline">
+                  <ArrowBigRight />
+                </Button>
               </div>
             </div>
           </div>
-          <div className="flex gap-4 items-center">
+          <div className="mt-4">
             <p>Location</p>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>x : </p>
-              <Input
-                value={String(!isNil(hitLocation.x) ? hitLocation.x : "")}
-                onChange={(event) => {
-                  const xCoor = Number(event.target.value);
-                  if (!isNaN(xCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      x: xCoor,
-                    }));
-                  }
-                }}
-              />
-            </div>
-            <div className="flex gap-1 whitespace-nowrap items-center">
-              <p>y : </p>
-              <Input
-                value={String(!isNil(hitLocation.y) ? hitLocation.y : "")}
-                onChange={(event) => {
-                  const yCoor = Number(event.target.value);
-                  if (!isNaN(yCoor)) {
-                    setHitLocation((prev) => ({
-                      ...prev,
-                      y: yCoor,
-                    }));
-                  }
-                }}
-              />
+            <div className="flex gap-2 mt-2 w-full">
+              <div className="flex gap-1 whitespace-nowrap items-center flex-1">
+                <p>x : </p>
+                <Input
+                  value={String(!isNil(hitLocation.x) ? hitLocation.x : "")}
+                  onChange={(event) => {
+                    const xCoor = Number(event.target.value);
+                    if (!isNaN(xCoor)) {
+                      setHitLocation((prev) => ({
+                        ...prev,
+                        x: xCoor,
+                      }));
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex gap-1 whitespace-nowrap items-center flex-1">
+                <p>y : </p>
+                <Input
+                  value={String(!isNil(hitLocation.y) ? hitLocation.y : "")}
+                  onChange={(event) => {
+                    const yCoor = Number(event.target.value);
+                    if (!isNaN(yCoor)) {
+                      setHitLocation((prev) => ({
+                        ...prev,
+                        y: yCoor,
+                      }));
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
           <DialogClose className="w-full mt-4" asChild>

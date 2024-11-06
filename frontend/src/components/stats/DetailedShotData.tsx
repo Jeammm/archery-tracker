@@ -28,13 +28,13 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
           return (
             <TimelineWrapper
               roundNo={roundNo}
+              key={round._id}
               roundLength={totalLength}
               type="error"
               timestamp={round.created_at}
             >
               <ProcessingFailed
                 round={round}
-                key={round._id}
                 containerClassName="mb-4 mt-0 w-full bg-background drop-shadow-md"
               />
             </TimelineWrapper>
@@ -50,12 +50,10 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               roundNo={roundNo}
               roundLength={totalLength}
               type="loading"
+              key={round._id}
               timestamp={round.created_at}
             >
-              <div
-                className="rounded-lg w-full p-3 border mb-4 bg-background drop-shadow-md"
-                key={round._id}
-              >
+              <div className="rounded-lg w-full p-3 border mb-4 bg-background drop-shadow-md">
                 <Loader>Round {roundNo + 1} Processing...</Loader>
               </div>
             </TimelineWrapper>
@@ -68,12 +66,10 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               roundNo={roundNo}
               roundLength={totalLength}
               type="empty"
+              key={round._id}
               timestamp={round.created_at}
             >
-              <div
-                className="rounded-lg w-full p-3 border border-l-amber-600 border-l-4 mb-4 bg-background drop-shadow-md"
-                key={round._id}
-              >
+              <div className="rounded-lg w-full p-3 border border-l-amber-600 border-l-4 mb-4 bg-background drop-shadow-md">
                 <p className="italic font-bold text-muted-foreground text-lg">
                   No hit detected on Round No.{roundNo + 1}
                 </p>
