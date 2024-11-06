@@ -7,6 +7,7 @@ import Byteark from "@/assets/byteark-logo.png";
 import OpenCV from "@/assets/opencv-logo.png";
 import TargetScoring from "@/assets/scoring_banner.png";
 import PostureTracking from "@/assets/posture_banner.png";
+import PostureTrackingDark from "@/assets/posture_banner_inverse.png";
 import Stat from "@/assets/stat_banner.png";
 import StatLight from "@/assets/stat_banner_light.png";
 import { useTheme } from "@/components/theme-provider";
@@ -84,47 +85,56 @@ export const Home = () => {
           </div>
         </div>
         <div>
-          <div className="border rounded-xl p-2 bg-secondary text-secondary-foreground">
-            <p className="text-lg font-semibold">Track Your Progress</p>
-            <div className="h-[300px] w-full border rounded-lg mt-2 overflow-hidden bg-background">
+          <div className="h-[300px] w-full border rounded-sm mb-2 overflow-hidden bg-background">
+            <img
+              src={Stat}
+              className={cn([
+                "w-full h-full object-cover",
+                lightOrDark === "light" && "hidden",
+              ])}
+              alt="stat"
+            />
+            <img
+              src={StatLight}
+              className={cn([
+                "w-full h-full object-cover",
+                lightOrDark === "dark" && "hidden",
+              ])}
+              alt="stat"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 mt-4 gap-4">
+            <div className="h-[220px] w-full border rounded-sm mb-2 overflow-hidden">
               <img
-                src={Stat}
+                src={TargetScoring}
+                className="w-full h-full object-cover"
+                alt="target scoring"
+              />
+            </div>
+
+            <div
+              className={cn([
+                "h-[220px] w-full border rounded-sm mb-2 overflow-hidden ",
+                lightOrDark === "light" ? "bg-white" : "bg-black",
+              ])}
+            >
+              <img
+                src={PostureTrackingDark}
                 className={cn([
-                  "w-full h-full object-cover",
+                  "w-full h-full object-contain",
                   lightOrDark === "light" && "hidden",
                 ])}
-                alt="stat"
+                alt="posture tracking"
               />
               <img
-                src={StatLight}
+                src={PostureTracking}
                 className={cn([
-                  "w-full h-full object-cover",
+                  "w-full h-full object-contain",
                   lightOrDark === "dark" && "hidden",
                 ])}
-                alt="stat"
+                alt="posture tracking"
               />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 mt-2 gap-2">
-            <div className="border rounded-xl p-2 bg-secondary text-secondary-foreground">
-              <p className="text-lg font-semibold">Automated Target Scoring</p>
-              <div className="h-[220px] w-full border rounded-lg mt-2 overflow-hidden">
-                <img
-                  src={TargetScoring}
-                  className="w-full h-full object-cover"
-                  alt="target scoring"
-                />
-              </div>
-            </div>
-            <div className="border rounded-xl p-2 bg-secondary text-secondary-foreground">
-              <p className="text-lg font-semibold">Posture Tracking</p>
-              <div className="h-[220px] w-full border rounded-lg mt-2 overflow-hidden bg-white">
-                <img
-                  src={PostureTracking}
-                  className="w-full h-full object-contain"
-                  alt="posture tracking"
-                />
-              </div>
             </div>
           </div>
         </div>
