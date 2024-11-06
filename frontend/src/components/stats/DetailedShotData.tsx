@@ -12,10 +12,11 @@ import { isNil } from "lodash";
 
 interface DetailedShotDataProps {
   sessionData: Session;
+  fetchSessionsData: () => Promise<void>;
 }
 
 export const DetailedShotData = (props: DetailedShotDataProps) => {
-  const { sessionData } = props;
+  const { sessionData, fetchSessionsData } = props;
 
   const { round_result } = sessionData;
 
@@ -24,7 +25,11 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
   return (
     <div className="mt-1 md:mt-6 flex flex-col">
       {round_result.map((round, roundNo) => {
-        if (round.target_status === "FAILURE") {
+        if (
+          round.target_status === "FAILURE" ||
+          round.capture_status === "FAILURE" ||
+          round.pose_status === "FAILURE"
+        ) {
           return (
             <TimelineWrapper
               roundNo={roundNo}
@@ -36,6 +41,8 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               <ProcessingFailed
                 round={round}
                 containerClassName="mb-4 mt-0 w-full bg-background drop-shadow-md"
+                fetchSessionsData={fetchSessionsData}
+                refreshAfterRetry
               />
             </TimelineWrapper>
           );
@@ -70,7 +77,7 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
               timestamp={round.created_at}
             >
               <div className="rounded-lg w-full p-3 border border-l-amber-600 border-l-4 mb-4 bg-background drop-shadow-md">
-                <p className="italic font-bold text-muted-foreground text-lg">
+                <p className="italic font-semibold text-muted-foreground text-lg">
                   No hit detected on Round No.{roundNo + 1}
                 </p>
               </div>
@@ -216,17 +223,13 @@ const TimelineWrapper = (props: TimelineWrapperProps) => {
   return (
     <div className="flex">
       <div className="w-[90px] shrink-0 relative hidden md:block">
-        {type === "success" && (
-          <div className="text-xs text-muted-foreground absolute top-3">
-            <div className="flex gap-1 items-center ">
-              <Clock size={10} />
-              <p>
-                {timestamp ? format(timestamp, "hh:mm:ss") : "No time data"}
-              </p>
-            </div>
-            <p>{timestamp ? timeAgo(timestamp) : "Manual shot"}</p>
+        <div className="text-xs text-muted-foreground absolute top-3">
+          <div className="flex gap-1 items-center ">
+            <Clock size={10} />
+            <p>{timestamp ? format(timestamp, "hh:mm:ss") : "No time data"}</p>
           </div>
-        )}
+          <p>{timestamp ? timeAgo(timestamp) : "Manual shot"}</p>
+        </div>
       </div>
       <div className="relative px-4">
         <LeftLine />

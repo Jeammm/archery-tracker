@@ -73,11 +73,12 @@ export const ProcessingFailed = (props: SessionDataProps) => {
             <TriangleAlert size={18} />
             <p>There was an error during processing video data</p>
           </div>
-          <p className="text-muted-foreground">
-            Please try processing data again
+          <p className="text-muted-foreground text-sm italic">
+            You can try re-processing the video, but I bet it will not work
+            anymore
           </p>
         </div>
-        <RetryButton {...props} refreshAfterRetry />
+        <RetryButton {...props} />
       </div>
       <Accordion type="single" collapsible>
         <AccordionItem value="errorMessage">
@@ -88,6 +89,9 @@ export const ProcessingFailed = (props: SessionDataProps) => {
             )}
             {round.target_error_message && (
               <p>Target: {round.target_error_message}</p>
+            )}
+            {round.capture_error_message && (
+              <p>Capture: {round.capture_error_message}</p>
             )}
           </AccordionContent>
         </AccordionItem>

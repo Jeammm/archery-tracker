@@ -234,7 +234,10 @@ export const SessionDetail = () => {
         </TabsContent>
         <TabsContent value="detail">
           {isRoundExisted ? (
-            <DetailedShotData sessionData={session} />
+            <DetailedShotData
+              sessionData={session}
+              fetchSessionsData={fetchSessionData}
+            />
           ) : (
             <div className="w-full text-lg text-muted-foreground text-center italic mt-5 font-semibold">
               No round data yet...

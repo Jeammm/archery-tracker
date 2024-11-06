@@ -50,17 +50,16 @@ export const SessionCard = (props: SessionCardProps) => {
 
   if (session_status === "STARTED") {
     return (
-      <Link
-        to={`/trainingSession/live/${_id}`}
-        className={cn([CARD_SIZE, "shrink-0"])}
-      >
+      <div className={cn([CARD_SIZE, "shrink-0"])}>
         <div className="flex flex-col items-center justify-center h-full border rounded-sm gap-1">
           <h3 className="font-bold text-2xl">SESSION</h3>
           <p>{formatDateTime(created_at)}</p>
           <Badge variant="outline">
             <div className="w-1 h-1 rounded-full bg-green-500 mr-2" /> LIVE
           </Badge>
-          <Button className="mt-2">Continue Training</Button>
+          <Link to={`/trainingSession/live/${_id}`}>
+            <Button className="mt-2">Continue Training</Button>
+          </Link>
           <Link
             to={`/sessions/${_id}`}
             className={buttonVariants({
@@ -71,7 +70,7 @@ export const SessionCard = (props: SessionCardProps) => {
             Training Results
           </Link>
         </div>
-      </Link>
+      </div>
     );
   }
 

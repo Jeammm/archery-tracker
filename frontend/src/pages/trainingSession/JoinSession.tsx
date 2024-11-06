@@ -229,7 +229,7 @@ export const JoinSession = () => {
                 }));
                 socket.emit("targetVideoUploadProgress", {
                   sessionId,
-                  uploadingStatus: { [roundId]: progress },
+                  uploadingStatus: { roundId, progress },
                 });
               }
             },
@@ -384,7 +384,7 @@ export const JoinSession = () => {
   return (
     <div
       className={cn([
-        "flex justify-center items-center md:flex-row flex-col h-[100svh] gap-2",
+        "flex justify-center items-center md:flex-row flex-col h-[100svh] gap-2 p-2",
         lightOrDark === "dark" ? "bg-grid-pattern" : "bg-grid-pattern-light",
       ])}
     >
@@ -444,8 +444,8 @@ export const JoinSession = () => {
         {Object.keys(uploadingStatus).map((file) => {
           if (uploadingStatus[file] !== 100) {
             return (
-              <div className="md:flex flex-col gap-1.5 hidden w-full border rounded-md p-1">
-                <p>File Uploading</p>
+              <div className="md:flex flex-col gap-1.5 hidden w-full border rounded-md p-2 mt-4 bg-secondary">
+                <p>File Uploading : {file}</p>
                 <Progress value={uploadingStatus[file]} />
               </div>
             );

@@ -374,8 +374,11 @@ export const SessionInitiateVideoStream = (
     );
     socket.on(
       "targetVideoUploadProgress",
-      (data: { uploading_status: Record<string, number> }) => {
-        setTargetVideoUploadingStatus(data.uploading_status);
+      (data: { uploading_status: { roundId: string; progress: number } }) => {
+        setTargetVideoUploadingStatus((prev) => ({
+          ...prev,
+          [data.uploading_status.roundId]: data.uploading_status.progress,
+        }));
       }
     );
     socket.on("targetVideoUploadDone", (data: { round_id: string }) => {

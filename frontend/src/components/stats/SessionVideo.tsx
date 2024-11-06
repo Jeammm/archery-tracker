@@ -248,7 +248,9 @@ export const SessionVideo = (props: SessionVideoProps) => {
     pose_status !== "SUCCESS" && target_status !== "SUCCESS";
 
   if (target_status === "FAILURE" || pose_status === "FAILURE") {
-    return <ProcessingFailed round={round_result[selectedRound]} />;
+    return (
+      <ProcessingFailed round={round_result[selectedRound]} refreshAfterRetry />
+    );
   }
 
   return (

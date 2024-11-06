@@ -68,7 +68,11 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             <div className="rounded-md p-2 border animate-blink h-[90px]">
               <p>
                 {`Round
-              ${(session?.round_result.length || 0) + 1}
+              ${
+                (session?.round_result.length || 0) +
+                1 +
+                Object.keys(targetVideoUploadingStatus).length
+              }
               is Recording!`}
               </p>
               {timeReady ? (
@@ -87,7 +91,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
             .map((round, index) => {
               return (
                 <div
-                  className="bg-secondary text-secondary-foreground rounded-md p-2 border"
+                  className="bg-secondary text-secondary-foreground rounded-md p-2 border border-l-amber-600 border-l-4"
                   key={`uploading-round-${round}`}
                 >
                   <p className="font-extrabold">
@@ -105,7 +109,7 @@ export const RoundDetailsTable = (props: RoundDetailsTableProps) => {
               return (
                 <div
                   className={cn([
-                    "bg-secondary text-secondary-foreground rounded-md p-2 border flex",
+                    "bg-secondary text-secondary-foreground rounded-sm p-2 border flex border-l-green-500 border-l-4",
                     isCameraConnected
                       ? "flex-col"
                       : "justify-between items-center",
