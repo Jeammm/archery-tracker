@@ -71,9 +71,6 @@ services:
       - ./nginx/certbot/www:/var/www/certbot
     # entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done'"
     command: certonly --webroot -w /var/www/certbot --force-renewal --email au.athicha.pha@gmail.com -d archery-tracker.online -d www.archery-tracker.online --agree-tos
-    environment:
-      CERTBOT_DOMAIN: archery-tracker.online
-      CERTBOT_EMAIL: athicha.pha@ku.th
     networks:
       - app-network
     # restart: unless-stopped
