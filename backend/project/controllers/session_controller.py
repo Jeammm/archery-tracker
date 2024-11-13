@@ -1,9 +1,10 @@
 from datetime import datetime
 from bson.objectid import ObjectId
+from datetime import timezone
 from flask import jsonify, request
 from project.constants.constants import SESSION_COLLECTION, ROUND_COLLECTION
 from ..db import db
-      
+
 collection = db[SESSION_COLLECTION]
 
 def sort_hit_by_id(round_item):
@@ -119,8 +120,9 @@ def get_sessions(user_id):
 
 def get_session_by_id(user_id, session_id):
     try:
-        session = collection.find_one({'_id': ObjectId(session_id), 'user_id': ObjectId(user_id)})
-        if session:
+        if session := collection.find_one(
+            {'_id': ObjectId(session_id), 'user_id': ObjectId(user_id)}
+        ):
             session = convert_object_ids([session])[0]
             session = add_rounds_to_sessions([session])[0]
             return jsonify(session)
@@ -135,9 +137,9 @@ def create_session(user_id):
         # Check if 'model' is present in the request body
         if 'model' not in data:
             return jsonify({'error': 'Model is required in the request body'}), 400
-        
+
         model = data['model']
-        created_date = datetime.utcnow()
+        created_date = datetime.now(timezone.utc)
         task_data = {
             "user_id": ObjectId(user_id),
             "created_at": created_date,
@@ -145,7 +147,7 @@ def create_session(user_id):
             "session_status": "STARTED"
         }
         result = collection.insert_one(task_data)
-        
+
         return jsonify({
                 "_id": str(result.inserted_id),
                 "user_id": user_id,
@@ -153,7 +155,7 @@ def create_session(user_id):
                 "model": model,
                 "session_status": "STARTED"
             }), 202
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
@@ -161,10 +163,10 @@ def end_session_by_id(user_id, session_id):
     try:
         session = collection.find_one({'_id': ObjectId(session_id), 'user_id': ObjectId(user_id)})
         rounds = list(db[ROUND_COLLECTION].find({"session_id": ObjectId(session_id)}))
-        
-        if session and len(rounds) == 0:
+
+        if session and not rounds:
             collection.delete_one({"_id": ObjectId(session_id)})
-            return jsonify({'message': 'session ended with no round, deleted complete'})       
+            return jsonify({'message': 'session ended with no round, deleted complete'})
         elif session:
             collection.update_one(
                 {"_id": ObjectId(session_id)},

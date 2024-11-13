@@ -2,17 +2,21 @@ from project.core.target_scoring.TargetModel import get_target_model_path
 from project.core.target_scoring.VideoAnalyzer import VideoAnalyzer
 from project.core.target_scoring.Sketcher import Sketcher
 import cv2
+import numpy as np
 from datetime import datetime, timezone
+import requests
 
-def process_target_video_data(input_filepath, output_filepath, target_model):
+def process_target_video_data(input_filepath, output_filepath, model_data):
   # video input
   video_name = input_filepath
   video_fps = 30
   display_in_cm = True
   
   # model input
-  model_data = get_target_model_path(target_model)
-  model = cv2.imread(model_data['model_path'])
+  image_url = model_data['model_path']
+  response = requests.get(image_url)
+  image_array = np.frombuffer(response.content, np.uint8)
+  model = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
   bullseye_point = model_data['bullseye_point']
   inner_diameter_px = model_data['inner_diameter_px']
   inner_diameter_inch = model_data['inner_diameter_inch']

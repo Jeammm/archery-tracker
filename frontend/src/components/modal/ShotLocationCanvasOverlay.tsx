@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { HitLocation } from "./AddMissingShotModal";
-import { SetStateActionType } from "@/types/constant";
+import { SetStateActionType, XYRelation } from "@/types/constant";
 
 interface ShotLocationCanvasOverlayProps {
-  hitLocation: HitLocation;
-  setHitLocation: SetStateActionType<HitLocation>;
+  hitLocation: XYRelation;
+  setHitLocation: SetStateActionType<XYRelation>;
 }
 
 export const ShotLocationCanvasOverlay = (
@@ -14,7 +13,7 @@ export const ShotLocationCanvasOverlay = (
 
   const hitCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [dragStart, setDragStart] = useState<HitLocation | null>(null);
+  const [dragStart, setDragStart] = useState<XYRelation | null>(null);
 
   const handleDragStart = (clientX: number, clientY: number) => {
     // Store starting point of drag

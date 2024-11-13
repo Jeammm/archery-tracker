@@ -14,7 +14,7 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { toast } from "@/hooks/use-toast";
-import { FPS, SetStateActionType } from "@/types/constant";
+import { FPS, SetStateActionType, XYRelation } from "@/types/constant";
 import { ShotLocationCanvasOverlay } from "./ShotLocationCanvasOverlay";
 
 interface AddMissingShotModalProps {
@@ -26,11 +26,6 @@ interface AddMissingShotModalProps {
   roundId: string;
   fetchSessionData: () => void;
   captureVideos: () => void;
-}
-
-export interface HitLocation {
-  x: number;
-  y: number;
 }
 
 const initialHitLocation = { x: 960, y: 540 };
@@ -50,7 +45,7 @@ export const AddMissingShotModal = (props: AddMissingShotModalProps) => {
   } = props;
 
   const [scoreInput, setScoreInput] = useState<number | null>(null);
-  const [hitLocation, setHitLocation] = useState<HitLocation>({ x: 0, y: 0 });
+  const [hitLocation, setHitLocation] = useState<XYRelation>({ x: 0, y: 0 });
 
   const submitManualShot = async () => {
     try {

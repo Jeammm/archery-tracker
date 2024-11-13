@@ -22,6 +22,9 @@ import { PasswordReset } from "./pages/auth/PasswordReset";
 import { PasswordForgot } from "./pages/auth/PasswordForgot";
 import { SignUp } from "./pages/auth/SignUp";
 import { VerifyEmail } from "./pages/auth/VerifyEmail";
+import { ModelCreate } from "./pages/models/ModelCreate";
+import { ModelDetail } from "./pages/models/ModelDetail";
+import { ModelEdit } from "./pages/models/ModelEdit";
 
 function RequireAuth() {
   return (
@@ -77,6 +80,14 @@ const router = createBrowserRouter(
 
         <Route path="/profile" element={<Profile />} />
         <Route path="/password-reset" element={<PasswordReset />} />
+
+        <Route path="/models">
+          <Route path="create" element={<ModelCreate />} />
+          <Route path=":modelName">
+            <Route path="" element={<ModelDetail />} />
+            <Route path="edit" element={<ModelEdit />} />
+          </Route>
+        </Route>
       </Route>
     </>
   )

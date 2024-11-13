@@ -63,29 +63,34 @@ export const INTEREST_POINT = [
 ];
 
 export interface TargetModel {
-  measure_unit: number;
+  _id: string;
   bullseye_point: [number, number];
   inner_diameter_px: number;
   rings_amount: number;
   model: string;
   model_name: string;
-  frame_size: [number, number, number];
   model_size: [number, number];
   model_path: string;
+  created_by: string;
 }
 
 export const modelChoices: TargetModel[] = [
   {
-    measure_unit: 0.0762,
+    _id: "sample_model_101",
     bullseye_point: [325, 309],
     inner_diameter_px: 50,
     rings_amount: 6,
     model: "olympic_standard_target",
     model_name: "Olympic Standard Target",
-    frame_size: [1080, 1920, 3],
     model_size: [652, 613],
     model_path: "/olympic_standard_target.jpg",
+    created_by: "user1",
   },
 ];
 
 export type SetStateActionType<T> = React.Dispatch<React.SetStateAction<T>>;
+
+export interface XYRelation {
+  x: number;
+  y: number;
+}

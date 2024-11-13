@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
-import { SetStateActionType } from "@/types/constant";
+import { SetStateActionType, XYRelation } from "@/types/constant";
 import { Hit } from "@/types/session";
 import axios from "axios";
 import { isNil } from "lodash";
@@ -18,7 +18,6 @@ import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ShotLocationCanvasOverlay } from "./ShotLocationCanvasOverlay";
-import { HitLocation } from "./AddMissingShotModal";
 
 const initialHitLocation = { x: 960, y: 540 };
 
@@ -52,7 +51,7 @@ export const EditShotModal = (props: EditShotModalProps) => {
 
   const [currentShotScore, setCurrentShotScore] = useState<number | null>(null);
   const [currentFrame, setCurrentFrame] = useState<number | null>(null);
-  const [hitLocation, setHitLocation] = useState<HitLocation>({ x: 0, y: 0 });
+  const [hitLocation, setHitLocation] = useState<XYRelation>({ x: 0, y: 0 });
 
   const submitShotDataChange = async () => {
     if (!currentFrame || !hit) {

@@ -3,7 +3,7 @@ import os
 from celery import shared_task
 from flask import jsonify, request
 from project.core.pose_estimation.PoseEstimator import PoseEstimator
-from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, VIDEO_COLLECTION
+from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, VIDEO_COLLECTION, MODEL_COLLECTION
 from project.controllers.video_uploader import get_short_playback_url, get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
@@ -16,8 +16,12 @@ from ..db import db
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
 video_collection = db[VIDEO_COLLECTION]
+model_collection = db[MODEL_COLLECTION]
 
 class MissingTargetModelError(Exception):
+    pass
+
+class ModelNotExistError(Exception):
     pass
 
 @shared_task(bind=True)
@@ -44,9 +48,13 @@ def process_target(self, round_id, video_timestamps):
             raise MissingTargetModelError('Model is required in the request body')
         
         model = existing_session['model']
+        existing_model = model_collection.find_one({"model": model})
+        
+        if not existing_model:
+            raise ModelNotExistError('This model is not exist in the data base')
         
         check_and_trim_video("target", video_timestamps, input_filepath, trimmed_filepath)
-        scoring_detail = process_target_video_data(trimmed_filepath, output_filepath, model)
+        scoring_detail = process_target_video_data(trimmed_filepath, output_filepath, existing_model)
         
         round_collection.update_one(
             {"target_task_id": task_id},
