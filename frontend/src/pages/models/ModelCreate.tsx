@@ -17,7 +17,8 @@ export const ModelCreate = () => {
     modelName: string,
     innerDiameter: number,
     ringsAmount: number,
-    bullseyePoint: { x: number; y: number }
+    bullseyePoint: { x: number; y: number },
+    callbackFn: () => void
   ) => {
     if (!targetImageFile || !modelName || !innerDiameter || !ringsAmount) {
       return;
@@ -51,6 +52,8 @@ export const ModelCreate = () => {
         description: `Error: ${error}, please try again`,
         variant: "destructive",
       });
+    } finally {
+      callbackFn();
     }
   };
 
@@ -58,37 +61,38 @@ export const ModelCreate = () => {
     <>
       <ManageModel isCreatePage onSubmit={onClickSubmitTargetData} />
       <div className="rounded-md border mt-4 p-4">
-        <div className="flex gap-4 ">
+        <div className="flex gap-4 flex-col sm:flex-row">
           <div>
             <h2 className="text-xl font-semibold">
               Suitable image for target model
             </h2>
             <p className="mt-2 text-sm">
               For the best results, please ensure that the image is perfectly
-              aligned in perspective. The model should be captured straight from
-              above, with no tilt or angle, to ensure accurate processing.
-              Misalignment or skewed images may lead to suboptimal outcomes.
+              aligned in perspective, with no tilt or angle. Misalignment or
+              skewed images may lead to suboptimal outcomes.
             </p>
           </div>
-          <div className="p-2 flex flex-col justify-center items-center border rounded-sm h-fit">
-            <div className="size-32 rounded-sm mb-1 overflow-hidden object-cover">
-              <img
-                src={GoodExample}
-                alt="good example"
-                className="w-full h-full"
-              />
+          <div className="flex gap-4 justify-center">
+            <div className="p-2 flex flex-col justify-center items-center border rounded-sm h-fit">
+              <div className="size-32 rounded-sm mb-1 overflow-hidden object-cover">
+                <img
+                  src={GoodExample}
+                  alt="good example"
+                  className="w-full h-full"
+                />
+              </div>
+              <p>✅ Good Image</p>
             </div>
-            <p>✅ Good Image</p>
-          </div>
-          <div className="p-2 flex flex-col justify-center items-center border rounded-sm h-fit">
-            <div className="size-32 rounded-sm mb-1 overflow-hidden object-cover">
-              <img
-                src={BadExample}
-                alt="bad example"
-                className="w-full h-full"
-              />
+            <div className="p-2 flex flex-col justify-center items-center border rounded-sm h-fit">
+              <div className="size-32 rounded-sm mb-1 overflow-hidden object-cover">
+                <img
+                  src={BadExample}
+                  alt="bad example"
+                  className="w-full h-full"
+                />
+              </div>
+              <p>❌ Bad Image</p>
             </div>
-            <p>❌ Bad Image</p>
           </div>
         </div>
         <div className="mt-2">

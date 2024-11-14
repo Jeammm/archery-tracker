@@ -37,7 +37,8 @@ export const ModelEdit = () => {
     modelName: string,
     innerDiameter: number,
     ringsAmount: number,
-    bullseyePoint: { x: number; y: number }
+    bullseyePoint: { x: number; y: number },
+    callbackFn: () => void
   ) => {
     if (!modelName || !innerDiameter || !ringsAmount) {
       return;
@@ -69,6 +70,8 @@ export const ModelEdit = () => {
         description: `Error: ${error}, please try again`,
         variant: "destructive",
       });
+    } finally {
+      callbackFn();
     }
   };
 

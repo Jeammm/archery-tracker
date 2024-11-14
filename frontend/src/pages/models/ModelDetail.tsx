@@ -9,12 +9,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { TargetBullseyeCanvasOverlay } from "./TargetBullseyeCanvasOverlay";
 import { ManageModelSkeleton } from "@/components/model/ManageModel";
+import { Loader } from "@/components/ui/loader";
 
 export const ModelDetail = () => {
   const { user } = useAuth();
   const { modelName } = useParams();
   const [modelData, setModelData] = useState<TargetModel | null>(null);
   const [canvasSignal, setCanvasSignal] = useState<number>(0);
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
 
   const fetchModelData = useCallback(async () => {
     try {
@@ -53,90 +55,107 @@ export const ModelDetail = () => {
         Target model data availabled for training sessions
       </p>
 
-      <div className="flex gap-3 mt-6 flex-col md:flex-row items-center md:items-start">
-        <div className="border rounded-md w-96 shrink-0 overflow-hidden relative select-none">
-          <img
-            alt="preview target"
-            src={modelData.model_path}
-            onLoad={() => setCanvasSignal((prev) => prev + 1)}
-            className="w-full h-full"
-          />
-          <TargetBullseyeCanvasOverlay
-            bullseyePoint={{
-              x: modelData.bullseye_point[0],
-              y: modelData.bullseye_point[1],
-            }}
-            innerDiameter={modelData.inner_diameter_px}
-            ringsAmount={modelData.rings_amount}
-            targetImageSize={{
-              x: modelData.model_size[0],
-              y: modelData.model_size[1],
-            }}
-            canvasSignal={canvasSignal}
-          />
-        </div>
+      <div className="mt-6 border p-4 rounded-md">
+        <p className="text-3xl font-semibold mb-4">
+          Model : {modelData.model_name}
+        </p>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <p className="text-3xl">{modelData.model_name}</p>
+        <div className="flex gap-3 flex-col md:flex-row items-center md:items-start">
+          <div className="border rounded-md w-96 shrink-0 overflow-hidden relative select-none">
+            {!imageLoaded && (
+              <Loader className="w-full aspect-square h-auto flex justify-center items-center" />
+            )}
+            <img
+              alt="preview target"
+              src={modelData.model_path}
+              onLoad={() => {
+                setCanvasSignal((prev) => prev + 1);
+                setImageLoaded(true);
+              }}
+              className="w-full h-full"
+            />
+            <TargetBullseyeCanvasOverlay
+              bullseyePoint={{
+                x: modelData.bullseye_point[0],
+                y: modelData.bullseye_point[1],
+              }}
+              innerDiameter={modelData.inner_diameter_px}
+              ringsAmount={modelData.rings_amount}
+              targetImageSize={{
+                x: modelData.model_size[0],
+                y: modelData.model_size[1],
+              }}
+              canvasSignal={canvasSignal}
+            />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <p>Bullseye Point</p>
-            <div className="flex gap-3">
-              <div className="flex gap-3 items-center flex-1">
-                <p className="shrink-0">X :</p>
+          <div className="flex flex-col gap-6 flex-1">
+            <div className="flex flex-col gap-1.5">
+              <p className="font-bold">Bullseye Point</p>
+              <div className="flex gap-3">
+                <div className="flex gap-3 items-center flex-1">
+                  <p className="shrink-0">X :</p>
+                  <Input
+                    type="number"
+                    value={modelData.bullseye_point[0]}
+                    readOnly
+                  />
+                  <p className="shrink-0">Y :</p>
+                  <Input
+                    type="number"
+                    value={modelData.bullseye_point[1]}
+                    readOnly
+                  />
+                </div>
+              </div>
+              <p className="text-muted-foreground text-xs leading-none">
+                The center point of the target.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <p className="font-bold">Inner Diameter</p>
+              <div className="flex gap-3">
                 <Input
                   type="number"
-                  value={modelData.bullseye_point[0]}
-                  readOnly
-                />
-                <p className="shrink-0">Y :</p>
-                <Input
-                  type="number"
-                  value={modelData.bullseye_point[1]}
+                  value={modelData.inner_diameter_px}
                   readOnly
                 />
               </div>
+              <p className="text-muted-foreground text-xs leading-none">
+                The inner ring size of the target.
+              </p>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <p>Inner Diameter</p>
-            <div className="flex gap-3">
-              <Input
-                type="number"
-                value={modelData.inner_diameter_px}
-                readOnly
-              />
+            <div className="flex flex-col gap-1.5">
+              <p className="font-bold">Rings Amount</p>
+              <div className="flex gap-3">
+                <Input
+                  type="text"
+                  value={modelData.rings_amount}
+                  className="flex-1"
+                  readOnly
+                />
+              </div>
+              <p className="text-muted-foreground text-xs leading-none">
+                The amount of ring in this target.
+              </p>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <p>Rings Amount</p>
-            <div className="flex gap-3">
-              <Input
-                type="text"
-                value={modelData.rings_amount}
-                className="flex-1"
-                readOnly
-              />
-            </div>
+            <Link
+              to={`edit`}
+              replace
+              className={buttonVariants({
+                variant: "default",
+                className: "w-fit",
+              })}
+            >
+              <div className="flex justify-center items-center gap-2">
+                <Pencil size={18} />
+                <p>Edit This Model</p>
+              </div>
+            </Link>
           </div>
-
-          <Link
-            to={`edit`}
-            replace
-            className={buttonVariants({
-              variant: "default",
-              className: "w-fit",
-            })}
-          >
-            <div className="flex justify-center items-center gap-2">
-              <Pencil size={18} />
-              <p>Edit This Model</p>
-            </div>
-          </Link>
         </div>
       </div>
     </div>

@@ -71,7 +71,7 @@ export const TargetModelSelect = () => {
           Add a new target model
         </Link>
       </div>
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 mt-6">
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 mt-6">
         {isLoading
           ? [...Array(4)].map((_, index) => {
               return (

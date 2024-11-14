@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { SetStateActionType, XYRelation } from "@/types/constant";
+import { Crosshair, LocateFixed } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export type CanvasMode = "idle" | "bullseye" | "diameter";
@@ -248,10 +249,20 @@ export const TargetBullseyeCanvasOverlay = (
         onTouchEnd={handleTouchEnd}
       />
       {canvasMode && canvasMode !== "idle" && (
-        <p className="absolute top-4 left-4 px-2 py-0.5 rounded-sm bg-primary text-primary-foreground">
-          {canvasMode === "bullseye" && "Locate bullseye point"}
-          {canvasMode === "diameter" && "Locate outline of the first ring"}
-        </p>
+        <div className="absolute top-4 left-4 px-2 py-0.5 rounded-sm bg-primary text-primary-foreground flex gap-1.5 items-center">
+          {canvasMode === "bullseye" && (
+            <>
+              <LocateFixed size={18} />
+              <p>Locate bullseye point</p>
+            </>
+          )}
+          {canvasMode === "diameter" && (
+            <>
+              <Crosshair size={18} />
+              <p>Locate outline of the first ring</p>
+            </>
+          )}
+        </div>
       )}
     </>
   );
