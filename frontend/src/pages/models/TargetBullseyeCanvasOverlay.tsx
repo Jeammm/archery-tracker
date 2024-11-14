@@ -16,7 +16,8 @@ interface TargetBullseyeCanvasOverlayProps {
   canvasSignal: number;
 }
 
-const clientPostitionToCanvas = (e: React.MouseEvent<HTMLCanvasElement>) => {
+// Convert mouse event to canvas position
+const windowToCanvasPosition = (e: React.MouseEvent<HTMLCanvasElement>) => {
   const rect = e.currentTarget.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
@@ -26,15 +27,46 @@ const clientPostitionToCanvas = (e: React.MouseEvent<HTMLCanvasElement>) => {
   return [x, y, w, h];
 };
 
+// Calculate ring diameter base on 2 location
 const getDiameter = (
-  canvasX: number,
-  canvasY: number,
+  imageX: number,
+  imageY: number,
   bullseyePoint: { x: number; y: number }
 ) => {
-  const dx = canvasX - bullseyePoint.x;
-  const dy = canvasY - bullseyePoint.y;
+  const dx = imageX - bullseyePoint.x;
+  const dy = imageY - bullseyePoint.y;
 
   return Math.floor((dx ** 2 + dy ** 2) ** 0.5);
+};
+
+// Convert canvas location to real position realtive to image size
+const canvasToImageLocation = (
+  canvasX: number,
+  canvasY: number,
+  imageSizeX: number,
+  imageSizeY: number,
+  canvasSizeX: number,
+  canvasSizeY: number
+) => {
+  const imageX = Math.floor((canvasX * imageSizeX) / canvasSizeX);
+  const imageY = Math.floor((canvasY * imageSizeY) / canvasSizeY);
+
+  return [imageX, imageY];
+};
+
+// Convert real location on image to canvas position
+const imageToCanvasLocation = (
+  imageX: number,
+  imageY: number,
+  imageSizeX: number,
+  imageSizeY: number,
+  canvasSizeX: number,
+  canvasSizeY: number
+) => {
+  const canvasX = Math.floor((imageX * canvasSizeX) / imageSizeX);
+  const canvasY = Math.floor((imageY * canvasSizeY) / imageSizeY);
+
+  return [canvasX, canvasY];
 };
 
 export const TargetBullseyeCanvasOverlay = (
@@ -58,65 +90,69 @@ export const TargetBullseyeCanvasOverlay = (
   const [dragStart, setDragStart] = useState<XYRelation | null>(null);
 
   const handleDragStart = (canvasX: number, canvasY: number) => {
-    // Store starting point of drag
     setDragStart({ x: canvasX, y: canvasY });
   };
 
-  // Update location based on drag movement
   const handleDragMove = (canvasX: number, canvasY: number) => {
-    if (!dragStart) {
+    if (!dragStart || !targetCanvasRef.current) {
       return;
     }
 
+    const [imageX, imageY] = canvasToImageLocation(
+      canvasX,
+      canvasY,
+      targetImageSize.x,
+      targetImageSize.y,
+      targetCanvasRef.current.width,
+      targetCanvasRef.current.height
+    );
+
     if (canvasMode === "bullseye" && setBullseyePoint) {
-      // Calculate distance dragged
-      const dx = canvasX - dragStart.x;
-      const dy = canvasY - dragStart.y;
-
-      setBullseyePoint((prevLocation) => ({
-        x: Math.floor(
-          Math.min(targetImageSize.x, Math.max(0, prevLocation.x + dx))
-        ),
-        y: Math.floor(
-          Math.min(targetImageSize.y, Math.max(0, prevLocation.y + dy))
-        ),
-      }));
-
-      // Update drag start position to current for continuous dragging
+      setBullseyePoint({ x: imageX, y: imageY });
       setDragStart({ x: canvasX, y: canvasY });
     }
 
     if (canvasMode === "diameter" && setInnerDiameter) {
-      const diameter = getDiameter(canvasX, canvasY, bullseyePoint);
+      const diameter = getDiameter(imageX, imageY, bullseyePoint);
       setInnerDiameter(diameter);
       setDragStart({ x: canvasX, y: canvasY });
     }
   };
 
-  // Mouse events
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const [canvasX, canvasY] = clientPostitionToCanvas(e);
+    if (!targetCanvasRef.current) {
+      return;
+    }
+
+    const [canvasX, canvasY] = windowToCanvasPosition(e);
+    const [imageX, imageY] = canvasToImageLocation(
+      canvasX,
+      canvasY,
+      targetImageSize.x,
+      targetImageSize.y,
+      targetCanvasRef.current.width,
+      targetCanvasRef.current.height
+    );
 
     if (canvasMode === "bullseye" && setBullseyePoint) {
-      setBullseyePoint({ x: canvasX, y: canvasY });
+      setBullseyePoint({ x: imageX, y: imageY });
       handleDragStart(canvasX, canvasY);
     }
 
     if (canvasMode === "diameter" && setInnerDiameter) {
-      const diameter = getDiameter(canvasX, canvasY, bullseyePoint);
+      const diameter = getDiameter(imageX, imageY, bullseyePoint);
       setInnerDiameter(diameter);
       handleDragStart(canvasX, canvasY);
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const [x, y] = clientPostitionToCanvas(e);
+    const [x, y] = windowToCanvasPosition(e);
     handleDragMove(x, y);
   };
 
   const handleMouseUp = () => setDragStart(null);
 
-  // Touch events
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     const touch = e.touches[0];
     handleDragStart(touch.clientX, touch.clientY);
@@ -140,25 +176,36 @@ export const TargetBullseyeCanvasOverlay = (
 
       const { x, y } = bullseyePoint;
 
+      // convert image location to canvas location before render
+      const [canvasX, canvasY] = imageToCanvasLocation(
+        x,
+        y,
+        targetImageSize.x,
+        targetImageSize.y,
+        canvas.width,
+        canvas.height
+      );
+
       // Draw the bullseye
       context.beginPath();
       context.strokeStyle = "lime";
       context.lineWidth = 3;
-      context.moveTo(x - 6, y - 6);
-      context.lineTo(x + 6, y + 6);
-      context.moveTo(x - 6, y + 6);
-      context.lineTo(x + 6, y - 6);
+      context.moveTo(canvasX - 6, canvasY - 6);
+      context.lineTo(canvasX + 6, canvasY + 6);
+      context.moveTo(canvasX - 6, canvasY + 6);
+      context.lineTo(canvasX + 6, canvasY - 6);
 
       context.stroke();
       context.closePath();
 
-      // Draw the ring outline
+      // Draw the rings outline
       [...Array(ringsAmount)].map((_, index) => {
         context.beginPath();
         context.arc(
-          x,
-          y,
-          innerDiameter + innerDiameter * index,
+          canvasX,
+          canvasY,
+          ((innerDiameter + innerDiameter * index) * canvas.width) /
+            targetImageSize.x,
           0,
           2 * Math.PI
         );
@@ -178,13 +225,13 @@ export const TargetBullseyeCanvasOverlay = (
   ]);
 
   useEffect(() => {
-    if (!targetCanvasRef.current) {
+    if (!targetCanvasRef.current || !targetCanvasRef.current.parentElement) {
       return;
     }
     targetCanvasRef.current.width =
-      targetCanvasRef.current?.parentElement?.clientWidth || 500;
+      targetCanvasRef.current.parentElement.clientWidth || 500;
     targetCanvasRef.current.height =
-      targetCanvasRef.current?.parentElement?.clientHeight || 500;
+      targetCanvasRef.current.parentElement.clientHeight || 500;
     setImageResizeSignal((prev) => prev + 1);
   }, [targetImageSize]);
 
@@ -196,7 +243,6 @@ export const TargetBullseyeCanvasOverlay = (
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        // onMouseLeave={handleMouseUp} // Stop drag if mouse leaves canvas
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

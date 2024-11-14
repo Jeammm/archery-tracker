@@ -9,6 +9,7 @@ import { Input } from "../ui/input";
 import { Button, buttonVariants } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { Loader } from "../ui/loader";
+import { cn } from "@/lib/utils";
 
 interface ManageModelProps {
   modelData?: TargetModel | null;
@@ -121,8 +122,9 @@ export const ManageModel = (props: ManageModelProps) => {
       });
       setInnerDiameter(modelData.inner_diameter_px);
       setRingAmounts(modelData.rings_amount);
+
       setTimeout(() => {
-        setCanvasSignal((prev) => prev + 1);
+        setCanvasSignal((prev) => prev + 1); // Signal canvas to re-draw again on image load
       }, 100);
     }
   }, [isCreatePage, modelData]);
@@ -139,7 +141,12 @@ export const ManageModel = (props: ManageModelProps) => {
       </p>
 
       <div className="flex gap-3 mt-6 flex-col md:flex-row items-center md:items-start">
-        <div className="border rounded-md min-h-96 w-96 shrink-0 overflow-hidden relative select-none">
+        <div
+          className={cn([
+            "border rounded-md  w-96 shrink-0 overflow-hidden relative select-none",
+            targetImage ? "" : "min-h-96",
+          ])}
+        >
           {targetImage && targetImageSize ? (
             <>
               <img

@@ -54,7 +54,7 @@ export const ModelDetail = () => {
       </p>
 
       <div className="flex gap-3 mt-6 flex-col md:flex-row items-center md:items-start">
-        <div className="border rounded-md min-h-96 w-96 shrink-0 overflow-hidden relative select-none">
+        <div className="border rounded-md w-96 shrink-0 overflow-hidden relative select-none">
           <img
             alt="preview target"
             src={modelData.model_path}
