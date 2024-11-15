@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCallback, useEffect, useState } from "react";
-import { CircleHelp } from "lucide-react";
+import { CircleHelp, Crosshair } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const TargetModelSelect = () => {
@@ -17,8 +17,17 @@ export const TargetModelSelect = () => {
 
   const [models, setModels] = useState<TargetModel[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [selectedModel, setSelectedModel] = useState<TargetModel | null>(null);
 
-  const onClickModel = async (modelData: TargetModel) => {
+  const onClickModel = (model: TargetModel) => {
+    if (selectedModel && selectedModel._id === model._id) {
+      onClickStart(model);
+    } else {
+      setSelectedModel(model);
+    }
+  };
+
+  const onClickStart = async (modelData: TargetModel) => {
     try {
       const response = await axios.post(
         `${BASE_BACKEND_URL}/sessions`,
@@ -92,10 +101,12 @@ export const TargetModelSelect = () => {
               );
             })
           : models.map((model) => {
+              const isSelected = model._id === selectedModel?._id;
               return (
                 <div
                   className={cn([
-                    "flex border p-4 gap-4 rounded-lg cursor-pointer hover:bg-secondary relative",
+                    "flex border p-4 gap-4 rounded-lg cursor-pointer relative hover:bg-secondary",
+                    isSelected && "border-primary",
                   ])}
                   onClick={() => onClickModel(model)}
                   key={model.model}
@@ -107,7 +118,7 @@ export const TargetModelSelect = () => {
                   />
                   <div className="flex-1">
                     <div className="flex justify-between w-full">
-                      <Badge>
+                      <Badge variant={!isSelected ? "secondary" : "default"}>
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                         <p className="ml-2.5">Olympic Standard</p>
                       </Badge>
@@ -125,7 +136,7 @@ export const TargetModelSelect = () => {
                         />
                       </Button>
                     </div>
-                    <p className="text-lg font-semibold mt-2">
+                    <p className="text-lg font-semibold mt-1">
                       {model.model_name}
                     </p>
                     <p className="text-muted-foreground text-sm">
@@ -142,6 +153,29 @@ export const TargetModelSelect = () => {
                 </div>
               );
             })}
+      </div>
+
+      <div className="w-screen h-20" />
+
+      <div
+        className={cn([
+          "fixed w-screen left-0 slide-in-from-bottom-20 transition-all",
+          selectedModel ? "bottom-4" : "-bottom-20",
+        ])}
+      >
+        <div className="max-w-[1344px] w-[calc(100%-24px)] py-2 px-6 flex justify-between items-center mx-auto  bg-primary rounded-md">
+          <p className="text-lg font-semibold text-primary-foreground">
+            Selected Model : {selectedModel?.model_name || ""}
+          </p>
+          <Button
+            className="ml-auto font-semibold pr-6"
+            size="lg"
+            variant="outline"
+            onClick={() => selectedModel && onClickStart(selectedModel)}
+          >
+            Start Now <Crosshair size={18} className="ml-2" />
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -56,7 +56,7 @@ export const ModelDetail = () => {
       </p>
 
       <div className="mt-6 border p-4 rounded-md">
-        <p className="text-3xl font-semibold mb-4">
+        <p className="text-3xl font-semibold mb-4 text-center md:text-start">
           Model : {modelData.model_name}
         </p>
 
