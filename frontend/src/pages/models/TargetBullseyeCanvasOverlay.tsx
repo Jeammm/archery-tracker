@@ -201,19 +201,32 @@ export const TargetBullseyeCanvasOverlay = (
 
       // Draw the rings outline
       [...Array(ringsAmount)].map((_, index) => {
-        context.beginPath();
-        context.arc(
-          canvasX,
-          canvasY,
+        const radius =
           ((innerDiameter + innerDiameter * index) * canvas.width) /
-            targetImageSize.x,
-          0,
-          2 * Math.PI
-        );
+          targetImageSize.x;
+
+        context.beginPath();
+        context.arc(canvasX, canvasY, radius, 0, 2 * Math.PI);
         context.strokeStyle = "red";
         context.lineWidth = 2;
         context.stroke();
         context.closePath();
+
+        let previousRadius = 0;
+        if (index > 0) {
+          previousRadius =
+            ((innerDiameter + innerDiameter * (index - 1)) * canvas.width) /
+            targetImageSize.x;
+        }
+        const interRing = (radius - previousRadius) / 2;
+
+        const score = String(10 - index);
+        const textX = canvasX + previousRadius + interRing - 5;
+        const textY = canvasY + 5;
+
+        context.font = "bold 16px Arial";
+        context.fillStyle = "lime";
+        context.fillText(score, textX, textY);
       });
     }
   }, [
