@@ -31,6 +31,7 @@ export interface Hit {
   skeleton_data?: Skeleton;
   features?: BodyFeatures;
   phase?: string;
+  tts: number;
 }
 
 export interface Round {

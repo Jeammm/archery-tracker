@@ -1,5 +1,5 @@
 from celery import shared_task
-from project.controllers.processing_controller import upload_frames
+from project.controllers.processing_controller import find_aiming_frame_from_shot, upload_frames
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, MODEL_COLLECTION
 from project.controllers.video_uploader import get_short_playback_url, get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
@@ -101,7 +101,7 @@ def process_pose_test(self, round_id):
         )
     
     try:
-        process_pose_video_data(input_filepath, output_filepath)
+        aiming_frames = process_pose_video_data(input_filepath, output_filepath)
         
         round_collection.update_one(
             {"pose_task_id": task_id},
@@ -129,7 +129,7 @@ def process_pose_test(self, round_id):
             {"$set": {"pose_status": "SUCCESS"}}
         )
         
-        return input_filepath, output_filepath, dummy_input_filepath
+        return input_filepath, output_filepath, dummy_input_filepath, aiming_frames
         
     except Exception as e:
         round_collection.update_one(
@@ -145,10 +145,19 @@ def capture_pose_on_shot_detected_test(self, results, round_id):
     
     pose_video_path = results[1][1]
     dummy_raw_pose_video_path = results[1][2]
+    aiming_frames = results[1][3]
     
     try:
         # Upload hit frames
         scoring_detail_with_images = upload_frames(scoring_detail, target_video_path, pose_video_path)
+        
+        for shot in scoring_detail_with_images:
+            start_aiming_frame = find_aiming_frame_from_shot(aiming_frames, shot['frame'])
+            fts = shot['frame'] - start_aiming_frame
+            if fts > 0:
+                shot['tts'] = fts * 0.033
+            else:
+                shot['tts'] = 0
         
         round_collection.update_one(
                 {"_id": ObjectId(round_id)},

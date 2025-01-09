@@ -57,6 +57,10 @@ class PoseEstimator:
                             landmarks[self.mp_pose.PoseLandmark.LEFT_KNEE.value].y])
         right_knee = np.array([landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].x,
                             landmarks[self.mp_pose.PoseLandmark.RIGHT_KNEE.value].y])
+        left_hand = np.array([landmarks[self.mp_pose.PoseLandmark.LEFT_THUMB.value].x,
+                            landmarks[self.mp_pose.PoseLandmark.LEFT_THUMB.value].y])
+        right_hand = np.array([landmarks[self.mp_pose.PoseLandmark.RIGHT_THUMB.value].x,
+                            landmarks[self.mp_pose.PoseLandmark.RIGHT_THUMB.value].y])
         
         # Calculate distances (optional but helpful for feature set)
         shoulder_distance = np.linalg.norm(left_shoulder - right_shoulder)
@@ -64,24 +68,18 @@ class PoseEstimator:
 
         # Calculate angles
         # Bow shoulder (assume left shoulder as bow shoulder)
-        torso_vector = left_shoulder - left_hip
-        bow_shoulder_angle = np.degrees(np.arctan2(torso_vector[1], torso_vector[0]))
+        bow_shoulder_angle = calculate_angle(left_hip, left_shoulder, left_elbow)
         
         # Drawing shoulder (assume right shoulder as drawing shoulder)
-        drawing_shoulder_angle = np.degrees(np.arctan2(right_elbow[1] - right_shoulder[1],
-                                                    right_elbow[0] - right_shoulder[0]))
+        drawing_shoulder_angle = calculate_angle(right_hip, right_shoulder, right_elbow)
         
         # Elbow angles
-        bow_arm_elbow_angle = np.degrees(np.arctan2(left_wrist[1] - left_elbow[1],
-                                                    left_wrist[0] - left_elbow[0]))
-        drawing_arm_elbow_angle = np.degrees(np.arctan2(right_wrist[1] - right_elbow[1],
-                                                        right_wrist[0] - right_elbow[0]))
+        bow_arm_elbow_angle = calculate_angle(left_shoulder, left_elbow, left_wrist)
+        drawing_arm_elbow_angle = calculate_angle(right_shoulder, right_elbow, right_wrist)
         
         # Wrist angles
-        bow_wrist_angle = np.degrees(np.arctan2(left_wrist[1] - left_elbow[1],
-                                                left_wrist[0] - left_elbow[0]))
-        drawing_wrist_angle = np.degrees(np.arctan2(right_wrist[1] - right_elbow[1],
-                                                    right_wrist[0] - right_elbow[0]))
+        bow_wrist_angle = calculate_angle(left_elbow, left_wrist, left_hand)
+        drawing_wrist_angle = calculate_angle(right_elbow, right_wrist, right_hand)
         
         # Spine alignment
         spine_angle = np.degrees(np.arctan2(left_shoulder[1] - left_hip[1],
@@ -116,22 +114,11 @@ class PoseEstimator:
         drawing_shoulder_angle = features.get("drawing_shoulder_angle")
         bow_arm_elbow_angle = features.get("bow_arm_elbow_angle")
         drawing_arm_elbow_angle = features.get("drawing_arm_elbow_angle")
-        bow_wrist_angle = features.get("bow_wrist_angle")
-        drawing_wrist_angle = features.get("drawing_wrist_angle")
-        spine_angle = features.get("spine_angle")
         
         # Classify the phases based on feature thresholds
         # Drawing Phase
-        if 80 < bow_shoulder_angle < 100 and 60 < drawing_arm_elbow_angle < 120:
+        if 70 < bow_shoulder_angle < 100 and 100 < drawing_shoulder_angle < 140 and 160 < bow_arm_elbow_angle < 185 and 13 < drawing_arm_elbow_angle < 40:
             return "Drawing"
-        
-        # Aiming Phase
-        elif 150 < drawing_arm_elbow_angle < 180 and 140 < bow_arm_elbow_angle < 180:
-            return "Aiming"
-        
-        # Release Phase
-        elif drawing_wrist_angle > 160 and bow_wrist_angle > 160 and abs(spine_angle) < 10:
-            return "Release"
         
         # Default or unclassified phase
         else:
@@ -139,4 +126,35 @@ class PoseEstimator:
     
     def convert_keys_to_strings(self, data):
         return {str(key): {k: float(v) if isinstance(v, (np.float32, np.float64)) else v for k, v in value.items()} for key, value in data.items()}
+
+
+def calculate_angle(point1, point2, point3):
+    """
+    Calculate the angle formed by three points: point1 -> point2 -> point3.
+    
+    Args:
+        point1 (array-like): First point (e.g., [x1, y1]).
+        point2 (array-like): Vertex point where the angle is formed (e.g., [x2, y2]).
+        point3 (array-like): Third point (e.g., [x3, y3]).
         
+    Returns:
+        float: Angle in degrees.
+    """
+    # Vectors
+    vector1 = np.array(point1) - np.array(point2)
+    vector2 = np.array(point3) - np.array(point2)
+
+    # Calculate the angle
+    dot_product = np.dot(vector1, vector2)
+    magnitude1 = np.linalg.norm(vector1)
+    magnitude2 = np.linalg.norm(vector2)
+
+    # Avoid division by zero
+    if magnitude1 == 0 or magnitude2 == 0:
+        return 0.0
+
+    # Angle in radians and convert to degrees
+    angle_radians = np.arccos(np.clip(dot_product / (magnitude1 * magnitude2), -1.0, 1.0))
+    angle_degrees = np.degrees(angle_radians)
+
+    return angle_degrees

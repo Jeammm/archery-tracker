@@ -54,5 +54,6 @@ def process_pose_video_data(input_filepath, output_filepath):
   # analyze
   sketcher = Sketcher(connections, joint_color, bone_color, thickness)
   video_analyzer = VideoAnalyzer(video_name)
-  video_analyzer.analyze(output_filepath, sketcher)
+  aiming_frames = video_analyzer.analyze(output_filepath, sketcher)
   print("😇 Pose Process Done 😇")
+  return aiming_frames

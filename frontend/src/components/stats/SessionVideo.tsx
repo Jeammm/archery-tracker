@@ -393,11 +393,12 @@ export const SessionVideo = (props: SessionVideoProps) => {
           </Button>
         </div>
         <Separator />
-        <div className="grid grid-cols-5 border-b items-center cursor-pointer bg-secondary text-secondary-foreground px-4 py-1.5">
+        <div className="grid grid-cols-6 border-b items-center cursor-pointer bg-secondary text-secondary-foreground px-4 py-1.5">
           <p>No.</p>
           <p>Frame</p>
           <p>Score</p>
           <p>Location</p>
+          <p>TTS</p>
           <p></p>
         </div>
         <div
@@ -409,7 +410,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
               <div
                 ref={(el) => (itemRefs.current[hit.id] = el)}
                 className={cn([
-                  "grid grid-cols-5 border-b items-center cursor-pointer hover:bg-accent text-accent-foreground px-4 py-1",
+                  "grid grid-cols-6 border-b items-center cursor-pointer hover:bg-accent text-accent-foreground px-4 py-1",
                   currentShot === Number(hit.id) &&
                     "bg-primary/70 hover:bg-primary/80 text-primary-foreground",
                 ])}
@@ -422,6 +423,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
                   <p>x : {hit.point[0]}</p>
                   <p>y : {hit.point[1]}</p>
                 </div>
+                <p>{hit.tts} ms</p>
                 <div className="flex gap-2 ml-auto items-center">
                   <Button
                     onClick={() => onClickEditShotModal(hit)}
