@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { TargetImageWithShotOverlay } from "./TargetImageWithShotOverlay";
+import { formatTTS } from "@/utils/formatScore";
 
 interface SessionSummaryProps {
   sessionData: Session;
@@ -77,7 +78,7 @@ export const SessionSummary = (props: SessionSummaryProps) => {
       <div className="rounded-lg p-2 border text-secondary-foreground flex flex-col items-center relative">
         {isNoScoreAtAll && <NoShotBlurOverlay />}
         <p className="w-full text-center font-bold text-lg mb-2">
-          Average Posture
+          Average Aiming Posture
         </p>
         <div className="w-full">
           <img
@@ -115,15 +116,22 @@ export const SessionSummary = (props: SessionSummaryProps) => {
                 <TableCell className="font-semibold">Average Score</TableCell>
                 <TableCell>
                   {sessionData.total_score && sessionData.maximum_score
-                    ? (sessionData.total_score / sessionData.maximum_score) * 10
+                    ? (
+                        (sessionData.total_score / sessionData.maximum_score) *
+                        10
+                      ).toFixed(2)
                     : 0}
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-semibold">Accuracy</TableCell>
                 <TableCell>
-                  {sessionData.accuracy ? sessionData.accuracy * 100 : 0} %
+                  {sessionData.accuracy ? (sessionData.accuracy * 100).toFixed(2) : 0} %
                 </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-semibold">Average TTS</TableCell>
+                <TableCell>{formatTTS(sessionData.average_tts)}</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-semibold">

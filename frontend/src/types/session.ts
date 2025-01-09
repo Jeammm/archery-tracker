@@ -15,6 +15,7 @@ export interface Session {
   accuracy?: number;
   features?: BodyFeatures;
   total_session_time: number;
+  average_tts: number;
 }
 
 export interface Hit {
@@ -55,6 +56,7 @@ export interface Round {
   total_score?: number;
   maximum_score?: number;
   accuracy?: number;
+  round_tts?: number;
 }
 
 export interface StatsValue {

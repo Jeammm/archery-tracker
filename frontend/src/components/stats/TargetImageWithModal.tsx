@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableRow } from "../ui/table";
 import { format } from "date-fns";
 import { TargetImageWithShotOverlay } from "./TargetImageWithShotOverlay";
 import { onImageError } from "@/utils/canvasHelper";
+import { formatTTS } from "@/utils/formatScore";
 
 interface TargetImageWithModalProps {
   className?: string;
@@ -62,6 +63,12 @@ export const TargetImageWithModal = (props: TargetImageWithModalProps) => {
                   <TableCell className="font-semibold">Timestamp</TableCell>
                   <TableCell>
                     {hit.hit_time ? format(hit.hit_time, "hh : mm : ss") : "-"}
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-semibold">TTS</TableCell>
+                  <TableCell>
+                    {formatTTS(hit.tts)}
                   </TableCell>
                 </TableRow>
               </TableBody>

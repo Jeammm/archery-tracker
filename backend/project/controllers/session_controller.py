@@ -38,13 +38,13 @@ def add_rounds_to_sessions(sessions):
             
             scores = [hit['score'] for hit in round_item.get('score', []) if 'score' in hit]
             features = [hit['features'] for hit in round_item.get('score', []) if 'features' in hit]
+            round_tts = [hit['tts'] for hit in round_item.get('score', []) if 'tts' in hit and hit['tts'] > 0]
             round_total_score = sum(scores)
             round_maximum_score = len(scores) * 10
             round_accuracy = round_total_score / round_maximum_score if round_maximum_score > 0 else 0 
             
-            start_time = round_item.get('created_at') 
+            start_time = round_item.get('created_at')
             end_time = round_item.get('start_process_at') 
-            
             
             if start_time and end_time:
                 if isinstance(start_time, str):
@@ -54,8 +54,7 @@ def add_rounds_to_sessions(sessions):
 
                 round_time += (end_time - start_time).total_seconds()
                 round_item['round_time'] = (end_time - start_time).total_seconds()
-            
-                
+                round_item['round_tts'] = sum(round_tts) / len(round_tts) if len(round_tts) > 0 else 0
             
             for feature in features:
                 feature_count += 1
@@ -73,14 +72,20 @@ def add_rounds_to_sessions(sessions):
             
         session['total_score'] = total_score
         session['maximum_score'] = maximum_score
-        session['accuracy'] = total_score / maximum_score if maximum_score > 0 else 0  
+        session['accuracy'] = total_score / maximum_score if maximum_score > 0 else 0
         session['round_result'] = rounds
         session['total_session_time'] = round_time
+        
+        all_round_tts_with_value = [round['round_tts'] for round in rounds if 'round_tts' in round and round['round_tts'] > 0]
+        session['average_tts'] = (
+            sum(all_round_tts_with_value) / len(all_round_tts_with_value)
+            if all_round_tts_with_value
+            else 0
+        )
         
         for key in total_feature:
             total_feature[key] = round(total_feature[key] / feature_count, 2)
         session['features'] = total_feature
-        
         
         # Determine processing status based on pose_status and target_status
         processing_status = "SUCCESS"
@@ -92,7 +97,7 @@ def add_rounds_to_sessions(sessions):
             if round_item.get('pose_status') != "SUCCESS" or round_item.get('target_status') != "SUCCESS":
                 processing_status = "PROCESSING"
                 break
-        
+            
         session['processing_status'] = processing_status
     return sessions
 

@@ -17,6 +17,7 @@ import { ProcessingFailed } from "./RetryButton";
 import { AddMissingShotModal } from "../modal/AddMissingShotModal";
 import { EditShotModal } from "../modal/EditShotModal";
 import { FPS } from "@/types/constant";
+import { formatTTS } from "@/utils/formatScore";
 interface SessionVideoProps {
   sessionData: Session;
   selectedRound: number;
@@ -423,7 +424,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
                   <p>x : {hit.point[0]}</p>
                   <p>y : {hit.point[1]}</p>
                 </div>
-                <p>{hit.tts} ms</p>
+                <p>{formatTTS(hit.tts)}</p>
                 <div className="flex gap-2 ml-auto items-center">
                   <Button
                     onClick={() => onClickEditShotModal(hit)}

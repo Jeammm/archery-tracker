@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Round, Session } from "@/types/session";
 import { Loader } from "../ui/loader";
-import { calculateAccumulatedScore } from "@/utils/formatScore";
+import { calculateAccumulatedScore, formatTTS } from "@/utils/formatScore";
 import { format } from "date-fns";
 import { ChartPie } from "../chart-pie";
 import { GeneralShotDataChart } from "../charts/GeneralShotDataChart";
@@ -37,7 +37,7 @@ export const GeneralData = (props: GeneralDataProps) => {
             <TableHead className="text-center">Round</TableHead>
             <TableHead className="text-center">Shot</TableHead>
             <TableHead className="text-center">Time</TableHead>
-            {/* <TableHead>Hit</TableHead> */}
+            <TableHead>TTS</TableHead>
             <TableHead className="text-center">Score</TableHead>
             <TableHead className="text-center">Total</TableHead>
             <TableHead className="text-center">Sum</TableHead>
@@ -124,6 +124,7 @@ export const GeneralData = (props: GeneralDataProps) => {
                           ? format(hit.hit_time, "hh:mm:ss a")
                           : "-"}
                       </TableCell>
+                      <TableCell>{formatTTS(hit.tts)}</TableCell>
                       <TableCell>{hit.score}</TableCell>
                       <TableCell
                         rowSpan={round.score?.length}
@@ -146,6 +147,7 @@ export const GeneralData = (props: GeneralDataProps) => {
                     <TableCell>
                       {hit.hit_time ? format(hit.hit_time, "hh:mm:ss a") : "-"}
                     </TableCell>
+                    <TableCell>{formatTTS(hit.tts)}</TableCell>
                     <TableCell>{hit.score}</TableCell>
                   </TableRow>
                 );
@@ -155,7 +157,7 @@ export const GeneralData = (props: GeneralDataProps) => {
         })}
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={5}>Total Score</TableCell>
+            <TableCell colSpan={6}>Total Score</TableCell>
             <TableCell>{sessionData.total_score}</TableCell>
           </TableRow>
         </TableFooter>
