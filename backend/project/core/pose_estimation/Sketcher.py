@@ -67,7 +67,8 @@ class Sketcher:
             cv2.putText(img, feature + ': ', (int(img_w * .6), int(img_h * (.1 + (.05 * i)))),
                         cv2.FONT_HERSHEY_SIMPLEX, font_size, (0x0,0x0,0x0), font_weight)
             
-            cv2.putText(img, "{:.1f}".format(features[feature]), (int(img_w * .9), int(img_h * (.1 + (.05 * i)))),
+            value = features[feature] if feature in features else 0
+            cv2.putText(img, "{:.1f}".format(value), (int(img_w * .9), int(img_h * (.1 + (.05 * i)))),
                         cv2.FONT_HERSHEY_SIMPLEX, font_size, dataColor, font_weight)
     
     def type_frame(self, img, frame, dataColor = (0x0,0x0,0xff)):
