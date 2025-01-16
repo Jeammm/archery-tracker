@@ -6,6 +6,8 @@ import cv2
 def subtract_background(query, subtrahend):
     '''
     Subtract two images, so only the difference between them is left.
+    This version adjusts for lighting differences by normalizing the images
+    and applying a threshold to capture smaller differences.
 
     Parameters:
         {Numpy.array} query - The image from which the background is subtracted [RGB]
@@ -15,19 +17,29 @@ def subtract_background(query, subtrahend):
         {Numpy.array} The difference image.
     '''
 
-    # convert to grayscale
+    # Convert to grayscale
     gray_query = cv2.cvtColor(query, cv2.COLOR_RGB2GRAY)
     gray_subtrahend = cv2.cvtColor(subtrahend, cv2.COLOR_RGB2GRAY)
 
-    # apply gaussian blur
-    kernel = (3,3)
+    # Normalize the images to reduce lighting differences
+    gray_query = cv2.normalize(gray_query, None, 0, 255, cv2.NORM_MINMAX)
+    gray_subtrahend = cv2.normalize(gray_subtrahend, None, 0, 255, cv2.NORM_MINMAX)
+
+    # Apply Gaussian blur
+    kernel = (3, 3)
     gray_query = cv2.GaussianBlur(gray_query, kernel, 0)
     gray_subtrahend = cv2.GaussianBlur(gray_subtrahend, kernel, 0)
 
-    # apply a black area on the subtrahend image
+    # Apply a black area on the subtrahend image
     gray_subtrahend[gray_query == 0] = 0
 
-    return cv2.absdiff(gray_subtrahend, gray_query)
+    # Subtract images and apply an absolute difference
+    diff = cv2.absdiff(gray_subtrahend, gray_query)
+
+    # Set a threshold to capture more variations (adjust the threshold as needed)
+    _, thresholded_diff = cv2.threshold(diff, 40, 255, cv2.THRESH_BINARY)
+
+    return thresholded_diff
 
 def emphasize_lines(img, distances, estimatedRadius, frame_count, circle_lift_span):
     '''
