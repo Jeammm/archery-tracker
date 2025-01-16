@@ -12,6 +12,7 @@ import io
 import cloudinary.uploader
 from bson.objectid import ObjectId
 from ..db import db
+import m3u8
 
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
@@ -209,9 +210,29 @@ def upload_frames(scoring_detail, target_video_path, pose_video_path):
         scoring_detail_with_images.append(hit_with_image)
     return scoring_detail_with_images
 
+def get_highest_quality_stream(m3u8_url):
+    playlist = m3u8.load(m3u8_url)
+    max_resolution = (0, 0)
+    best_stream_url = None
+
+    for variant in playlist.playlists:
+        resolution = variant.stream_info.resolution
+        if resolution and resolution[0] * resolution[1] > max_resolution[0] * max_resolution[1]:
+            max_resolution = resolution
+            best_stream_url = variant.uri
+    
+    if best_stream_url is None:
+        raise ValueError("No valid streams found in the M3U8 playlist.")
+    
+    return best_stream_url
+
 def capture_frame_pair(frame, target_video_path, pose_video_path):
-    target_cap = cv2.VideoCapture(target_video_path)
-    pose_cap = cv2.VideoCapture(pose_video_path)
+    # Pick the highest quality streams
+    target_video_url = get_highest_quality_stream(target_video_path)
+    pose_video_url = get_highest_quality_stream(pose_video_path)
+    
+    target_cap = cv2.VideoCapture(target_video_url)
+    pose_cap = cv2.VideoCapture(pose_video_url)
 
     target_cap.set(cv2.CAP_PROP_POS_FRAMES, frame)
     target_ret, target_frame = target_cap.read()
