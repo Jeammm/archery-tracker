@@ -106,12 +106,21 @@ const StatHighlightItem = ({
   statValue: StatsValue;
   statKey: string;
 }) => {
+  let divider = 1;
+  if (statKey === "total_training_time_compare") {
+    divider = 60;
+  }
+
   const getDescription = (stat: StatsValue, name: string) => {
     return stat.compare > 0
-      ? `Increase from last week (${stat.last_week.toFixed(2)} ${name})`
+      ? `Increase from last week (${(stat.last_week / divider).toFixed(
+          2
+        )} ${name})`
       : stat.compare === 0
       ? ""
-      : `Decrease from last week (${stat.last_week.toFixed(2)} ${name})`;
+      : `Decrease from last week (${(stat.last_week / divider).toFixed(
+          2
+        )} ${name})`;
   };
 
   const getTitle = () => {
@@ -136,7 +145,7 @@ const StatHighlightItem = ({
       return "Points";
     }
     if (statKey === "total_training_time_compare") {
-      return "Secs.";
+      return "Minutes";
     }
 
     return "";
@@ -181,7 +190,7 @@ const StatHighlightItem = ({
         />
       </div>
       <p className="font-bold text-lg sm:text-2xl tracking-wider sm:mt-1">
-        {statValue.current_week} {getNoun()}
+        {(statValue.current_week / divider).toFixed(2)} {getNoun()}
       </p>
       <p className="text-muted-foreground text-sm whitespace-nowrap md:whitespace-normal">
         {getDescription(statValue, getNoun())}

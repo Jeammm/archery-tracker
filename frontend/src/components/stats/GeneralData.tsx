@@ -169,7 +169,7 @@ export const GeneralData = (props: GeneralDataProps) => {
         </div>
         <ChartPie
           round_result={round_result}
-          title="Totle Shot Score"
+          title="Total Shot Score"
           description="All your shots"
           nameKey="round"
           dataKey="score"
