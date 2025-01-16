@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { Hit } from "@/types/session";
 import { onImageError } from "@/utils/canvasHelper";
 import { MousePointer2, Move3d, Target } from "lucide-react";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useState } from "react";
 
 interface TargetImageWithShotOverlay {
@@ -10,26 +10,59 @@ interface TargetImageWithShotOverlay {
   hits: Hit[];
 }
 
-const imageXOffset = 240;
+type ImageCropType = "y-crop" | "x-crop";
 
 export const TargetImageWithShotOverlay = (
   props: TargetImageWithShotOverlay
 ) => {
   const { targetImage, hits } = props;
 
+  const targetImageRef = useRef<HTMLImageElement>(null);
+
   const [activeHitIndex, setActiveHitIndex] = useState<number | null>(null);
 
   const getPositionInPercent = (point: number[]) => {
-    // imageXOffset used here for transforming 16:9 image to 4:3 image before percentage calculation
-    const x = ((point[0] - imageXOffset) / (1920 - 2 * imageXOffset)) * 100;
-    const y = (point[1] / 1080) * 100;
+    const cropType: ImageCropType =
+      imageSize.width > imageSize.height ? "x-crop" : "y-crop";
 
-    return [x, y];
+    if (!targetImageRef.current) {
+      return [0, 0];
+    }
+
+    const imageElementWidth = targetImageRef.current.clientWidth;
+    const imageElementHeight = targetImageRef.current.clientHeight;
+
+    if (cropType === "y-crop") {
+      const yOffset = (imageSize.height - (imageSize.width * 4) / 3) / 2;
+      const scaleDownRatio = imageElementWidth / imageSize.width;
+      const newPointX = point[0] / imageSize.width;
+      const newPointY =
+        ((point[1] - yOffset) * scaleDownRatio) / imageElementHeight;
+      return [newPointX * 100, newPointY * 100];
+    } else {
+      const xOffset = (imageSize.width - (imageSize.height * 4) / 3) / 2;
+      const scaleDownRatio = imageElementHeight / imageSize.height;
+      const newPointX =
+        ((point[0] - xOffset) * scaleDownRatio) / imageElementWidth;
+      const newPointY = point[1] / imageSize.height;
+      return [newPointX * 100, newPointY * 100];
+    }
   };
+
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = targetImage;
+    img.onload = () => {
+      setImageSize({ width: img.width, height: img.height });
+    };
+  }, [targetImage]);
 
   return (
     <div className="relative inline-block w-full">
       <img
+        ref={targetImageRef}
         src={targetImage}
         alt="target1"
         className="w-full h-auto aspect-[4/3] object-cover"
