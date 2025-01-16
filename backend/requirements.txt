@@ -7,7 +7,7 @@ python-dotenv
 certifi
 requests
 mediapipe
-opencv-python-headless==4.8.1.78
+opencv-python-headless==4.5.3.56
 flask_bcrypt
 PyJWT
 flask_cors
