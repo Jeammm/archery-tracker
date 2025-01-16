@@ -125,8 +125,14 @@ export const DetailedShotData = (props: DetailedShotDataProps) => {
                       <div className="col-span-1 md:col-span-2 xl:col-span-1">
                         <SkeletonFeature features={hit.features} />
                       </div>
-                      <PostureImageWithModal hit={hit} />
-                      <TargetImageWithModal hit={hit} />
+                      <PostureImageWithModal
+                        hit={hit}
+                        className="aspect-video"
+                      />
+                      <TargetImageWithModal
+                        hit={hit}
+                        className="aspect-video"
+                      />
                     </div>
                   </div>
                 </TimelineWrapper>
