@@ -110,6 +110,7 @@ class VideoAnalyzer:
             success = self._setup_homography(frame)
             print("processing...")
             if not success:
+                print("no homographic found")
                 return None, []
         
         # process image
