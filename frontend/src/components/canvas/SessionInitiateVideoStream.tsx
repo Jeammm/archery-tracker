@@ -127,7 +127,7 @@ export const SessionInitiateVideoStream = (
         if (isRightHandOverHead) {
           triggerStartRecording();
         } else if (isLeftHandOverHead) {
-          triggerEndRecording();
+          // triggerEndRecording(); // disable to prevent wrong stop trigger
         }
       }
     }
