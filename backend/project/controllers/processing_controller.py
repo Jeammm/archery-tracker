@@ -228,8 +228,10 @@ def get_highest_quality_stream(m3u8_url):
 
 def capture_frame_pair(frame, target_video_path, pose_video_path):
     # Pick the highest quality streams
-    target_video_url = get_highest_quality_stream(target_video_path)
-    pose_video_url = get_highest_quality_stream(pose_video_path)
+    target_video_url = target_video_path
+    pose_video_url = pose_video_path
+    # target_video_url = get_highest_quality_stream(target_video_path)
+    # pose_video_url = get_highest_quality_stream(pose_video_path)
     
     target_cap = cv2.VideoCapture(target_video_url)
     pose_cap = cv2.VideoCapture(pose_video_url)
