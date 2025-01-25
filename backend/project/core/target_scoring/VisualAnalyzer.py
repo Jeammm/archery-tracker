@@ -3,49 +3,6 @@ from project.core.target_scoring import Geometry2D as geo2D
 import numpy as np
 import cv2
 
-def reduce_contrast(image, factor=0.5):
-    return cv2.convertScaleAbs(image, factor)
-
-def reduce_saturation(image, factor=0.5):
-    """
-    Reduce saturation of an image.
-    
-    Parameters:
-        image (numpy.array): Input image [RGB].
-        factor (float): Saturation reduction factor (0 = grayscale, 1 = original saturation).
-        
-    Returns:
-        numpy.array: Image with reduced saturation.
-    """
-    # Convert to HSV color space
-    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-
-    # Reduce saturation
-    hsv[..., 1] = (hsv[..., 1] * factor).astype(np.uint8)
-
-    # Convert back to RGB
-    reduced_saturation = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-    return reduced_saturation
-
-def reduce_contrast_and_saturation(image, contrast_factor=0.5, saturation_factor=0.5):
-    """
-    Reduce both contrast and saturation of an image.
-    
-    Parameters:
-        image (numpy.array): Input image [RGB].
-        contrast_factor (float): Contrast reduction factor.
-        saturation_factor (float): Saturation reduction factor.
-        
-    Returns:
-        numpy.array: Image with reduced contrast and saturation.
-    """
-    # Reduce contrast
-    reduced_contrast = reduce_contrast(image, contrast_factor)
-
-    # Reduce saturation
-    reduced_contrast_and_saturation = reduce_saturation(reduced_contrast, saturation_factor)
-    return reduced_contrast_and_saturation
-
 def subtract_background(query, subtrahend):
     '''
     Subtract two images, so only the difference between them is left.
@@ -59,23 +16,15 @@ def subtract_background(query, subtrahend):
     Returns:
         {Numpy.array} The difference image.
     '''
-    
-    # Reduce contrast and saturation
-    query = reduce_contrast_and_saturation(query, contrast_factor=0.5, saturation_factor=0.7)
-    subtrahend = reduce_contrast_and_saturation(subtrahend, contrast_factor=0.5, saturation_factor=0.7)
 
     # Convert to grayscale
     gray_query = cv2.cvtColor(query, cv2.COLOR_RGB2GRAY)
     gray_subtrahend = cv2.cvtColor(subtrahend, cv2.COLOR_RGB2GRAY)
 
-    # Normalize the images to reduce lighting differences
-    gray_query = cv2.normalize(gray_query, None, 0, 255, cv2.NORM_MINMAX)
-    gray_subtrahend = cv2.normalize(gray_subtrahend, None, 0, 255, cv2.NORM_MINMAX)
-
-    # Apply Gaussian blur
-    kernel = (3, 3)
-    gray_query = cv2.GaussianBlur(gray_query, kernel, 0)
-    gray_subtrahend = cv2.GaussianBlur(gray_subtrahend, kernel, 0)
+    # # Apply Gaussian blur
+    # kernel = (3, 3)
+    # gray_query = cv2.GaussianBlur(gray_query, kernel, 0)
+    # gray_subtrahend = cv2.GaussianBlur(gray_subtrahend, kernel, 0)
 
     # Apply a black area on the subtrahend image
     gray_subtrahend[gray_query == 0] = 0
@@ -84,7 +33,7 @@ def subtract_background(query, subtrahend):
     diff = cv2.absdiff(gray_subtrahend, gray_query)
 
     # Set a threshold to capture more variations (adjust the threshold as needed)
-    _, thresholded_diff = cv2.threshold(diff, 35, 255, cv2.THRESH_BINARY)
+    _, thresholded_diff = cv2.threshold(diff, 20, 255, cv2.THRESH_BINARY)
 
     return thresholded_diff
 

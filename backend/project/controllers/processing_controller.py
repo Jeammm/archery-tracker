@@ -433,6 +433,46 @@ def edit_manual_shot_by_id(round_id, hit_id):
             return jsonify({'error': 'Hit not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def remove_manual_shot_by_id(round_id, hit_id):
+    try:
+        # Validate the input data
+        if not round_id or not hit_id:
+            return jsonify({'error': 'Missing round_id or hit_id'}), 400
+
+        # Find the round document by round_id
+        round_doc = round_collection.find_one({'_id': ObjectId(round_id)})
+        if not round_doc:
+            return jsonify({'error': 'Round not found'}), 404
+
+        # Ensure the round has a 'scores' array
+        scores = round_doc.get('score', [])
+        if not scores:
+            return jsonify({'error': 'No scores found in the round'}), 404
+
+        # Find and remove the shot with the specified hit_id
+        updated_scores = [hit for hit in scores if hit.get('id') != int(hit_id)]
+        if len(updated_scores) == len(scores):
+            return jsonify({'error': 'Shot not found in the scores'}), 404
+
+        # Reindex the scores to maintain sequential order
+        for shot in updated_scores:
+            if shot['id'] > int(hit_id):
+                shot['id'] = shot['id'] - 1  # Update the position for each shot
+
+        # Update the round document with the modified scores array
+        result = round_collection.update_one(
+            {'_id': ObjectId(round_id)},
+            {'$set': {'score': updated_scores}}
+        )
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Failed to update the round'}), 500
+
+        return jsonify({'message': 'Shot successfully removed and reindexed'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     
 def edit_shot_to_existed_round(new_shot_data, round_score, round_id, hit_id, round_start_time, target_video_path, pose_video_path):
     

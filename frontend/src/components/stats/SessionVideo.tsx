@@ -3,7 +3,7 @@ import type {
   ByteArkPlayer,
   ByteArkPlayerContainerProps,
 } from "byteark-player-react";
-import { ArrowBigLeft, Play, Pause, ArrowBigRight, Pencil } from "lucide-react";
+import { ArrowBigLeft, Play, Pause, ArrowBigRight, Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Slider } from "@/components/ui/slider";
 import { formatSecondsToMMSS } from "@/utils/dateTime";
@@ -18,6 +18,7 @@ import { AddMissingShotModal } from "../modal/AddMissingShotModal";
 import { EditShotModal } from "../modal/EditShotModal";
 import { FPS } from "@/types/constant";
 import { formatTTS } from "@/utils/formatScore";
+import { DeleteShotModal } from "../modal/DeleteShotModal";
 interface SessionVideoProps {
   sessionData: Session;
   selectedRound: number;
@@ -59,6 +60,7 @@ export const SessionVideo = (props: SessionVideoProps) => {
   );
 
   const [isAddShotModalOpen, setIsAddShotModalOpen] = useState<boolean>(false);
+  const [isDeleteShotModalOpen, setIsDeleteShotModalOpen] = useState<boolean>(false);
 
   const [isVideoEnded, setIsVideoEnded] = useState<boolean>(false);
 
@@ -240,6 +242,12 @@ export const SessionVideo = (props: SessionVideoProps) => {
     setIsEditShotModalOpen(true);
   };
 
+  const onClickRemoveShotModal = (hit: Hit) => {
+    pauseVideo();
+    setCurrentEditableShot(hit)
+    setIsDeleteShotModalOpen(true)
+  }
+
   const onClickAddShotModal = () => {
     pauseVideo();
     setIsAddShotModalOpen(true);
@@ -256,6 +264,13 @@ export const SessionVideo = (props: SessionVideoProps) => {
 
   return (
     <div className="mt-1 md:mt-6 flex-1 flex flex-col">
+      <DeleteShotModal
+        isDeleteShotModalOpen={isDeleteShotModalOpen}
+        setIsDeleteShotModalOpen={setIsDeleteShotModalOpen}
+        hit={currentEditableShot}
+        roundId={roundId}
+        fetchSessionData={fetchSessionData}
+      />
       <EditShotModal
         isEditShotModalOpen={isEditShotModalOpen}
         setIsEditShotModalOpen={setIsEditShotModalOpen}
@@ -426,6 +441,13 @@ export const SessionVideo = (props: SessionVideoProps) => {
                 </div>
                 <p>{formatTTS(hit.tts)}</p>
                 <div className="flex gap-2 ml-auto items-center">
+                  <Button
+                    onClick={() => onClickRemoveShotModal(hit)}
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <Trash2 size={18} />
+                  </Button>
                   <Button
                     onClick={() => onClickEditShotModal(hit)}
                     size="icon"
