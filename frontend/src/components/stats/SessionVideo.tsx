@@ -3,7 +3,14 @@ import type {
   ByteArkPlayer,
   ByteArkPlayerContainerProps,
 } from "byteark-player-react";
-import { ArrowBigLeft, Play, Pause, ArrowBigRight, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowBigLeft,
+  Play,
+  Pause,
+  ArrowBigRight,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Slider } from "@/components/ui/slider";
 import { formatSecondsToMMSS } from "@/utils/dateTime";
@@ -19,6 +26,7 @@ import { EditShotModal } from "../modal/EditShotModal";
 import { FPS } from "@/types/constant";
 import { formatTTS } from "@/utils/formatScore";
 import { DeleteShotModal } from "../modal/DeleteShotModal";
+import { SmallHitPreview } from "../canvas/SmallHitPreview";
 interface SessionVideoProps {
   sessionData: Session;
   selectedRound: number;
@@ -60,7 +68,8 @@ export const SessionVideo = (props: SessionVideoProps) => {
   );
 
   const [isAddShotModalOpen, setIsAddShotModalOpen] = useState<boolean>(false);
-  const [isDeleteShotModalOpen, setIsDeleteShotModalOpen] = useState<boolean>(false);
+  const [isDeleteShotModalOpen, setIsDeleteShotModalOpen] =
+    useState<boolean>(false);
 
   const [isVideoEnded, setIsVideoEnded] = useState<boolean>(false);
 
@@ -244,9 +253,9 @@ export const SessionVideo = (props: SessionVideoProps) => {
 
   const onClickRemoveShotModal = (hit: Hit) => {
     pauseVideo();
-    setCurrentEditableShot(hit)
-    setIsDeleteShotModalOpen(true)
-  }
+    setCurrentEditableShot(hit);
+    setIsDeleteShotModalOpen(true);
+  };
 
   const onClickAddShotModal = () => {
     pauseVideo();
@@ -435,9 +444,12 @@ export const SessionVideo = (props: SessionVideoProps) => {
                 <p>{hit.id}</p>
                 <p>{hit.frame}</p>
                 <p>{hit.score}</p>
-                <div className="leading-tight">
-                  <p>x : {hit.point[0]}</p>
-                  <p>y : {hit.point[1]}</p>
+                <div>
+                  <SmallHitPreview
+                    point={hit.point}
+                    bullseye={hit.bullseye_relation}
+                    score={hit.score}
+                  />
                 </div>
                 <p>{formatTTS(hit.tts)}</p>
                 <div className="flex gap-2 ml-auto items-center">
