@@ -163,10 +163,31 @@ export const CardEmpty = () => {
   return (
     <div className="w-full border rounded-lg flex flex-col justify-center items-center gap-4 p-8">
       <h3 className="text-xl text-muted-foreground font-semibold">
+        No training record on this day.
+      </h3>
+      <p className="text-muted-foreground text-sm">
+        Start your training session now!
+      </p>
+      <Link to="/trainingSession">
+        <Button>
+          <div className="flex gap-2 items-center">
+            <Icon iconNode={targetArrow} />
+            <p>Start Training</p>
+          </div>
+        </Button>
+      </Link>
+    </div>
+  );
+};
+
+export const CardStartNow = () => {
+  return (
+    <div className="w-full border rounded-lg flex flex-col justify-center items-center gap-4 p-8">
+      <h3 className="text-xl text-muted-foreground font-semibold">
         Welcome to archery tracker!
       </h3>
       <p className="text-muted-foreground text-sm">
-        Start your first session now
+        Start your first session for today!
       </p>
       <Link to="/trainingSession">
         <Button>

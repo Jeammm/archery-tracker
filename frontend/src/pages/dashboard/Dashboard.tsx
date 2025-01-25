@@ -1,6 +1,7 @@
 import {
   CardEmpty,
   CardSkeleton,
+  CardStartNow,
   SessionCard,
 } from "@/components/stats/SessionCard";
 import { Session, Stats } from "@/types/session";
@@ -13,6 +14,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { StatHighlight } from "./StatHighlight";
+import { SessionCalendar } from "@/components/sessionCalendar/SessionCalendar";
 
 const chartConfig = {
   accuracy: {
@@ -35,6 +37,7 @@ export const Dashboard = () => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [date, setDate] = useState<Date | undefined>();
 
   const fetchSessionsData = useCallback(async () => {
     try {
@@ -98,6 +101,11 @@ export const Dashboard = () => {
       .reverse();
   }, [sessions]);
 
+  const filteredSessions = sessions?.filter(
+    (session) =>
+      !date || new Date(session.created_at).getDate() === date.getDate()
+  );
+
   useEffect(() => {
     fetchSessionsData();
 
@@ -127,18 +135,45 @@ export const Dashboard = () => {
         {format(new Date(), "hh:mm a 'at' do MMMM yyyy")}
       </p>
       <StatHighlight stats={stats} />
-      <div className="mt-2 md:mt-4">
-        <LineChartLabel
-          title="Performance"
-          description="Your recent training"
-          chartConfig={chartConfig}
-          chartData={sessionsData}
-          xAxisDataKey="date"
-        />
+      <div className="mt-2 md:mt-4 flex gap-4">
+        <div className="flex-1">
+          <LineChartLabel
+            title="Performance"
+            description="Your recent training"
+            chartConfig={chartConfig}
+            chartData={sessionsData}
+            xAxisDataKey="date"
+          />
+        </div>
+        <div className="flex flex-col">
+          <p className="rounded-md border p-2 mb-2 text-center font-bold tracking-wider italic text-primary-foreground/80">
+            Consistency is Key!
+          </p>
+          <SessionCalendar
+            mode="single"
+            selected={date}
+            onSelect={(date) => {
+              setDate(date);
+              setTimeout(() => {
+                window.scrollTo({
+                  top: document.body.scrollHeight,
+                  behavior: "smooth",
+                });
+              }, 100);
+            }}
+            className="rounded-md border flex-1"
+            sessions={sessions}
+            disabled={{ after: new Date() }}
+          />
+        </div>
       </div>
       <div className="mt-8">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-bold">You Recent Training</h3>
+          <h3 className="text-xl font-bold">
+            {date
+              ? `Your training on ${format(date, "do MMMM yyyy")}`
+              : "You Recent Training"}
+          </h3>
           <Link to="/sessions">
             <ArrowRight />
           </Link>
@@ -148,10 +183,14 @@ export const Dashboard = () => {
             [1, 2, 3, 4, 5, 6].map((i) => {
               return <CardSkeleton key={`card-skeleton-${i}`} />;
             })
-          ) : sessions.length === 0 ? (
-            <CardEmpty />
+          ) : filteredSessions.length === 0 ? (
+            date ? (
+              <CardEmpty />
+            ) : (
+              <CardStartNow />
+            )
           ) : (
-            sessions?.slice(0, 10).map((session) => {
+            filteredSessions.slice(0, 10).map((session) => {
               return (
                 <SessionCard
                   sessionData={session}
