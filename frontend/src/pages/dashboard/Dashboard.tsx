@@ -146,7 +146,7 @@ export const Dashboard = () => {
           />
         </div>
         <div className="flex flex-col">
-          <p className="rounded-md border p-2 mb-2 text-center font-bold tracking-wider italic text-primary-foreground/80">
+          <p className="rounded-md border p-2 mb-2 text-center font-bold tracking-wider italic text-muted-foreground">
             Consistency is Key!
           </p>
           <SessionCalendar
