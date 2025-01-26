@@ -14,4 +14,3 @@ flask_cors
 sendgrid
 cloudinary
 flask-socketio
-m3u8

@@ -117,7 +117,7 @@ class PoseEstimator:
         
         # Classify the phases based on feature thresholds
         # Drawing Phase
-        if 70 < bow_shoulder_angle < 100 and 100 < drawing_shoulder_angle < 140 and 160 < bow_arm_elbow_angle < 185 and 13 < drawing_arm_elbow_angle < 40:
+        if 70 < bow_shoulder_angle < 100 and 100 < drawing_shoulder_angle < 140 and 150 < bow_arm_elbow_angle < 185 and 13 < drawing_arm_elbow_angle < 40:
             return "Drawing"
         
         # Default or unclassified phase

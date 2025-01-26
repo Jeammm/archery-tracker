@@ -4,7 +4,7 @@ from celery import shared_task
 from flask import jsonify, request
 from project.core.pose_estimation.PoseEstimator import PoseEstimator
 from project.constants.constants import ROUND_COLLECTION, SESSION_COLLECTION, VIDEO_COLLECTION, MODEL_COLLECTION
-from project.controllers.video_uploader import get_short_playback_url, get_upload_token, upload_video, delete_video
+from project.controllers.video_uploader import check_and_trim_video, format_video_before_upload, get_short_playback_url, get_upload_token, upload_video, delete_video
 from project.core.pose_estimation.Driver import process_pose_video_data
 from project.core.target_scoring.Driver import process_target_video_data
 import cv2
@@ -12,7 +12,6 @@ import io
 import cloudinary.uploader
 from bson.objectid import ObjectId
 from ..db import db
-import m3u8
 
 round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
@@ -35,11 +34,13 @@ def process_target(self, round_id, video_timestamps):
     trimmed_filepath = f"/app/project/core/res/output/{trimmed_filename}.webm"
     output_filename = f"target_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
+    compressed_trimmed_filepath = f"/app/project/core/res/output/compressed_{trimmed_filename}.mp4"
+    compressed_output_filepath = f"/app/project/core/res/output/compressed_{output_filename}.mp4"
     
     round_collection.update_one(
-            {"target_task_id": task_id},
-            {"$set": {"target_status": "PROCESSING"}}
-        )
+        {"target_task_id": task_id},
+        {"$set": {"target_status": "PROCESSING"}}
+    )
     
     try:
         existing_round = round_collection.find_one({"_id": ObjectId(round_id)})
@@ -54,39 +55,50 @@ def process_target(self, round_id, video_timestamps):
         if not existing_model:
             raise ModelNotExistError('This model is not exist in the data base')
         
+        # Trim the video based on the timestamps
         check_and_trim_video("target", video_timestamps, input_filepath, trimmed_filepath)
+        
+        # Process the trimmed video data
         scoring_detail = process_target_video_data(trimmed_filepath, output_filepath, existing_model)
         
+        # Update the round status before token request
         round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "GETTING_TOKEN", "score": scoring_detail}}
         )
         
-        # request token for uploading to ByteArk
+        # Compress the videos
+        format_video_before_upload(trimmed_filepath, compressed_trimmed_filepath)
+        format_video_before_upload(output_filepath, compressed_output_filepath)
+        
+        # Request tokens for uploading
         tokens_for_raw_video = get_upload_token(input_filename)
         tokens_for_processed_video = get_upload_token(output_filename)
 
+        # Update the round with video URLs and status before uploading
         round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {
                 "target_status": "UPLOADING",
                 "target_video": get_short_playback_url(tokens_for_processed_video),
                 "target_video_raw": get_short_playback_url(tokens_for_raw_video)
-                }}
+            }}
         )
         
-        upload_video(trimmed_filepath, tokens_for_raw_video[0])
-        upload_video(output_filepath, tokens_for_processed_video[0])
+        # Upload the compressed videos
+        upload_video(compressed_trimmed_filepath, tokens_for_raw_video[0])
+        upload_video(compressed_output_filepath, tokens_for_processed_video[0])
         
-        
+        # Final status update
         round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "SUCCESS"}}
         )
         
-        return scoring_detail, input_filepath, output_filepath, trimmed_filepath
+        return scoring_detail, input_filepath, output_filepath, trimmed_filepath, compressed_trimmed_filepath, compressed_output_filepath
         
     except Exception as e:
+        # If there is an error, update the status to failure
         round_collection.update_one(
             {"target_task_id": task_id},
             {"$set": {"target_status": "FAILURE", "target_error_message": str(e)}}
@@ -102,45 +114,59 @@ def process_pose(self, round_id, video_timestamps):
     trimmed_filepath = f"/app/project/core/res/output/{trimmed_filename}.webm"
     output_filename = f"pose_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
+    compressed_trimmed_filepath = f"/app/project/core/res/output/compressed_{trimmed_filename}.mp4"
+    compressed_output_filepath = f"/app/project/core/res/output/compressed_{output_filename}.mp4"
     
     round_collection.update_one(
-            {"pose_task_id": task_id},
-            {"$set": {"pose_status": "PROCESSING"}}
-        )
+        {"pose_task_id": task_id},
+        {"$set": {"pose_status": "PROCESSING"}}
+    )
     
     try:
+        # Trim the video based on the timestamps
         check_and_trim_video("pose", video_timestamps, input_filepath, trimmed_filepath)
+        
+        # Process the pose video data
         aiming_frames = process_pose_video_data(trimmed_filepath, output_filepath)
         
+        # Update the round status before token request
         round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "GETTING_TOKEN"}}
         )
+                
+        # Compress the videos
+        format_video_before_upload(trimmed_filepath, compressed_trimmed_filepath)
+        format_video_before_upload(output_filepath, compressed_output_filepath)
         
-        # request token for uploading to ByteArk
+        # Request tokens for uploading
         tokens_for_raw_video = get_upload_token(input_filename)
         tokens_for_processed_video = get_upload_token(output_filename)
 
+        # Update the round with video URLs and status before uploading
         round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {
                 "pose_status": "UPLOADING",
                 "pose_video": get_short_playback_url(tokens_for_processed_video),
-                "pose_video_raw": get_short_playback_url(tokens_for_raw_video),
-                }}
+                "pose_video_raw": get_short_playback_url(tokens_for_raw_video)
+            }}
         )
         
-        upload_video(trimmed_filepath, tokens_for_raw_video[0])
-        upload_video(output_filepath, tokens_for_processed_video[0])
+        # Upload the compressed videos
+        upload_video(compressed_trimmed_filepath, tokens_for_raw_video[0])
+        upload_video(compressed_output_filepath, tokens_for_processed_video[0])
         
+        # Final status update
         round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "SUCCESS"}}
         )
         
-        return input_filepath, output_filepath, trimmed_filepath, aiming_frames
+        return input_filepath, output_filepath, trimmed_filepath, aiming_frames, compressed_trimmed_filepath, compressed_output_filepath
         
     except Exception as e:
+        # If there is an error, update the status to failure
         round_collection.update_one(
             {"pose_task_id": task_id},
             {"$set": {"pose_status": "FAILURE", "pose_error_message": str(e)}}
@@ -152,11 +178,15 @@ def capture_pose_on_shot_detected(self, results, round_id):
     raw_target_video_path = results[0][1]
     target_video_path = results[0][2]
     trimmed_target_video_path = results[0][3]
+    compressed_trimmed_target_video_path = results[0][4]
+    compressed_output_target_video_path = results[0][5]
     
     raw_pose_video_path = results[1][0]
     pose_video_path = results[1][1]
     trimmed_pose_video_path = results[1][2]
     aiming_frames = results[1][3]
+    compressed_trimmed_pose_video_path = results[1][4]
+    compressed_output_pose_video_path = results[1][5]
     
     try:
         # Upload hit frames
@@ -184,6 +214,10 @@ def capture_pose_on_shot_detected(self, results, round_id):
         delete_video(raw_target_video_path)
         delete_video(trimmed_target_video_path)
         delete_video(trimmed_pose_video_path)
+        delete_video(compressed_trimmed_target_video_path)
+        delete_video(compressed_output_target_video_path)
+        delete_video(compressed_trimmed_pose_video_path)
+        delete_video(compressed_output_pose_video_path)
         
     except Exception as e:
         round_collection.update_one(
@@ -210,21 +244,21 @@ def upload_frames(scoring_detail, target_video_path, pose_video_path):
         scoring_detail_with_images.append(hit_with_image)
     return scoring_detail_with_images
 
-def get_highest_quality_stream(m3u8_url):
-    playlist = m3u8.load(m3u8_url)
-    max_resolution = (0, 0)
-    best_stream_url = None
 
-    for variant in playlist.playlists:
-        resolution = variant.stream_info.resolution
-        if resolution and resolution[0] * resolution[1] > max_resolution[0] * max_resolution[1]:
-            max_resolution = resolution
-            best_stream_url = variant.uri
-    
-    if best_stream_url is None:
-        raise ValueError("No valid streams found in the M3U8 playlist.")
-    
-    return best_stream_url
+@shared_task()
+def capture_frame_task(round_id, shot_id, frame, target_video_path, pose_video_path):
+    frame_data = capture_frame_pair(frame, target_video_path, pose_video_path)
+    # Update the database with the processed frame data
+    round_collection.update_one(
+        {"_id": ObjectId(round_id), "score.id": shot_id},
+        {"$set": {
+            "score.$.target_image_url": frame_data['target_image_url'],
+            "score.$.pose_image_url": frame_data['pose_image_url'],
+            "score.$.skeleton_data": frame_data['skeleton_data'],
+            "score.$.features": frame_data['features'],
+            "score.$.phase": frame_data['phase']
+        }}
+    )
 
 def capture_frame_pair(frame, target_video_path, pose_video_path):
     # Pick the highest quality streams
@@ -310,63 +344,6 @@ def get_recording_timestamp(round_id):
     except Exception:
         return {'pose': 0, 'target': 0}
     
-def check_and_trim_video(type, video_timestamp, input_path, trimmed_path):
-    pose_timestamp = int(video_timestamp['pose'])
-    target_timestamp = int(video_timestamp['target'])
-    
-    print("&&&&&&&&&&&&&&&&&&")
-    print(video_timestamp)
-    print(pose_timestamp)
-    print(target_timestamp)
-    print("&&&&&&&&&&&&&&&&&&")
-    
-    video_to_trim_type = ""
-    
-    if pose_timestamp == 0 or target_timestamp == 0:
-        os.rename(input_path, trimmed_path)
-        return
-    
-    if type == 'pose' and pose_timestamp < target_timestamp:
-        video_to_trim_type = "pose"
-    
-    if type == 'target' and target_timestamp < pose_timestamp:
-        video_to_trim_type = "target"
-        
-    if not video_to_trim_type:
-        os.rename(input_path, trimmed_path)
-        return
-            
-    frame_rate = 30
-    time_diff = abs(pose_timestamp - target_timestamp) / 1000
-    frames_to_trim = int(time_diff * frame_rate)
-        
-    cap = cv2.VideoCapture(input_path)
-    if not cap.isOpened():
-        print(f"Error: Could not open video file {input_path}")
-        return None
-        
-    fourcc = cv2.VideoWriter_fourcc(*'VP80')
-    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    out = cv2.VideoWriter(trimmed_path, fourcc, frame_rate, (frame_width, frame_height))
-        
-    for _ in range(frames_to_trim):
-        ret = cap.grab()
-        if not ret:
-            print("Error: Could not skip enough frames")
-            break
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        out.write(frame)
-
-    cap.release()
-    out.release()
-
-    print(f"{video_to_trim_type} video trimmed 🤩")
-    
 def add_manual_shot_by_id(round_id):
     try:
         data = request.json
@@ -395,26 +372,35 @@ def insert_new_shot_to_existed_round(data, round_score, round_id, target_video_p
     new_point_y = data['pointY']
     new_hit_time = round_start_time + timedelta(seconds=new_frame * (1/30))
     
-    round_score.insert(
-        insert_index,
-        {
-            'id': insert_index + 1,
-            'frame': new_frame,
-            'point': [new_point_x, new_point_y],
-            'score': new_score,
-            'hit_time': new_hit_time,
-            **capture_frame_pair(new_frame, target_video_path, pose_video_path)
-            }
-        )
+    # Insert the new frame into the round score
+    new_shot = {
+        'id': insert_index + 1,
+        'frame': new_frame,
+        'point': [new_point_x, new_point_y],
+        'score': new_score,
+        'hit_time': new_hit_time,
+        # Placeholder values for async processing
+        'target_image_url': None,
+        'pose_image_url': None,
+        'skeleton_data': {},
+        'features': {},
+        'phase': "Processing"
+    }
+    round_score.insert(insert_index, new_shot)
 
     # Update the `id`s for all dictionaries after the inserted one
     for i in range(insert_index + 1, len(round_score)):
         round_score[i]['id'] = i + 1
 
+    # Update the database immediately with the placeholder
     round_collection.update_one(
         {"_id": ObjectId(round_id)},
         {"$set": {"score": round_score}}
     )
+
+    # Offload the frame capture to a background task
+    capture_frame_task.delay(round_id, insert_index + 1, new_frame, target_video_path, pose_video_path)
+
     return jsonify(round_score)
 
 def edit_manual_shot_by_id(round_id, hit_id):
@@ -475,12 +461,11 @@ def remove_manual_shot_by_id(round_id, hit_id):
         return jsonify({'error': str(e)}), 500
     
 def edit_shot_to_existed_round(new_shot_data, round_score, round_id, hit_id, round_start_time, target_video_path, pose_video_path):
-    
     new_frame = int(new_shot_data['frame'])
     new_score = new_shot_data['score']
     new_point_x = new_shot_data['pointX']
     new_point_y = new_shot_data['pointY']
-    new_hit_time = round_start_time + timedelta(seconds=new_frame * (1/30))
+    new_hit_time = round_start_time + timedelta(seconds=new_frame * (1 / 30))
     
     for shot in round_score:
         if shot['id'] == int(hit_id):
@@ -488,17 +473,29 @@ def edit_shot_to_existed_round(new_shot_data, round_score, round_id, hit_id, rou
                 shot['point'] = [new_point_x, new_point_y]
                 shot['score'] = new_score
             else:
+                # Update the shot information immediately
                 shot['frame'] = new_frame
                 shot['point'] = [new_point_x, new_point_y]
                 shot['score'] = new_score
                 shot['hit_time'] = new_hit_time
-                shot.update(capture_frame_pair(new_frame, target_video_path, pose_video_path))
                 
-    
+                # Placeholder values for asynchronous processing
+                shot['target_image_url'] = None
+                shot['pose_image_url'] = None
+                shot['skeleton_data'] = {}
+                shot['features'] = {}
+                shot['phase'] = "Processing"
+
+                # Offload frame capture to a background task
+                capture_frame_task.delay(round_id, hit_id, new_frame, target_video_path, pose_video_path)
+                break
+
+    # Update the database immediately with the modified data
     round_collection.update_one(
         {"_id": ObjectId(round_id)},
         {"$set": {"score": round_score}}
     )
+
     return jsonify(round_score)
 
 def find_aiming_frame_from_shot(aiming_frames, shot_frame):
