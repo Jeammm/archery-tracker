@@ -71,7 +71,7 @@ def get_stat(user_id):
         total_accuracy_compare = current_week_accuracy - last_week_accuracy
         
         stats_data = {
-            'total_training_time_compare' : {'compare': total_training_time_compare, 'current_week': current_week_training_time, 'last_week': last_week_training_time},
+            'total_training_time_compare' : {'compare': total_training_time_compare / 60, 'current_week': current_week_training_time / 60, 'last_week': last_week_training_time / 60},
             'total_round_count_campare' : {'compare': total_round_count_campare, 'current_week': current_week_round_count, 'last_week': last_week_round_count},
             'total_accuracy_compare' : {'compare': total_accuracy_compare, 'current_week': current_week_accuracy, 'last_week': last_week_accuracy}
         }
