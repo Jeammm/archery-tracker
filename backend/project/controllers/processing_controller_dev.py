@@ -12,20 +12,44 @@ round_collection = db[ROUND_COLLECTION]
 session_collection = db[SESSION_COLLECTION]
 model_collection = db[MODEL_COLLECTION]
 
-pose_video_demo = current_app.conf['POSE_VIDEO_DEMO_URL']
-target_video_demo = current_app.conf['TARGET_VIDEO_DEMO_URL']
+pose_video_control = current_app.conf['POSE_VIDEO_CONTROL_URL']
+target_video_control = current_app.conf['TARGET_VIDEO_CONTROL_URL']
+pose_video_demo1 = current_app.conf['POSE_VIDEO_DEMO1_URL']
+target_video_demo1 = current_app.conf['TARGET_VIDEO_DEMO1_URL']
+pose_video_demo2 = current_app.conf['POSE_VIDEO_DEMO2_URL']
+target_video_demo2 = current_app.conf['TARGET_VIDEO_DEMO2_URL']
+pose_video_demo3 = current_app.conf['POSE_VIDEO_DEMO3_URL']
+target_video_demo3 = current_app.conf['TARGET_VIDEO_DEMO3_URL']
 
 class MissingTargetModelError(Exception):
     pass
 class ModelNotExistError(Exception):
     pass
 
+# video argument can be
+# 1. 'user' = real user data
+# 2. 'control' = best video for the app
+# 3. 'demo1' = video 1 from KU archery club
+# 4. 'demo2' = video 2 from KU archery club
+# 4. 'demo3' = video 3 from KU archery club
+def get_testing_video_source(round_id, video):
+    if (video == 'control'):
+        return [target_video_control, pose_video_control]
+    elif (video == 'demo1'):
+        return [target_video_demo1, pose_video_demo1]
+    elif (video == 'demo2'):
+        return [target_video_demo2, pose_video_demo2]
+    elif (video == 'demo3'):
+        return [target_video_demo3, pose_video_demo3]
+    
+    return [f"target_video_raw_{round_id}", f"pose_video_raw_{round_id}"]
+
 @shared_task(bind=True)
-def process_target_test(self, round_id):
+def process_target_test(self, round_id, video):
     task_id = self.request.id
     
     input_filename = f"target_video_raw_{round_id}"
-    input_filepath = target_video_demo
+    input_filepath = get_testing_video_source(round_id, video)[0]
     dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"target_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"
@@ -86,11 +110,11 @@ def process_target_test(self, round_id):
         )
 
 @shared_task(bind=True)
-def process_pose_test(self, round_id):
+def process_pose_test(self, round_id, video):
     task_id = self.request.id
     
     input_filename = f"pose_video_raw_{round_id}"
-    input_filepath = pose_video_demo
+    input_filepath = get_testing_video_source(round_id, video)[1]
     dummy_input_filepath = f"/app/project/core/res/output/{input_filename}.webm"
     output_filename = f"pose_video_processed_{round_id}"
     output_filepath = f"/app/project/core/res/output/{output_filename}.mp4"

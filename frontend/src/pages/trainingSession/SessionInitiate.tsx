@@ -20,7 +20,7 @@ export const SessionInitiate = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [recording, setRecording] = useState<boolean>(false);
   const [roundData, setRoundData] = useState<Round | null>(null);
-  const [isTestMode, setIsTestMode] = useState<boolean>(false);
+  const [mode, setMode] = useState<string>("user");
   const [isCameraConnected, setIsCameraConnected] = useState<boolean>(false);
   const [isTutorialManualOpen, setIsTutorialManualOpen] =
     useState<boolean>(false);
@@ -80,8 +80,8 @@ export const SessionInitiate = () => {
     try {
       await axios.post(
         `${BASE_BACKEND_URL}/${
-          isTestMode ? "process-target-test" : "process-target"
-        }/${roundId}`,
+          mode === "user" ? "process-target" : "process-target-test"
+        }/${roundId}${mode === "user" ? "" : `?video=${mode}`}`,
         {},
         {
           headers: {
@@ -164,8 +164,8 @@ export const SessionInitiate = () => {
         setRecording={setRecording}
         participantDevices={participantDevices}
         setParticipantDevices={setParticipantDevices}
-        isTestMode={isTestMode}
-        setIsTestMode={setIsTestMode}
+        mode={mode}
+        setMode={setMode}
         roundData={roundData}
         setRoundData={setRoundData}
         setTargetVideoUploadingStatus={setTargetVideoUploadingStatus}

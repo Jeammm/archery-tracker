@@ -106,8 +106,10 @@ def process_target_route(_, round_id):
 @processing_bp.route('/process-target-test/<round_id>', methods=['POST'])
 @token_required
 def process_target_route_test(_, round_id):
+    video = request.args.get('video', "user")
+    
     chord_tasks = chord(
-        [process_target_test.s(round_id), process_pose_test.s(round_id)]
+        [process_target_test.s(round_id, video), process_pose_test.s(round_id, video)]
     )(capture_pose_on_shot_detected_test.s(round_id))
 
     task_data = {

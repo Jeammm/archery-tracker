@@ -30,18 +30,25 @@ import { Loader } from "@/components/ui/loader";
 import { CountDownOverlay } from "../countdown/CountDownOverlay";
 import { VideoOverlayCanvas } from "./VideoOverlayCanvas";
 import { toast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface SessionInitiateVideoStreamProps {
   session: Session;
   recording: boolean;
   roundData: Round | null;
-  isTestMode: boolean;
+  mode: string;
   isCameraConnected: boolean;
   participantDevices: { users: Record<string, string> };
   targetVideoUploadingStatus: Record<string, number>;
   setRoundData: SetStateActionType<Round | null>;
   setRecording: SetStateActionType<boolean>;
-  setIsTestMode: SetStateActionType<boolean>;
+  setMode: SetStateActionType<string>;
   setIsCameraConnected: SetStateActionType<boolean>;
   setParticipantDevices: SetStateActionType<{ users: Record<string, string> }>;
   setTargetVideoUploadingStatus: SetStateActionType<Record<string, number>>;
@@ -63,8 +70,8 @@ export const SessionInitiateVideoStream = (
     setIsCameraConnected,
     recording,
     setRecording,
-    isTestMode,
-    setIsTestMode,
+    mode,
+    setMode,
     roundData,
     setRoundData,
     targetVideoUploadingStatus,
@@ -582,14 +589,18 @@ export const SessionInitiateVideoStream = (
               <p className="font-bold text-white">End</p>
             </Button>
 
-            <div className="flex gap-1 border p-1 rounded-sm">
-              <input
-                type="checkbox"
-                defaultChecked={isTestMode}
-                onChange={() => setIsTestMode(!isTestMode)}
-              />
-              <p>Test Mode</p>
-            </div>
+            <Select onValueChange={(mode) => setMode(mode)} value={mode}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">ใช้งานจริง</SelectItem>
+                <SelectItem value="control">ทดสอบ</SelectItem>
+                <SelectItem value="demo1">ตัวอย่าง 1</SelectItem>
+                <SelectItem value="demo2">ตัวอย่าง 2</SelectItem>
+                <SelectItem value="demo3">ตัวอย่าง 3</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <RoundDetailsTable
