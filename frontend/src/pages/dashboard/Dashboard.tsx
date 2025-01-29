@@ -145,7 +145,7 @@ export const Dashboard = () => {
             xAxisDataKey="date"
           />
         </div>
-        <div className="flex flex-col">
+        <div className="md:flex flex-col hidden">
           <p className="rounded-md border p-2 mb-2 text-center font-bold tracking-wider italic text-muted-foreground">
             Consistency is Key!
           </p>
