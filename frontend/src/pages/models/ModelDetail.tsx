@@ -1,15 +1,16 @@
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_BACKEND_URL } from "@/services/baseUrl";
 import { TargetModel } from "@/types/constant";
 import axios from "axios";
-import { Pencil } from "lucide-react";
+import { Copy, Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { TargetBullseyeCanvasOverlay } from "./TargetBullseyeCanvasOverlay";
 import { ManageModelSkeleton } from "@/components/model/ManageModel";
 import { Loader } from "@/components/ui/loader";
+import { toast } from "@/hooks/use-toast";
 
 export const ModelDetail = () => {
   const { user } = useAuth();
@@ -34,6 +35,20 @@ export const ModelDetail = () => {
     }
   }, [modelName, user?.token]);
 
+  const onClickCopyModel = () => {
+    navigator.clipboard.writeText(`
+model_data = {
+  "model_path": "${modelData?.model_path}",
+  "bullseye_point": [${modelData?.bullseye_point[0]}, ${modelData?.bullseye_point[1]}],
+  "inner_diameter_px": ${modelData?.inner_diameter_px},
+  "inner_diameter_inch": 1.5,
+  "rings_amount": ${modelData?.rings_amount},
+}
+`);
+
+    toast({ title: "Model data copied to clipboard", variant: "success" });
+  };
+
   useEffect(() => {
     fetchModelData();
   }, [fetchModelData]);
@@ -56,9 +71,14 @@ export const ModelDetail = () => {
       </p>
 
       <div className="mt-6 border p-4 rounded-md">
-        <p className="text-3xl font-semibold mb-4 text-center md:text-start">
-          Model : {modelData.model_name}
-        </p>
+        <div className="flex justify-between">
+          <p className="text-3xl font-semibold mb-4 text-center md:text-start">
+            Model : {modelData.model_name}
+          </p>
+          <Button variant="ghost" onClick={onClickCopyModel}>
+            <Copy />
+          </Button>
+        </div>
 
         <div className="flex gap-3 flex-col md:flex-row items-center md:items-start">
           <div className="border rounded-md w-96 shrink-0 overflow-hidden relative select-none">
