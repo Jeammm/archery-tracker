@@ -599,6 +599,11 @@ export const SessionInitiateVideoStream = (
                 <SelectItem value="demo1">ตัวอย่าง 1</SelectItem>
                 <SelectItem value="demo2">ตัวอย่าง 2</SelectItem>
                 <SelectItem value="demo3">ตัวอย่าง 3</SelectItem>
+                <SelectItem value="demo4">ตัวอย่าง 4</SelectItem>
+                <SelectItem value="demo5">ตัวอย่าง 5</SelectItem>
+                <SelectItem value="demo6">ตัวอย่าง 6</SelectItem>
+                <SelectItem value="demo7">ตัวอย่าง 7</SelectItem>
+                <SelectItem value="demo8">ตัวอย่าง 8</SelectItem>
               </SelectContent>
             </Select>
           </div>

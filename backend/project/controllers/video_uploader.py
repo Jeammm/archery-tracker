@@ -2,6 +2,7 @@ import requests
 from celery import current_app
 import os
 import subprocess
+import shutil
 
 def get_upload_token(video_name):
     response = requests.post(
@@ -48,13 +49,14 @@ def delete_video(file_path):
         os.remove(file_path)
         
 def format_video_before_upload(input_file: str, output_file: str):
-    command = [
-        "ffmpeg", "-i", input_file,
-        "-c:v", "libx264", "-preset", "medium", "-crf", "23",
-        "-c:a", "aac", "-b:a", "128k",
-        output_file
-    ]
-    subprocess.run(command, check=True)
+    # command = [
+    #     "ffmpeg", "-i", input_file,
+    #     "-c:v", "libx264", "-preset", "medium", "-crf", "23",
+    #     "-c:a", "aac", "-b:a", "128k",
+    #     output_file
+    # ]
+    # subprocess.run(command, check=True)
+    shutil.copy(input_file, output_file)
     
 def check_and_trim_video(type, video_timestamp, input_path, trimmed_path):
     """

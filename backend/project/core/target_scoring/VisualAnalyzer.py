@@ -3,6 +3,11 @@ from project.core.target_scoring import Geometry2D as geo2D
 import numpy as np
 import cv2
 
+def color_threshold(frame):
+    frame[frame >= 128]= 255
+    frame[frame < 128] = 0
+    return frame
+
 def subtract_background(query, subtrahend):
     '''
     Subtract two images, so only the difference between them is left.
@@ -16,6 +21,10 @@ def subtract_background(query, subtrahend):
     Returns:
         {Numpy.array} The difference image.
     '''
+    
+    # Apply color threshold
+    query = color_threshold(query)
+    subtrahend = color_threshold(subtrahend)
 
     # Convert to grayscale
     gray_query = cv2.cvtColor(query, cv2.COLOR_RGB2GRAY)
@@ -85,7 +94,7 @@ def emphasize_lines(img, distances, estimatedRadius, frame_count, circle_lift_sp
     img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3,3), np.uint8))
 
     # find the straight segments in the image
-    lines = cv2.HoughLinesP(img, 1, np.pi / 180, threshold=50, minLineLength=5, maxLineGap=10)
+    lines = cv2.HoughLinesP(img, 1, np.pi / 180, threshold=50, minLineLength=100, maxLineGap=5)
     img_copy = np.zeros(img.shape, dtype=img.dtype)
     if type(lines) != type(None):
         for line in lines:
@@ -121,7 +130,8 @@ def reproduce_proj_contours(img, distances, bullseye, radius):
 
     # detect the unconvex contours (true projectile contours)
     contours = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[-2:]
-    rect_contours = cntr.filter_convex_contours(contours[0])
+    # rect_contours = cntr.filter_convex_contours(contours[0])
+    rect_contours = contours[0]
     blank_img = np.zeros(img.shape, dtype=img.dtype)
     
     for cont in rect_contours:

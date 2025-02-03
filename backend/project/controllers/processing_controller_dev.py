@@ -21,6 +21,17 @@ target_video_demo2 = current_app.conf['TARGET_VIDEO_DEMO2_URL']
 pose_video_demo3 = current_app.conf['POSE_VIDEO_DEMO3_URL']
 target_video_demo3 = current_app.conf['TARGET_VIDEO_DEMO3_URL']
 
+pose_video_demo4 = current_app.conf['POSE_VIDEO_DEMO4_URL']
+target_video_demo4 = current_app.conf['TARGET_VIDEO_DEMO4_URL']
+pose_video_demo5 = current_app.conf['POSE_VIDEO_DEMO5_URL']
+target_video_demo5 = current_app.conf['TARGET_VIDEO_DEMO5_URL']
+pose_video_demo6 = current_app.conf['POSE_VIDEO_DEMO6_URL']
+target_video_demo6 = current_app.conf['TARGET_VIDEO_DEMO6_URL']
+pose_video_demo7 = current_app.conf['POSE_VIDEO_DEMO7_URL']
+target_video_demo7 = current_app.conf['TARGET_VIDEO_DEMO7_URL']
+pose_video_demo8 = current_app.conf['POSE_VIDEO_DEMO8_URL']
+target_video_demo8 = current_app.conf['TARGET_VIDEO_DEMO8_URL']
+
 class MissingTargetModelError(Exception):
     pass
 class ModelNotExistError(Exception):
@@ -31,7 +42,12 @@ class ModelNotExistError(Exception):
 # 2. 'control' = best video for the app
 # 3. 'demo1' = video 1 from KU archery club
 # 4. 'demo2' = video 2 from KU archery club
-# 4. 'demo3' = video 3 from KU archery club
+# 5. 'demo3' = video 3 from KU archery club
+# 6. 'demo4' = video 4 from KU archery club (2nd demo)
+# 7. 'demo5' = video 5 from KU archery club (2nd demo)
+# 8. 'demo6' = video 6 from KU archery club (2nd demo)
+# 9. 'demo7' = video 7 from KU archery club (2nd demo)
+#10. 'demo8' = video 8 from KU archery club (2nd demo)
 def get_testing_video_source(round_id, video):
     if (video == 'control'):
         return [target_video_control, pose_video_control]
@@ -41,6 +57,16 @@ def get_testing_video_source(round_id, video):
         return [target_video_demo2, pose_video_demo2]
     elif (video == 'demo3'):
         return [target_video_demo3, pose_video_demo3]
+    elif (video == 'demo4'):
+        return [target_video_demo4, pose_video_demo4]
+    elif (video == 'demo5'):
+        return [target_video_demo5, pose_video_demo5]
+    elif (video == 'demo6'):
+        return [target_video_demo6, pose_video_demo6]
+    elif (video == 'demo7'):
+        return [target_video_demo7, pose_video_demo7]
+    elif (video == 'demo8'):
+        return [target_video_demo8, pose_video_demo8]
     
     return [f"target_video_raw_{round_id}", f"pose_video_raw_{round_id}"]
 
