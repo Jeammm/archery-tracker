@@ -1,0 +1,58 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    networks:
+      - app-network
+    restart: always
+
+  web:
+    build:
+      context: ./backend
+    environment:
+      FLASK_APP: run
+      FLASK_DEBUG: 0
+    volumes:
+      - ./backend/project/core/res:/app/project/core/res
+    command: gunicorn -w 1 -b 0.0.0.0:5000 --threads 4 run:app
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+    restart: always
+
+  celery:
+    build:
+        context: ./backend
+    environment:
+      FLASK_APP: run
+      FLASK_DEBUG: 0
+    volumes:
+      - ./backend/project/core/res:/app/project/core/res
+    command: celery -A run.celery worker -c 4 --loglevel=info
+    depends_on:
+      - redis
+    env_file:
+      - .env.prod
+    networks:
+    - app-network
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - frontend-dist:/app/dist
+    env_file:
+      - .env.prod
+    networks:
+      - app-network
+    command: ["sh", "-c", "pnpm run build"]
+
+networks:
+  app-network:
+    driver: bridge
+
+
+volumes:
+  frontend-dist: # Make sure this volume is defined if it's not already
