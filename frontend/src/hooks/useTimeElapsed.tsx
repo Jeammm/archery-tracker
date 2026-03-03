@@ -14,7 +14,7 @@ export const useTimeElapsed = ({
   const offsetTimeStamp = (timeOffset || 0) * 60 * 60 * 1000;
 
   const [elapsedTime, setElapsedTime] = useState(
-    new Date().getTime() + offsetTimeStamp - startTime
+    new Date().getTime() + offsetTimeStamp - startTime,
   );
 
   useEffect(() => {
