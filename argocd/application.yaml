@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Jeammm/archery-tracker
+    repoURL: https://github.com/jeammm/archery-tracker
     targetRevision: main
     path: k8s
   destination:

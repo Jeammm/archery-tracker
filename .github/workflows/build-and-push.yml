@@ -33,6 +33,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Normalize registry owner to lowercase
+        run: echo "REGISTRY_OWNER=$(echo '${{ env.REGISTRY_OWNER }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set image tag
         id: vars
         run: |
@@ -105,9 +108,10 @@ jobs:
           SHORT_SHA: ${{ needs.build-and-push.outputs.short_sha }}
           REGISTRY_OWNER: ${{ vars.REGISTRY_OWNER || github.repository_owner }}
         run: |
+          REGISTRY_OWNER_LC=$(echo "$REGISTRY_OWNER" | tr '[:upper:]' '[:lower:]')
           for f in k8s/backend-deployment.yaml k8s/frontend-deployment.yaml k8s/celery-deployment.yaml; do
-            sed -i.bak "s|image: ghcr.io/[^/]*/archery-backend:[^\"' ]*|image: ghcr.io/${REGISTRY_OWNER}/archery-backend:${SHORT_SHA}|g" "$f"
-            sed -i.bak "s|image: ghcr.io/[^/]*/archery-frontend:[^\"' ]*|image: ghcr.io/${REGISTRY_OWNER}/archery-frontend:${SHORT_SHA}|g" "$f"
+            sed -i.bak "s|image: ghcr.io/[^/]*/archery-backend:[^\"' ]*|image: ghcr.io/${REGISTRY_OWNER_LC}/archery-backend:${SHORT_SHA}|g" "$f"
+            sed -i.bak "s|image: ghcr.io/[^/]*/archery-frontend:[^\"' ]*|image: ghcr.io/${REGISTRY_OWNER_LC}/archery-frontend:${SHORT_SHA}|g" "$f"
             rm -f "${f}.bak"
           done
 
