@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/jeammm/archery-backend:0.1
+          env:
+            - name: FLASK_APP
+              value: "run"
+            - name: FLASK_DEBUG
+              value: "0"
+            - name: REDIS_URL
+              value: "redis://redis:6379/0"
+          ports:
+            - containerPort: 5000
