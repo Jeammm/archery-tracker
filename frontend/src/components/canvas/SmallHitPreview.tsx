@@ -66,7 +66,12 @@ export const SmallHitPreview = (props: SmallHitPreviewProps) => {
       />
 
       {/* Bullseye */}
-      <circle cx={centerX} cy={centerY} r={2} fill={ringColors[ringColors.length - 1]} />
+      <circle
+        cx={centerX}
+        cy={centerY}
+        r={2}
+        fill={ringColors[ringColors.length - 1]}
+      />
 
       {/* Hit point */}
       <circle

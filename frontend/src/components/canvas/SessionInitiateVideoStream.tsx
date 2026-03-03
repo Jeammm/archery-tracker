@@ -60,7 +60,7 @@ interface SessionInitiateVideoStreamProps {
 const THRESHOLD = 0.6;
 
 export const SessionInitiateVideoStream = (
-  props: SessionInitiateVideoStreamProps
+  props: SessionInitiateVideoStreamProps,
 ) => {
   const { user } = useAuth();
 
@@ -90,7 +90,7 @@ export const SessionInitiateVideoStream = (
   const [peerConnection, setPeerConnection] =
     useState<RTCPeerConnection | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null
+    null,
   );
 
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
@@ -104,7 +104,7 @@ export const SessionInitiateVideoStream = (
   const loadPoseDetector = async () => {
     await tf.setBackend("webgl");
     const detector = await poseDetection.createDetector(
-      poseDetection.SupportedModels.MoveNet
+      poseDetection.SupportedModels.MoveNet,
     );
     poseDetectorRef.current = detector;
   };
@@ -115,7 +115,7 @@ export const SessionInitiateVideoStream = (
     }
 
     const poses = await poseDetectorRef.current.estimatePoses(
-      localVideoRef.current
+      localVideoRef.current,
     );
 
     // Check if hand is raised above head
@@ -226,7 +226,7 @@ export const SessionInitiateVideoStream = (
               Authorization: `Bearer ${user?.token || ""}`,
               "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
         setUploadedPoseVideos((prev) => [...prev, roundData?._id]);
         setRoundData(null);
@@ -243,13 +243,13 @@ export const SessionInitiateVideoStream = (
       db,
       "sessions",
       session._id,
-      "callerCandidates"
+      "callerCandidates",
     );
     const calleeCandidatesRef = collection(
       db,
       "sessions",
       session._id,
-      "calleeCandidates"
+      "calleeCandidates",
     );
 
     // Fetch all documents in the callerCandidates collection and delete them
@@ -329,7 +329,7 @@ export const SessionInitiateVideoStream = (
       }
       addDoc(
         collection(db, "sessions", session._id, "callerCandidates"),
-        event.candidate.toJSON()
+        event.candidate.toJSON(),
       );
     };
 
@@ -353,7 +353,7 @@ export const SessionInitiateVideoStream = (
             await pc.addIceCandidate(new RTCIceCandidate(data));
           }
         });
-      }
+      },
     );
   };
 
@@ -377,7 +377,7 @@ export const SessionInitiateVideoStream = (
         mediaRecorder?.stop();
         setRecording(false);
         setDisconnectDetectedSignal((prev) => prev + 1);
-      }
+      },
     );
     socket.on(
       "targetVideoUploadProgress",
@@ -386,7 +386,7 @@ export const SessionInitiateVideoStream = (
           ...prev,
           [data.uploading_status.roundId]: data.uploading_status.progress,
         }));
-      }
+      },
     );
     socket.on("targetVideoUploadDone", (data: { round_id: string }) => {
       setUploadedTargetVideos((prev) => [...prev, data.round_id]);
@@ -402,7 +402,7 @@ export const SessionInitiateVideoStream = (
             if (track.readyState === "live") {
               track.stop();
             }
-          })
+          }),
         );
       }
       socket.emit("sessionEnd", { sessionId: session._id });
@@ -538,7 +538,7 @@ export const SessionInitiateVideoStream = (
                           window.open(
                             `${BASE_FRONTEND_URL}/join?session=${session._id}`,
                             "newwindow",
-                            "width=800,height=400"
+                            "width=800,height=400",
                           );
                           return false;
                         }}
