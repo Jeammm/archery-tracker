@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: archery-tracker
+  namespace: archery-tracker
+  annotations:
+    # nginx ingress: enable WebSocket for socket.io
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Uncomment and set your cert manager if using TLS:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx   # change to your ingress class (e.g. traefik) if different
+  # rules without host match all hosts; set a host to restrict
+  rules:
+    - host: archery-tracker.jeammm.com   # change to your domain, or remove this block to match any host
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 5000
+          - path: /socket.io
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 5000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+  # Optional: TLS (uncomment and set your host + secret name)
+  # tls:
+  #   - hosts:
+  #       - archery-tracker.example.com
+  #     secretName: archery-tracker-tls
