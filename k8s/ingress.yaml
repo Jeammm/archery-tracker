@@ -3,17 +3,10 @@ kind: Ingress
 metadata:
   name: archery-tracker
   namespace: archery-tracker
-  annotations:
-    # nginx ingress: enable WebSocket for socket.io
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    # Uncomment and set your cert manager if using TLS:
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  ingressClassName: cloudflare-tunnel   # change to your ingress class (e.g. traefik) if different
-  # rules without host match all hosts; set a host to restrict
+  ingressClassName: cloudflare-tunnel
   rules:
-    - host: archery-tracker.jeammm.com   # change to your domain, or remove this block to match any host
+    - host: archery-tracker.jeammm.com
       http:
         paths:
           - path: /api
@@ -37,8 +30,3 @@ spec:
                 name: frontend
                 port:
                   number: 80
-  # Optional: TLS (uncomment and set your host + secret name)
-  # tls:
-  #   - hosts:
-  #       - archery-tracker.example.com
-  #     secretName: archery-tracker-tls
