@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: celery
-          image: ghcr.io/jeammm/archery-backend:0.1
+          image: ghcr.io/Jeammm/archery-backend:e649540
           command:
             - celery
             - -A
