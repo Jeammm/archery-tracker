@@ -10,7 +10,7 @@ metadata:
     # Uncomment and set your cert manager if using TLS:
     # cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  ingressClassName: nginx   # change to your ingress class (e.g. traefik) if different
+  ingressClassName: cloudflare-tunnel   # change to your ingress class (e.g. traefik) if different
   # rules without host match all hosts; set a host to restrict
   rules:
     - host: archery-tracker.jeammm.com   # change to your domain, or remove this block to match any host
