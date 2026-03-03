@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/Jeammm/archery-frontend:e649540
+          image: ghcr.io/jeammm/archery-frontend:54e9067
           ports:
             - containerPort: 80
