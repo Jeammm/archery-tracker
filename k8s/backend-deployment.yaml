@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/jeammm/archery-backend:54e9067
+          image: ghcr.io/jeammm/archery-backend:d73ed20
           env:
             - name: FLASK_APP
               value: "run"
